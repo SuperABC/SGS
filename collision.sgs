@@ -1,0 +1,60 @@
+Use library "sgl.sgl"
+
+New class player with point pos, bitmap cover.
+New class enemy with point pos, vector v, bitmap cover.
+
+New function move player with x, y.
+New function move enemy.
+New function has collision.
+
+Start sg setup
+	Init window with width 640, height 640, title "Collision".
+	Init mouse.
+End sg setup
+
+Start sg loop
+	Let renew, dragging, playing be 1, 0, 0.
+	Let player red be player ((290, 290), none).
+	Let enemy blue1, blue2, blue3, blue4 be 
+		enemy ((120, 100), none), enemy ((432, 120), none), enemy ((100, 432), none), enemy ((480, 480), none).
+	If renew is 1 then 
+		Load bmp with path "Source\\collision\\background.bmp", x 0, y 0.
+		
+		Set color with r 255, g 0, b 0.
+		Get image with left x of pos of red, up y of pos of red, width 60, height 60, destiny cover of red.
+		Draw quad with left x of pos of red, up y of pos of red, width 60, height 60, mode "SOLID".
+		
+		Set color with r 0, g 0, b 255.
+		Get image with left: x of pos of blue1, up: y of pos of blue1, width 84, height 64, destiny: cover of blue1.
+		Draw quad with left: x of pos of blue1, up: y of pos of blue1, width 84, height 64, mode "SOLID".
+		Get image with left: x of pos of blue2, up: y of pos of blue2, width 136, height 32, destiny: cover of blue2.
+		Draw quad with left: x of pos of blue2, up: y of pos of blue2, width 136, height 32, mode "SOLID".
+		Get image with left: x of pos of blue3, up: y of pos of blue3, width 60, height 96, destiny: cover of blue3.
+		Draw quad with left: x of pos of blue3, up: y of pos of blue3, width 60, height 96, mode "SOLID".
+		Get image with left: x of pos of blue4, up: y of pos of blue4, width 64, height 52, destiny: cover of blue4.
+		Draw quad with left: x of pos of blue4, up: y of pos of blue4, width 64, height 52, mode "SOLID".
+
+		Let renew be 0.
+	End if.
+
+	If has collision is true then
+		Let renew, dragging, playing be 1, 0, 0.
+		Quit sg loop.
+	End if.
+
+	Let state be mouse state with button "LEFT".
+	Let pos be mouse position.
+
+	If (dragging or pos in rectangle with quad (x of pos of red, y of pos of red, x of pos of red + 59, y of pos of red + 59))
+		and state is "DOWN" then
+		Let playing, dragging be 1, 1.
+		Move player with delta x: x of position - 29, delta y: y of position - 29.
+	End if.
+	
+	If pos in rectangle with quad (x of pos of red, y of pos of red, x of pos of red + 59, y of pos of red + 59))
+		and state is "UP" then
+		Let dragging be 0.
+	End if.
+
+	Move enemy.
+End sg loop
