@@ -4,7 +4,7 @@
 
 class Machine {
 private:
-	stateSeq content;
+	stateSeq *content;
 
 	vector<varNode> globeVar;
 	vector<classType> globeClassType;
@@ -14,16 +14,22 @@ public:
 	Machine();
 	~Machine();
 
-	Machine *input(stateSeq seq,
+	Machine *input(stateSeq *seq,
 		vector<classType> classType, vector<funcNode> func,
 		vector<varNode> var);
 	void execute();
+	void execute(stateSeq s, varNode *par);
+	void step(stateSeq *s);
+
+	void print(varNode *par);
+	void println(varNode *par);
 
 	static void error(const char *inst, int type);
 };
 
 enum VMERROR {
-	VE_DIVBYZERO
+	VE_DIVBYZERO,
+	VE_TYPEMISMATCH
 };
 class MachineException {
 private:

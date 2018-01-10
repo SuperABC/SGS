@@ -20,10 +20,10 @@ int main() {
 			m.input(s.output, s.globeClassType, s.globeFunc, s.globeVar)->execute();
 		}
 		catch (LexemeException *le) {
-			cout << le->message();
+			cout << le->message() << endl;
 		}
 		catch (SyntaxException *se) {
-			cout << se->message();
+			cout << se->message() << endl;
 		}
 	}
 }

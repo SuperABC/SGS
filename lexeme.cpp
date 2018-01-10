@@ -118,12 +118,13 @@ vector<tokenPrim> Lexeme::parse() {
 			bool point = false;
 			while (content[i] >= '0' && content[i] <= '9' || content[i] == '.') {
 				if (content[i] == '.') {
-					if (point)error(".", LE_ILLEGAL);
+					if (point)break;
 					else point = true;
 				}
 				i++;
 			}
 			i--;
+			if (content[i] == '.')i--;
 			continue;
 		}
 		else if (content[i] >= 'A'&&content[i] <= 'Z' || content[i] >= 'a'&&content[i] <= 'z' || content[i] == '_') {

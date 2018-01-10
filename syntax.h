@@ -11,9 +11,11 @@ struct varNode;
 struct classType;
 struct classNode;
 struct funcType;
+struct funcNode;
 struct stateSeq;
 
 enum valOp {
+	VO_NULL,
 	VO_ASSIGN,
 	VO_EXE
 };
@@ -28,43 +30,57 @@ struct stateSeq {
 
 enum varType {
 	VT_INTEGER,
-	VT_FLOAT,
-	VT_BOOL,
 	VT_CHAR,
 	VT_STRING,
+	VT_FLOAT,
+	VT_BOOL,
 	VT_ARRAY,
 	VT_CLASS,
-	VT_FUNCTION
+	VT_FUNCTION,
+	VT_VAR
 };
 struct varNode {
 	enum varType t;
 	string name;
 	string classType;
-	void *val;
+	void const *val;
+	varNode *next;
 	varNode() {}
 	varNode(int type, string n, string str = "") : t((enum varType)type), name(n), classType(str), val(NULL) {};
 };
 struct classType {
 	string name;
-	vector<varType> valList;
+	vector<varType> varList;
 	vector<classType> classList;
-	vector<funcType> funcList;
 };
 struct classNode {
 	string name;
-	vector<varNode> valList;
+	vector<varNode> varList;
 	vector<classNode> classList;
-	vector<funcType> funcList;
+	classNode() {}
+	classNode(classType t, string name) {
+		this->name = name;
+	}
 };
 struct funcType {
 	string name;
-	vector<varType> valList;
-	vector<classType> classList;
-	vector<funcType> funcList;
+	vector<varNode> varList;
+	vector<classNode> classList;
+	funcType() {}
+	funcType(string name,
+		vector<varNode> vars = vector<varNode>(),
+		vector<classNode> classes = vector<classNode>()) {
+		this->name = name;
+		varList = vars;
+		classList = classes;
+	}
 };
 struct funcNode {
 	funcType declare;
 	stateSeq content;
+	vector<varNode> localVar;
+	funcNode() {}
+	funcNode(funcType dec) { declare = dec; }
 };
 
 class Syntax {
@@ -78,23 +94,26 @@ public:
 	vector<classType> globeClassType;
 	vector<funcNode> globeFunc;
 	vector<varNode> globeVar;
-	stateSeq output;
+	stateSeq *output;
 	stateSeq *last;
 
 	Syntax();
 	Syntax(vector<string> ids, vector<tokenPrim> input);
 	~Syntax();
+	void prepare();
 
 	static char *opStr(int id);
 	static char *valueStr(float value);
 
 	Syntax *input(vector<string> ids, vector<tokenPrim> src);
-	stateSeq parse();
+	stateSeq *parse();
 
 	void parseLibrary(string lib);
+	string parseUser();
 	varNode *parseValue();
 	funcNode parseFuncDec();
-	stateSeq parseFuncDef();
+	stateSeq parseFuncDef(int funcid);
+	varNode *parseParameter(int funcid);
 	classType parseClassDec();
 	classNode parseClassConstr();
 
@@ -113,6 +132,7 @@ enum SYNTAXERROR {
 	SE_EXPBRACE,
 	SE_REDEF,
 	SE_INVALIDTYPE,
+	SE_DISACCORD,
 	SE_NOID,
 	SE_INCOMPLETE,
 	SE_UNKNOWN,
