@@ -2,6 +2,7 @@
 #define SYNTAX_H
 #include "lexeme.h"
 #include <cstdio>
+#include <stack>
 
 enum STATESTEP {
 	SS_IDLE
@@ -37,16 +38,19 @@ enum varType {
 	VT_ARRAY,
 	VT_CLASS,
 	VT_FUNCTION,
-	VT_VAR
+	VT_VAR,
+	VT_EXP
 };
 struct varNode {
 	enum varType t;
 	string name;
 	string classType;
 	void const *val;
-	varNode *next;
+	varNode *next;//Used for function parameter.
+	varNode *left, *right;//Used for expression.
 	varNode() {}
-	varNode(int type, string n, string str = "") : t((enum varType)type), name(n), classType(str), val(NULL) {};
+	varNode(int type, string n, string str = "") : t((enum varType)type), name(n), classType(str),
+		val(NULL), next(NULL), left(NULL), right(NULL) {};
 };
 struct classType {
 	string name;
@@ -111,6 +115,7 @@ public:
 	void parseLibrary(string lib);
 	string parseUser();
 	varNode *parseValue();
+	varNode *parseExpression();
 	funcNode parseFuncDec();
 	stateSeq parseFuncDef(int funcid);
 	varNode *parseParameter(int funcid);
@@ -122,6 +127,7 @@ public:
 	int findFunc();
 	int findType();
 
+	static bool compare(int op1, int op2);
 	static void error(const char *inst, int type);
 };
 
