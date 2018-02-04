@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "machine.h"
 
 using std::cin;
@@ -12,8 +13,11 @@ int main() {
 
 	string input;
 
+	std::ifstream fin("test.sgs");
+
 	while (1) {
-		getline(cin, input);
+		if (fin.eof())break;
+		getline(fin, input);
 		try {
 			l.input(input.c_str())->parse();
 			s.input(l.strId, l.output)->parse();
@@ -26,4 +30,6 @@ int main() {
 			cout << se->message() << endl;
 		}
 	}
+
+	system("pause");
 }
