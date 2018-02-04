@@ -1,5 +1,7 @@
 #ifndef LEXEME_H
 #define LEXEME_H
+#include <cstdio>
+#include <iostream>
 #include <vector>
 #include <string>
 
@@ -14,6 +16,11 @@ enum TOKENTYPE {
 	TT_DATA,
 	TT_OP,
 	TT_SYS,
+};
+enum CONSTTYPE {
+	CT_INT,
+	CT_FLOAT,
+	CT_STRING
 };
 
 enum IDENTIFIER {
@@ -63,10 +70,13 @@ enum OPERATOR {
 	OP_MINUS,
 	OP_MINUSMINUS,
 	OP_EQMINUS,
+	OP_NEG,
 	OP_MULTY,
 	OP_EQMULTY,
 	OP_DIVIDE,
 	OP_EQDIVIDE,
+	OP_MOD,
+	OP_EQMOD,
 	OP_AND,
 	OP_ANDAND,
 	OP_EQAND,
@@ -95,7 +105,8 @@ enum OPERATOR {
 	OP_EQUAL,
 	OP_QUERY,
 	OP_QUOT,
-	OP_DBQUOT
+	OP_DBQUOT,
+	OP_CROSS
 };
 
 typedef struct _hn {
@@ -117,6 +128,8 @@ private:
 	int idNum;
 
 	hashNode *list[256];
+
+	int negPos = 0;
 public:
 	vector<tokenPrim> output;
 	vector<string> strId;
