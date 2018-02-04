@@ -81,38 +81,28 @@ Lexeme *Lexeme::input(const char *str) {
 	return this;
 }
 vector<tokenPrim> Lexeme::parse() {
+	output.clear();
+
 	int len = content.length();
 	for (int i = 0; i < len; i++) {
 		tokenPrim *node = new tokenPrim();
 		if (content[i] == ' ')continue;
-		else if (content[i] >= '0' && content[i] <= '9' || content[i] == '-') {
-			if (content[i] == '-' && (content[i + 1] < '0' || content[i + 1] > '9')) {
-				node->type = TT_OP;
-				node->value = 0;
-				if (content[i + 1] == '-') {
-					node->id = OP_MINUSMINUS;
-					i++;
-					output.push_back(*node);
-					continue;
-				}
-				else if (content[i + 1] == '=') {
-					node->id = OP_EQMINUS;
-					i++;
-					output.push_back(*node);
-					continue;
-				}
-				else {
-					node->id = OP_MINUS;
-					output.push_back(*node);
-					continue;
-				}
-			}
-			else if((content[i + 1] < '0'||content[i+1]>'9')&&content[i+1]!='.') {
-				error((string()+content[i]).c_str(), LE_ILLEGAL);
-			}
+		else if (content[i] >= '0' && content[i] <= '9') {
 			node->type = TT_DATA;
-			node->id = 0;
-			node->value = float(atof(content.c_str() + i));
+
+			int t = i;
+			while (content[t] >= '0'&&content[t] <= '9') {
+				t++;
+			}
+			if (content[t] == '.' && ++t != content.size() && content[t] >= '0'&&content[t] <= '9') {
+				node->value = float(atof(content.c_str() + i));
+				node->id = CT_FLOAT;
+			}
+			else {
+				node->value = int(atoi(content.c_str() + i));
+				node->id = CT_INT;
+			}
+
 			output.push_back(*node);
 			i++;
 			bool point = false;
@@ -212,6 +202,18 @@ vector<tokenPrim> Lexeme::parse() {
 				}
 				else {
 					node->id = OP_DIVIDE;
+					output.push_back(*node);
+					continue;
+				}
+			case '%':
+				if (content[i + 1] == '=') {
+					node->id = OP_EQMOD;
+					i++;
+					output.push_back(*node);
+					continue;
+				}
+				else {
+					node->id = OP_MOD;
 					output.push_back(*node);
 					continue;
 				}
@@ -364,7 +366,7 @@ vector<tokenPrim> Lexeme::parse() {
 				if (content[i] != '\'')
 					error("", LE_INCOMPLETE);
 				strcpy(a, str.c_str());
-				node->id = hash(a);
+				node->id = CT_STRING;
 				node->s = a;
 				output.push_back(*node);
 				continue;
@@ -372,6 +374,8 @@ vector<tokenPrim> Lexeme::parse() {
 				node->id = OP_DBQUOT;
 				output.push_back(*node);
 				continue;
+			case '#':
+				return output;
 			}
 		}
 	}
