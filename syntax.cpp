@@ -1,5 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "syntax.h"
-#pragma warning(disable:4996)
 
 Syntax::Syntax(){
 	step = SS_IDLE;
@@ -20,13 +20,13 @@ Syntax::~Syntax() {
 
 }
 void Syntax::prepare() {
-	funcNode print = funcNode(funcType(string("print")));
-	print.declare.varList.push_back(varNode(VT_STRING, "content"));
-	globeFunc.push_back(print);
+	funcNode out = funcNode(funcType(string("out")));
+	out.declare.varList.push_back(varNode(VT_STRING, "content"));
+	globeFunc.push_back(out);
 
-	funcNode println = funcNode(funcType(string("println")));
-	println.declare.varList.push_back(varNode(VT_STRING, "content"));
-	globeFunc.push_back(println);
+	funcNode outln = funcNode(funcType(string("outln")));
+	outln.declare.varList.push_back(varNode(VT_STRING, "content"));
+	globeFunc.push_back(outln);
 }
 
 char *Syntax::opStr(int id) {
@@ -100,6 +100,8 @@ Syntax *Syntax::input(vector<string> ids, vector<tokenPrim> src) {
 	return this;
 }
 stateSeq *Syntax::parse() {
+	proc = 0;
+
 	while (proc < content.size()) {
 		if (content[proc].type == TT_SYS&&content[proc].id == ID_USE) {
 			proc++;
@@ -165,7 +167,7 @@ stateSeq *Syntax::parse() {
 				rtVal st = rtVal();
 				st.op = VO_ASSIGN;
 				st.left = new varNode(varType, newVar);
-				st.right = parseValue();
+				st.right = parseExpression();
 				last->act = st;
 				last->next = new stateSeq();
 				last = last->next;
@@ -203,10 +205,11 @@ stateSeq *Syntax::parse() {
 			continue;
 		}
 	}
+
 	return output;
 }
 
-void Syntax::parseLibrary(string lib) {
+void Syntax::parseLibrary(string lib) {//Not finished.
 
 }
 string Syntax::parseUser() {
@@ -228,8 +231,16 @@ varNode *Syntax::parseValue() {
 			strcpy((char *)ret->val, content[proc++].s);
 		}
 		else {
-			ret->t = VT_FLOAT;
-			ret->val = new float(content[proc++].value);
+			switch (content[proc].id) {
+			case CT_INT:
+				ret->t = VT_INTEGER;
+				ret->val = new int(content[proc++].value);
+				break;
+			case CT_FLOAT:
+				ret->t = VT_FLOAT;
+				ret->val = new float(content[proc++].value);
+				break;
+			}
 		}
 	}
 	else if (content[proc].type == TT_USER) {
@@ -240,6 +251,114 @@ varNode *Syntax::parseValue() {
 	else
 		error("", SE_INCOMPLETE);
 	return ret;
+}
+varNode *Syntax::parseExpression() {
+	std::stack<int> op;
+	std::stack<varNode*> value;
+
+	while (proc < content.size()) {
+		if (content[proc].type == TT_SYS)break;
+		else if (content[proc].type == TT_OP && content[proc].id == OP_DOT)break;
+		else if (content[proc].type == TT_OP && content[proc].id == OP_COMMA)break;
+		else if (content[proc].type == TT_USER) {
+			varNode *tmp = new varNode(VT_VAR, "");
+			string *n = new string(parseUser());
+			tmp->val = n->c_str();
+
+			value.push(tmp);
+		}
+		else if (content[proc].type == TT_DATA) {
+			varNode *tmp = new varNode();
+			if (content[proc].s != NULL) {
+				tmp->t = VT_STRING;
+				tmp->val = malloc(sizeof(content[proc].s) + 1);
+				strcpy((char *)tmp->val, content[proc].s);
+			}
+			else {
+				switch (content[proc].id) {
+				case CT_INT:
+					tmp->t = VT_INTEGER;
+					tmp->val = new int(content[proc].value);
+					break;
+				case CT_FLOAT:
+					tmp->t = VT_FLOAT;
+					tmp->val = new float(content[proc].value);
+					break;
+				}
+			}
+
+			value.push(tmp);
+			proc++;
+		}
+		else if (content[proc].type == TT_OP) {
+			if (content[proc].id == OP_LBRACE) {
+				op.push(OP_LBRACE);
+			}
+			else if (content[proc].id == OP_RBRACE) {
+				while (op.top() != OP_LBRACE) {
+					int o = op.top();
+					op.pop();
+					if (value.size() < 2)
+						error("", SE_INCOMPLETE);
+					varNode *a = value.top();
+					value.pop();
+					varNode *b = value.top();
+					value.pop();
+
+					varNode *tmp = new varNode(VT_EXP, "");
+					tmp->val = new int(o);
+					tmp->left = a;
+					tmp->right = b;
+					value.push(tmp);
+				}
+				op.pop();
+			}
+			else {
+				if (op.empty()) {
+					op.push(content[proc].id);
+				}
+				else {
+					while (!op.empty() && compare(content[proc].id, op.top())) {
+						int o = op.top();
+						op.pop();
+						if (value.size() < 2)
+							error("", SE_INCOMPLETE);
+						varNode *a = value.top();
+						value.pop();
+						varNode *b = value.top();
+						value.pop();
+
+						varNode *tmp = new varNode(VT_EXP, "");
+						tmp->val = new int(o);
+						tmp->left = a;
+						tmp->right = b;
+						value.push(tmp);
+					}
+					op.push(content[proc].id);
+				}
+			}
+			proc++;
+		}
+	}
+
+	while (!op.empty()) {
+		int o = op.top();
+		op.pop();
+		if (value.size() < 2)
+			error("", SE_INCOMPLETE);
+		varNode *a = value.top();
+		value.pop();
+		varNode *b = value.top();
+		value.pop();
+
+		varNode *tmp = new varNode(VT_EXP, "");
+		tmp->val = new int(o);
+		tmp->left = a;
+		tmp->right = b;
+		value.push(tmp);
+	}
+
+	return value.top();
 }
 funcNode Syntax::parseFuncDec() {
 	funcNode ret = funcNode();
@@ -313,7 +432,7 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 				rtVal st = rtVal();
 				st.op = VO_ASSIGN;
 				st.left = new varNode(varType, newVar);
-				st.right = parseValue();
+				st.right = parseExpression();
 				last->act = st;
 				last = last->next;
 			}
@@ -342,7 +461,7 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 	globeFunc[funcid].content = ret;
 	return ret;
 }
-varNode *Syntax::parseParameter(int funcid) {
+varNode *Syntax::parseParameter(int funcid){
 	int parNum = globeFunc[funcid].declare.varList.size() + 
 		globeFunc[funcid].declare.classList.size();
 	varNode *rt = new varNode();
@@ -356,7 +475,7 @@ varNode *Syntax::parseParameter(int funcid) {
 		if (content[proc].type == TT_SYS&&content[proc].id == ID_WITH) {
 			proc++;
 			for (unsigned int i = 0; i < globeFunc[funcid].declare.varList.size(); i++) {
-				last->t = VT_FLOAT;
+				last->t = VT_VAR;
 				last->name = globeFunc[funcid].declare.varList[i].name;
 				if (i == globeFunc[funcid].declare.varList.size() - 1)break;
 				last->next = new varNode();
@@ -367,7 +486,7 @@ varNode *Syntax::parseParameter(int funcid) {
 			string tmp;
 			bool accord = false;
 			varNode *iter;
-			while (content[proc].type != TT_OP || content[proc].id != OP_DOT) {
+			while (content[proc].type != TT_OP && content[proc].id != OP_DOT) {
 				tmp.clear();
 				while (content[proc].type == TT_USER) {
 					tmp += strId[content[proc++].id];
@@ -384,8 +503,10 @@ varNode *Syntax::parseParameter(int funcid) {
 				iter = rt;
 				while (iter != NULL) {
 					if (iter->name == tmp) {
-						iter->val = parseValue();
+						iter->val = parseExpression();
 						iter->t = ((varNode *)iter->val)->t;
+						iter->left = ((varNode *)iter->val)->left;
+						iter->right = ((varNode *)iter->val)->right;
 						iter->val = ((varNode *)iter->val)->val;
 						break;
 					}
@@ -403,11 +524,11 @@ varNode *Syntax::parseParameter(int funcid) {
 		return rt;
 	}
 }
-classType Syntax::parseClassDec() {
+classType Syntax::parseClassDec() {//Not finished.
 	classType ret = classType();
 	return ret;
 }
-classNode Syntax::parseClassConstr() {
+classNode Syntax::parseClassConstr() {//Not finished.
 	classNode ret = classNode();
 	return ret;
 }
@@ -417,7 +538,7 @@ string Syntax::findVar() {
 		tmp += strId[content[proc++].id];
 		tmp += " ";
 	}
-	tmp.pop_back();
+	if(tmp.size())tmp.pop_back();
 	for (auto n : globeVar) {
 		if (n.name == tmp) {
 			return "";
@@ -432,7 +553,7 @@ int Syntax::findClass() {
 		tmp += strId[content[proc++].id];
 		tmp += " ";
 	}
-	tmp.pop_back();
+	if (tmp.size())tmp.pop_back();
 	for (unsigned int i = 0; i < globeClassType.size(); i++) {
 		if (globeClassType[i].name == tmp)return i;
 	}
@@ -460,6 +581,98 @@ int Syntax::findType() {
 	return -1;
 }
 
+bool Syntax::compare(int op1, int op2) {//op1<=op2
+	int prio1, prio2;
+	switch (op1) {
+	case OP_LBRACE:
+		prio1 = 0;
+		break;
+	case OP_OROR:
+		prio1 = 1;
+		break;
+	case OP_ANDAND:
+		prio1 = 2;
+		break;
+	case OP_OR:
+		prio1 = 3;
+		break;
+	case OP_NOR:
+		prio1 = 4;
+		break;
+	case OP_AND:
+		prio1 = 5;
+		break;
+	case OP_EQUAL:
+	case OP_NOTEQ:
+		prio1 = 6;
+		break;
+	case OP_GREATER:
+	case OP_NGREATER:
+	case OP_SMALLER:
+	case OP_NSMALLER:
+		prio1 = 7;
+		break;
+	case OP_PLUS:
+	case OP_MINUS:
+		prio1 = 8;
+		break;
+	case OP_MULTY:
+	case OP_DIVIDE:
+	case OP_MOD:
+		prio1 = 9;
+		break;
+	case OP_NOT:
+	case OP_INVERSE:
+	case OP_NEG:
+		prio1 = 10;
+		break;
+	}
+	switch (op2) {
+	case OP_LBRACE:
+		prio2 = 0;
+		break;
+	case OP_OROR:
+		prio2 = 1;
+		break;
+	case OP_ANDAND:
+		prio2 = 2;
+		break;
+	case OP_OR:
+		prio2 = 3;
+		break;
+	case OP_NOR:
+		prio2 = 4;
+		break;
+	case OP_AND:
+		prio2 = 5;
+		break;
+	case OP_EQUAL:
+	case OP_NOTEQ:
+		prio2 = 6;
+		break;
+	case OP_GREATER:
+	case OP_NGREATER:
+	case OP_SMALLER:
+	case OP_NSMALLER:
+		prio2 = 7;
+		break;
+	case OP_PLUS:
+	case OP_MINUS:
+		prio2 = 8;
+		break;
+	case OP_MULTY:
+	case OP_DIVIDE:
+	case OP_MOD:
+		prio2 = 9;
+		break;
+	case OP_NOT:
+	case OP_INVERSE:
+	case OP_NEG:
+		prio2 = 10;
+		break;
+	}
+	return prio1 <= prio2;
+}
 void Syntax::error(const char *inst, int type) {
 	switch (type) {
 	case SE_UNIQUE:
