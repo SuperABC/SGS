@@ -21,8 +21,9 @@ public:
 	void execute(stateSeq s, varNode *par);
 	void step(stateSeq *s);
 
-	void print(varNode *par);
-	void println(varNode *par);
+	varNode exp(varNode *e);
+	void out(varNode *par);
+	void outln(varNode *par);
 
 	static void error(const char *inst, int type);
 };
