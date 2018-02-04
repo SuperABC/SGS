@@ -44,31 +44,28 @@ void Machine::step(stateSeq *s) {
 	if (s->act.op == VO_ASSIGN) {
 		for (unsigned int i = 0; i < globeVar.size(); i++) {
 			if (globeVar[i].name == s->act.left->name) {
-				if (s->act.left->t != s->act.right->t)
-					error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
-				globeVar[i].val = s->act.right->val;
+				/*if (s->act.left->t != s->act.right->t)
+					error(s->act.left->name.c_str(), VE_TYPEMISMATCH);*/
+				globeVar[i].val = exp(s->act.right).val;
+				break;
 			}
 		}
 	}
 	if (s->act.op == VO_EXE) {
 		varNode *iter = s->act.right;
 		while (iter != NULL) {
-			if (iter->t == VT_VAR) {
-				for (auto v : globeVar) {
-					if ((char *)iter->val == v.name) {
-						iter->t = v.t;
-						iter->val = v.val;
-						break;
-					}
-				}
+			if (iter->t == VT_VAR || iter->t == VT_EXP) {
+				varNode r = exp(iter);
+				iter->t = r.t;
+				iter->val = r.val;
 			}
 			iter = iter->next;
 		}
-		if (s->act.left->name == "print") {
-			print(s->act.right);
+		if (s->act.left->name == "out") {
+			out(s->act.right);
 		}
-		else if (s->act.left->name == "println") {
-			println(s->act.right);
+		else if (s->act.left->name == "outln") {
+			outln(s->act.right);
 		}
 		else {
 			for (auto f : globeFunc) {
@@ -80,20 +77,63 @@ void Machine::step(stateSeq *s) {
 	}
 }
 
-void Machine::print(varNode *par) {
+varNode Machine::exp(varNode *e) {
+	varNode ret;
+
+	if (e->t == VT_EXP) {
+		varNode l = exp(e->left);
+		varNode r = exp(e->right);
+		switch (*(int *)e->val) {
+		case OP_PLUS:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) + *(float *)(r.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) + *(int *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(int *)(l.val) + *(float *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(l.val) + *(int *)(r.val));
+			}
+			break;
+		}
+	}
+	else if (e->t == VT_VAR) {
+		for (auto v : globeVar) {
+			if ((char *)e->val == v.name) {
+				ret.t = v.t;
+				ret.val = v.val;
+				break;
+			}
+		}
+	}
+	else {
+		ret.t = e->t;
+		ret.val = e->val;
+	}
+
+	return ret;
+}
+void Machine::out(varNode *par) {
 	if (par->name == "content") {
 		if(par->t==VT_STRING)
-			printf("%s", par->val);
+			printf("%s", (char *)par->val);
 		if(par->t==VT_INTEGER)
 			printf("%d", *(int *)(par->val));
 		if (par->t == VT_FLOAT)
 			printf("%f", *(float *)(par->val));
 	}
 }
-void Machine::println(varNode *par) {
+void Machine::outln(varNode *par) {
 	if (par->name == "content") {
 		if (par->t == VT_STRING)
-			printf("%s\n", par->val);
+			printf("%s\n", (char *)par->val);
 		if (par->t == VT_INTEGER)
 			printf("%d\n", *(int *)(par->val));
 		if (par->t == VT_FLOAT)
