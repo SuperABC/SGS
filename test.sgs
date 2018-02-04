@@ -1,0 +1,7 @@
+let string hello be 'hello'.
+let string world be 'world'.
+let integer res be 1+1+1.
+new function test.
+start test. outln with content hello. outln with content world. outln with content res+1. end test.
+
+test.
