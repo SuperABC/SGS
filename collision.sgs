@@ -8,7 +8,7 @@ New function move enemy.
 New function has collision.
 
 Start sg setup
-	Init window with width 640, height 640, title "Collision".
+	Init window with width 640, height 640, title 'Collision'.
 	Init mouse.
 End sg setup
 
