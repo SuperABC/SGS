@@ -51,7 +51,7 @@ void Machine::step(stateSeq *s) {
 			}
 		}
 	}
-	if (s->act.op == VO_EXE) {
+	else if (s->act.op == VO_EXE) {
 		varNode *iter = s->act.right;
 		while (iter != NULL) {
 			if (iter->t == VT_VAR || iter->t == VT_EXP) {
@@ -75,12 +75,30 @@ void Machine::step(stateSeq *s) {
 			}
 		}
 	}
+	else if (s->act.op == VO_IF) {
+		varNode res = exp(s->act.left);
+		bool ar;
+		switch (res.t) {
+		case VT_INTEGER:
+			if (*(int *)res.val)ar = true;
+			else ar = false;
+			break;
+		}
+		if (ar) {
+			execute(*s->act.right->left->block, NULL);
+		}
+		else {
+			execute(*s->act.right->right->block, NULL);
+		}
+	}
 }
 
 varNode Machine::exp(varNode *e) {
 	varNode ret;
+	if (e->t == VT_FUNCTION) {
 
-	if (e->t == VT_EXP) {
+	}
+	else if (e->t == VT_EXP) {
 		varNode l = exp(e->left);
 		varNode r = exp(e->right);
 		switch (*(int *)e->val) {
@@ -101,6 +119,67 @@ varNode Machine::exp(varNode *e) {
 				ret.t = VT_INTEGER;
 				ret.val = new int(*(int *)(l.val) + *(int *)(r.val));
 			}
+			break;
+		case OP_MINUS:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) - *(float *)(r.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) - *(int *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(int *)(l.val) - *(float *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(l.val) - *(int *)(r.val));
+			}
+			break;
+		case OP_MULTY:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) * *(float *)(r.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) * *(int *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(int *)(l.val) * *(float *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(l.val) * *(int *)(r.val));
+			}
+			break;
+		case OP_DIVIDE:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) / *(float *)(r.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(float *)(l.val) / *(int *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new float(*(int *)(l.val) / *(float *)(r.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(l.val) / *(int *)(r.val));
+			}
+			break;
+		case OP_MOD:
+			if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(l.val) % *(int *)(r.val));
+			}
+			else error("mod", VE_TYPEMISMATCH);
 			break;
 		}
 	}
