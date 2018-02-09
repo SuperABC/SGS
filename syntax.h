@@ -4,10 +4,6 @@
 #include <cstdio>
 #include <stack>
 
-enum STATESTEP {
-	SS_IDLE
-};
-
 struct varNode;
 struct classType;
 struct classNode;
@@ -18,7 +14,9 @@ struct stateSeq;
 enum valOp {
 	VO_NULL,
 	VO_ASSIGN,
-	VO_EXE
+	VO_EXE,
+	VO_IF,
+	VO_WHILE
 };
 struct rtVal {
 	enum valOp op;
@@ -30,6 +28,7 @@ struct stateSeq {
 };
 
 enum varType {
+	VT_NULL,
 	VT_INTEGER,
 	VT_CHAR,
 	VT_STRING,
@@ -48,9 +47,11 @@ struct varNode {
 	void const *val;
 	varNode *next;//Used for function parameter.
 	varNode *left, *right;//Used for expression.
-	varNode() {}
+	stateSeq *block;//Used for flow.
+	varNode() : t(VT_NULL), name(""), classType(""),
+		val(NULL), next(NULL), left(NULL), right(NULL), block(NULL) {};
 	varNode(int type, string n, string str = "") : t((enum varType)type), name(n), classType(str),
-		val(NULL), next(NULL), left(NULL), right(NULL) {};
+		val(NULL), next(NULL), left(NULL), right(NULL), block(NULL) {};
 };
 struct classType {
 	string name;
@@ -92,7 +93,6 @@ private:
 	vector<tokenPrim> content;
 	vector<string> strId;
 
-	enum STATESTEP step;
 	unsigned int proc;
 public:
 	vector<classType> globeClassType;
@@ -102,14 +102,14 @@ public:
 	stateSeq *last;
 
 	Syntax();
-	Syntax(vector<string> ids, vector<tokenPrim> input);
+	Syntax(vector<string> &ids, vector<tokenPrim> &input);
 	~Syntax();
 	void prepare();
 
 	static char *opStr(int id);
 	static char *valueStr(float value);
 
-	Syntax *input(vector<string> ids, vector<tokenPrim> src);
+	Syntax *input(vector<string> &ids, vector<tokenPrim> &src);
 	stateSeq *parse();
 
 	void parseLibrary(string lib);
@@ -119,6 +119,7 @@ public:
 	funcNode parseFuncDec();
 	stateSeq parseFuncDef(int funcid);
 	varNode *parseParameter(int funcid);
+	stateSeq *parseBlock();
 	classType parseClassDec();
 	classNode parseClassConstr();
 
