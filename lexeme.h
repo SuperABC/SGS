@@ -142,6 +142,7 @@ public:
 	Lexeme *input(const char *str);
 	std::vector<tokenPrim>parse();
 	int hash(string s);
+	const char *get();
 	static void error(const char *word, int type);
 };
 
