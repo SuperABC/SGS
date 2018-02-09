@@ -403,6 +403,9 @@ int Lexeme::hash(string str) {
 	}
 	return tmp->id;
 }
+const char *Lexeme::get() {
+	return content.c_str();
+}
 void Lexeme::error(const char *word, int type) {
 	switch (type) {
 	case LE_ILLEGAL:
