@@ -24,9 +24,11 @@ int main() {
 			m.input(s.output, s.globeClassType, s.globeFunc, s.globeVar)->execute();
 		}
 		catch (LexemeException *le) {
+			cout << l.get() << endl;
 			cout << le->message() << endl;
 		}
 		catch (SyntaxException *se) {
+			cout << l.get() << endl;
 			cout << se->message() << endl;
 		}
 	}
