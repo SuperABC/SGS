@@ -1,5 +1,6 @@
 let string hello be 'hello'.
 let string world be 'world'.
-let integer res be 1+3*(2+1).
+let integer res be 1+2*(2+1).
 
-if res - 10 then outln with content hello. else outln with content world. end if.
+if res <= 10 then outln with content hello. else outln with content world. end if.
+outln with content res.

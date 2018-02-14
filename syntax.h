@@ -28,7 +28,6 @@ struct stateSeq {
 };
 
 enum varType {
-	VT_NULL,
 	VT_INTEGER,
 	VT_CHAR,
 	VT_STRING,
@@ -38,7 +37,8 @@ enum varType {
 	VT_CLASS,
 	VT_FUNCTION,
 	VT_VAR,
-	VT_EXP
+	VT_EXP,
+	VT_NULL
 };
 struct varNode {
 	enum varType t;

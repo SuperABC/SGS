@@ -123,19 +123,19 @@ varNode Machine::exp(varNode *e) {
 		case OP_MINUS:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(l.val) - *(float *)(r.val));
+				ret.val = new float(*(float *)(r.val) - *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(l.val) - *(int *)(r.val));
+				ret.val = new float(*(float *)(r.val) - *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(int *)(l.val) - *(float *)(r.val));
+				ret.val = new float(*(int *)(r.val) - *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
 				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(l.val) - *(int *)(r.val));
+				ret.val = new int(*(int *)(r.val) - *(int *)(l.val));
 			}
 			break;
 		case OP_MULTY:
@@ -159,27 +159,117 @@ varNode Machine::exp(varNode *e) {
 		case OP_DIVIDE:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(l.val) / *(float *)(r.val));
+				ret.val = new float(*(float *)(r.val) / *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(l.val) / *(int *)(r.val));
+				ret.val = new float(*(float *)(r.val) / *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(int *)(l.val) / *(float *)(r.val));
+				ret.val = new float(*(int *)(r.val) / *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
 				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(l.val) / *(int *)(r.val));
+				ret.val = new int(*(int *)(r.val) / *(int *)(l.val));
 			}
 			break;
 		case OP_MOD:
 			if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
 				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(l.val) % *(int *)(r.val));
+				ret.val = new int(*(int *)(r.val) % *(int *)(l.val));
 			}
 			else error("mod", VE_TYPEMISMATCH);
+			break;
+		case OP_EQUAL:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) == *(float *)(l.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) == *(int *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(int *)(r.val) == *(float *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(r.val) == *(int *)(l.val));
+			}
+			break;
+		case OP_GREATER:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) > *(float *)(l.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) > *(int *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(int *)(r.val) > *(float *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(r.val) > *(int *)(l.val));
+			}
+			break;
+		case OP_SMALLER:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) < *(float *)(l.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) < *(int *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(int *)(r.val) < *(float *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(r.val) < *(int *)(l.val));
+			}
+			break;
+		case OP_NSMALLER:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) >= *(float *)(l.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) >= *(int *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(int *)(r.val) >= *(float *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(r.val) >= *(int *)(l.val));
+			}
+			break;
+		case OP_NGREATER:
+			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) <= *(float *)(l.val));
+			}
+			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(float *)(r.val) <= *(int *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
+				ret.t = VT_FLOAT;
+				ret.val = new int(*(int *)(r.val) <= *(float *)(l.val));
+			}
+			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
+				ret.t = VT_INTEGER;
+				ret.val = new int(*(int *)(r.val) <= *(int *)(l.val));
+			}
 			break;
 		}
 	}

@@ -10,9 +10,15 @@ Syntax::Syntax(){
 	last = output;
 }
 Syntax::Syntax(vector<string> &ids, vector<tokenPrim> &input) {
+	proc = 0;
+
 	content = input;
 	strId = ids;
-	proc = 0;
+
+	prepare();
+
+	output = new stateSeq();
+	last = output;
 }
 Syntax::~Syntax() {
 
@@ -94,7 +100,6 @@ Syntax *Syntax::input(vector<string> &ids, vector<tokenPrim> &src) {
 		}
 		if (j == strId.size())strId.push_back(i);
 	}
-	content = src;
 	return this;
 }
 stateSeq *Syntax::parse() {
@@ -242,9 +247,12 @@ void Syntax::parseLibrary(string lib) {//Not finished.
 }
 string Syntax::parseUser() {
 	string tmp;
-	while (content[proc].type == TT_USER) {
+	while (proc < content.size() && content[proc].type == TT_USER) {
 		tmp += strId[content[proc++].id];
 		tmp += " ";
+	}
+	if (proc == content.size()) {
+		error(tmp.c_str(), SE_INCOMPLETE);
 	}
 	tmp.pop_back();
 	return tmp;
@@ -252,6 +260,11 @@ string Syntax::parseUser() {
 varNode *Syntax::parseValue() {
 	varNode *ret = new varNode();
 	ret->name = "";
+
+	if (proc == content.size()) {
+		error("", SE_INCOMPLETE);
+	}
+
 	if (content[proc].type == TT_DATA) {
 		if (content[proc].s != NULL) {
 			ret->t = VT_STRING;
@@ -535,11 +548,11 @@ varNode *Syntax::parseParameter(int funcid){
 				iter = rt;
 				while (iter != NULL) {
 					if (iter->name == tmp) {
-						iter->val = parseExpression();
-						iter->t = ((varNode *)iter->val)->t;
-						iter->left = ((varNode *)iter->val)->left;
-						iter->right = ((varNode *)iter->val)->right;
-						iter->val = ((varNode *)iter->val)->val;
+						varNode * val = parseExpression();
+						iter->t = val->t;
+						iter->left = val->left;
+						iter->right = val->right;
+						iter->val = val->val;
 						break;
 					}
 					iter = iter->next;
@@ -775,7 +788,7 @@ bool Syntax::compare(int op1, int op2) {//op1<=op2
 	}
 	return prio1 <= prio2;
 }
-void Syntax::error(const char *inst, int type) {
+void Syntax::error(const char *inst, int type)  {
 	switch (type) {
 	case SE_UNIQUE:
 		throw new SyntaxException(std::string(inst) + "无此用法。");
