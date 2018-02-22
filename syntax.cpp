@@ -141,19 +141,24 @@ stateSeq *Syntax::parse() {
 			int varType;
 			if (content[proc].type == TT_USER) {
 				int classIdx;
-				string valueType;
 				if (classIdx = findClass() >= 0) {
 
 				}
-				else if ((valueType = findVar()) == "") {
-
+				else if ((newVar = findVar())[0] == '$') {
+					newVar = newVar.c_str() + 1;
+					for (auto n : globeVar) {
+						if (n.name == newVar) {
+							varType = n.t;
+							break;
+						}
+					}
 				}
 				else
 					error(strId[content[proc].id].c_str(), SE_NOID);
 			}
 			else if (content[proc].type == TT_SYS) {
 				if ((varType = findType()) != -1) {
-					if ((newVar = findVar()) == "")
+					if ((newVar = findVar())[0] == '$')
 						error(strId[content[proc].id].c_str(), SE_REDEF);
 					else {
 						globeVar.push_back(varNode(varType, newVar));
@@ -220,6 +225,15 @@ stateSeq *Syntax::parse() {
 			last->act = st;
 			last->next = new stateSeq();
 			last = last->next;
+		}
+		else if (content[proc].type == TT_SYS && content[proc].id == ID_LOOP) {
+			proc++;
+
+			varNode *branch = NULL;
+			if (content[proc].type == TT_SYS && content[proc].id == ID_WHEN) {
+				proc++;
+				branch = parseExpression();
+			}
 		}
 		else if (content[proc].type == TT_USER) {
 			int funcIdx;
@@ -449,7 +463,7 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 				if (classIdx = findClass() >= 0) {
 
 				}
-				else if ((valueType = findVar()) == "") {
+				else if ((valueType = findVar())[0] == '$') {
 
 				}
 				else
@@ -457,7 +471,7 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 			}
 			else if (content[proc].type == TT_SYS) {
 				if ((varType = findType()) != -1) {
-					if ((newVar = findVar()) == "")
+					if ((newVar = findVar())[0] == '$')
 						error(strId[content[proc].id].c_str(), SE_REDEF);
 					else {
 						globeFunc[funcid].localVar.push_back(varNode(varType, newVar));
@@ -482,8 +496,35 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 				error("", SE_INCOMPLETE);
 			continue;
 		}
-		if (content[proc].type == TT_SYS && content[proc].id == ID_IF) {
+		else if (content[proc].type == TT_SYS && content[proc].id == ID_IF) {
+			proc++;
 
+			varNode *branch = parseExpression();
+			if (content[proc].type != TT_SYS || content[proc].id != ID_THEN)
+				error("if", SE_INCOMPLETE);
+			proc++;
+
+			rtVal st = rtVal();
+			st.op = VO_IF;
+			st.left = branch;
+			varNode *accept = new varNode(VT_FUNCTION, "");
+			accept->block = parseBlock();
+			varNode * reject = new varNode(VT_FUNCTION, "");
+			if (content[proc].type == TT_SYS && content[proc].id == ID_ELSE) {
+				proc++;
+				reject->block = parseBlock();
+			}
+			st.right = new varNode(VT_FUNCTION, "");
+			st.right->left = accept;
+			st.right->right = reject;
+
+			if (content[proc].type == TT_SYS && content[proc].id == ID_END) {
+				proc += 2;
+			}
+
+			last->act = st;
+			last->next = new stateSeq();
+			last = last->next;
 		}
 		else if (content[proc].type == TT_USER) {
 			int funcIdx;
@@ -592,7 +633,7 @@ stateSeq *Syntax::parseBlock() {
 				if (classIdx = findClass() >= 0) {
 
 				}
-				else if ((valueType = findVar()) == "") {
+				else if ((valueType = findVar())[0] == '$') {
 
 				}
 				else
@@ -600,7 +641,7 @@ stateSeq *Syntax::parseBlock() {
 			}
 			else if (content[proc].type == TT_SYS) {
 				if ((varType = findType()) != -1) {
-					if ((newVar = findVar()) == "")
+					if ((newVar = findVar())[0] == '$')
 						error(strId[content[proc].id].c_str(), SE_REDEF);
 					else {
 						//globeFunc[funcid].localVar.push_back(varNode(varType, newVar));
@@ -625,8 +666,35 @@ stateSeq *Syntax::parseBlock() {
 				error("", SE_INCOMPLETE);
 			continue;
 		}
-		if (content[proc].type == TT_SYS && content[proc].id == ID_IF) {
+		else if (content[proc].type == TT_SYS && content[proc].id == ID_IF) {
+			proc++;
 
+			varNode *branch = parseExpression();
+			if (content[proc].type != TT_SYS || content[proc].id != ID_THEN)
+				error("if", SE_INCOMPLETE);
+			proc++;
+
+			rtVal st = rtVal();
+			st.op = VO_IF;
+			st.left = branch;
+			varNode *accept = new varNode(VT_FUNCTION, "");
+			accept->block = parseBlock();
+			varNode * reject = new varNode(VT_FUNCTION, "");
+			if (content[proc].type == TT_SYS && content[proc].id == ID_ELSE) {
+				proc++;
+				reject->block = parseBlock();
+			}
+			st.right = new varNode(VT_FUNCTION, "");
+			st.right->left = accept;
+			st.right->right = reject;
+
+			if (content[proc].type == TT_SYS && content[proc].id == ID_END) {
+				proc += 2;
+			}
+
+			last->act = st;
+			last->next = new stateSeq();
+			last = last->next;
 		}
 		else if (content[proc].type == TT_USER) {
 			int funcIdx;
@@ -656,7 +724,7 @@ string Syntax::findVar() {
 	if(tmp.size())tmp.pop_back();
 	for (auto n : globeVar) {
 		if (n.name == tmp) {
-			return "";
+			return "$" + tmp;
 		}
 	}
 	return tmp;

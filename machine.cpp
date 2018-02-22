@@ -26,8 +26,8 @@ void Machine::execute() {
 		iter = iter->next;
 	}
 }
-void Machine::execute(stateSeq s, varNode *par) {
-	stateSeq *iter = &s;
+void Machine::execute(stateSeq *s, varNode *par) {
+	stateSeq *iter = s;
 	vector<varNode> localVar;
 
 	while (par != NULL) {
@@ -44,9 +44,83 @@ void Machine::step(stateSeq *s) {
 	if (s->act.op == VO_ASSIGN) {
 		for (unsigned int i = 0; i < globeVar.size(); i++) {
 			if (globeVar[i].name == s->act.left->name) {
-				/*if (s->act.left->t != s->act.right->t)
-					error(s->act.left->name.c_str(), VE_TYPEMISMATCH);*/
-				globeVar[i].val = exp(s->act.right).val;
+				varNode tmp = exp(s->act.right);
+				switch (s->act.left->t) {
+				case VT_INTEGER:
+					if (tmp.t == VT_INTEGER) {
+						globeVar[i].val = tmp.val;
+					}
+					else if (tmp.t == VT_FLOAT) {
+						globeVar[i].val = new int(*(float *)tmp.val);
+					}
+					else if (tmp.t == VT_BOOL) {
+						globeVar[i].val = new int(*(bool *)tmp.val);
+					}
+					else if (tmp.t == VT_CHAR) {
+						globeVar[i].val = new int(*(char *)tmp.val);
+					}
+					else
+						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+					break;
+				case VT_BOOL:
+					if (tmp.t == VT_INTEGER) {
+						globeVar[i].val = new bool(*(int *)tmp.val);
+					}
+					else if (tmp.t == VT_FLOAT) {
+						globeVar[i].val = new bool(*(float *)tmp.val);
+					}
+					else if (tmp.t == VT_BOOL) {
+						globeVar[i].val = tmp.val;
+					}
+					else if (tmp.t == VT_CHAR) {
+						globeVar[i].val = new bool(*(char *)tmp.val);
+					}
+					else
+						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+					break;
+				case VT_CHAR:
+					if (tmp.t == VT_INTEGER) {
+						globeVar[i].val = new char(*(int *)tmp.val);
+					}
+					else if (tmp.t == VT_FLOAT) {
+						globeVar[i].val = new char(*(float *)tmp.val);
+					}
+					else if (tmp.t == VT_BOOL) {
+						globeVar[i].val = new char(*(bool *)tmp.val);
+					}
+					else if (tmp.t == VT_CHAR) {
+						globeVar[i].val = tmp.val;
+					}
+					else
+						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+					break;
+				case VT_FLOAT:
+					if (tmp.t == VT_INTEGER) {
+						globeVar[i].val = new float(*(int *)tmp.val);
+					}
+					else if (tmp.t == VT_FLOAT) {
+						globeVar[i].val = tmp.val;
+					}
+					else if (tmp.t == VT_BOOL) {
+						globeVar[i].val = new float(*(bool *)tmp.val);
+					}
+					else if (tmp.t == VT_CHAR) {
+						globeVar[i].val = new float(*(char *)tmp.val);
+					}
+					else
+						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+					break;
+				case VT_STRING:
+					if (tmp.t == VT_STRING)
+						globeVar[i].val = tmp.val;
+					else
+						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+					break;
+				}
 				break;
 			}
 		}
@@ -70,7 +144,7 @@ void Machine::step(stateSeq *s) {
 		else {
 			for (auto f : globeFunc) {
 				if (f.declare.name == s->act.left->name) {
-					execute(f.content, s->act.right);
+					execute(&f.content, s->act.right);
 				}
 			}
 		}
@@ -83,12 +157,15 @@ void Machine::step(stateSeq *s) {
 			if (*(int *)res.val)ar = true;
 			else ar = false;
 			break;
+		case VT_BOOL:
+			ar = *(bool *)res.val;
+			break;
 		}
 		if (ar) {
-			execute(*s->act.right->left->block, NULL);
+			execute(s->act.right->left->block, NULL);
 		}
 		else {
-			execute(*s->act.right->right->block, NULL);
+			execute(s->act.right->right->block, NULL);
 		}
 	}
 }
@@ -127,11 +204,11 @@ varNode Machine::exp(varNode *e) {
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(r.val) - *(int *)(l.val));
+				ret.val = new float(*(int *)(r.val) - *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(int *)(r.val) - *(float *)(l.val));
+				ret.val = new float(*(float *)(r.val) - *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
 				ret.t = VT_INTEGER;
@@ -163,11 +240,11 @@ varNode Machine::exp(varNode *e) {
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(float *)(r.val) / *(int *)(l.val));
+				ret.val = new float(*(int *)(r.val) / *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
 				ret.t = VT_FLOAT;
-				ret.val = new float(*(int *)(r.val) / *(float *)(l.val));
+				ret.val = new float(*(float *)(r.val) / *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
 				ret.t = VT_INTEGER;
@@ -183,92 +260,92 @@ varNode Machine::exp(varNode *e) {
 			break;
 		case OP_EQUAL:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) == *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) == *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) == *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) == *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(int *)(r.val) == *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) == *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
-				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(r.val) == *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) == *(int *)(l.val));
 			}
 			break;
 		case OP_GREATER:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) > *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) > *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) > *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) > *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(int *)(r.val) > *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) > *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
-				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(r.val) > *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) > *(int *)(l.val));
 			}
 			break;
 		case OP_SMALLER:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) < *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) < *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) < *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) < *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(int *)(r.val) < *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) < *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
-				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(r.val) < *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) < *(int *)(l.val));
 			}
 			break;
 		case OP_NSMALLER:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) >= *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) >= *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) >= *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) >= *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(int *)(r.val) >= *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) >= *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
-				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(r.val) >= *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) >= *(int *)(l.val));
 			}
 			break;
 		case OP_NGREATER:
 			if (l.t == VT_FLOAT && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) <= *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) <= *(float *)(l.val));
 			}
 			else if (l.t == VT_FLOAT && r.t == VT_INTEGER) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(float *)(r.val) <= *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) <= *(float *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_FLOAT) {
-				ret.t = VT_FLOAT;
-				ret.val = new int(*(int *)(r.val) <= *(float *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(float *)(r.val) <= *(int *)(l.val));
 			}
 			else if (l.t == VT_INTEGER && r.t == VT_INTEGER) {
-				ret.t = VT_INTEGER;
-				ret.val = new int(*(int *)(r.val) <= *(int *)(l.val));
+				ret.t = VT_BOOL;
+				ret.val = new bool(*(int *)(r.val) <= *(int *)(l.val));
 			}
 			break;
 		}

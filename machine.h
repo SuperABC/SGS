@@ -18,7 +18,7 @@ public:
 		vector<classType> classType, vector<funcNode> func,
 		vector<varNode> var);
 	void execute();
-	void execute(stateSeq s, varNode *par);
+	void execute(stateSeq *s, varNode *par);
 	void step(stateSeq *s);
 
 	varNode exp(varNode *e);
