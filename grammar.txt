@@ -2,10 +2,10 @@
 Let integer a be 0.
 
 2. Function declaration
-New function add with para1, para2.
+New function add with integer para1, integer para2.
 
 3. Function definition
-Start add with para1, para2.
+Start add.
 	Let result be para1+para2.
 End add.
 
@@ -25,7 +25,7 @@ Let array a be 1 2 3.
 
 8. Array Usage
 Let a[0] be 0.
-Print a[0], a[1], a[2].
+Outln with content a.
 
 9. Branch
 Let a be 0.
