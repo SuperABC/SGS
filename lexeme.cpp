@@ -86,7 +86,7 @@ vector<tokenPrim> Lexeme::parse() {
 	int len = content.length();
 	for (int i = 0; i < len; i++) {
 		tokenPrim *node = new tokenPrim();
-		if (content[i] == ' ')continue;
+		if (content[i] == ' '|| content[i] == '\t')continue;
 		else if (content[i] >= '0' && content[i] <= '9') {
 			node->type = TT_DATA;
 
@@ -99,7 +99,7 @@ vector<tokenPrim> Lexeme::parse() {
 				node->id = CT_FLOAT;
 			}
 			else {
-				node->value = int(atoi(content.c_str() + i));
+				node->value = float(atoi(content.c_str() + i));
 				node->id = CT_INT;
 			}
 
