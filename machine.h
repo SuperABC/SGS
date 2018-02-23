@@ -10,6 +10,8 @@ private:
 	vector<classType> globeClassType;
 	vector<classNode> globeClassNode;
 	vector<funcNode> globeFunc;
+
+	int func = -1;
 public:
 	Machine();
 	~Machine();
@@ -18,7 +20,7 @@ public:
 		vector<classType> classType, vector<funcNode> func,
 		vector<varNode> var);
 	void execute();
-	void execute(stateSeq *s, varNode *par);
+	void execute(stateSeq *s, varNode *par, int funcid = -1);
 	void step(stateSeq *s);
 
 	varNode exp(varNode *e);
