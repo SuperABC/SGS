@@ -45,9 +45,9 @@ struct varNode {
 	string name;
 	string classType;
 	void const *val;
-	varNode *next;//Used for function parameter.
+	varNode *next;//Used for function parameter and arraies.
 	varNode *left, *right;//Used for expression.
-	stateSeq *block;//Used for flow.
+	stateSeq *block;//Used for flow and function.
 	varNode() : t(VT_NULL), name(""), classType(""),
 		val(NULL), next(NULL), left(NULL), right(NULL), block(NULL) {};
 	varNode(int type, string n, string str = "") : t((enum varType)type), name(n), classType(str),
@@ -93,7 +93,16 @@ private:
 	vector<tokenPrim> content;
 	vector<string> strId;
 
+	enum synState {
+		SS_NULL,
+		SS_FUNC,
+		SS_IF,
+		SS_WHILE
+	};
+	synState state = SS_NULL;
+
 	unsigned int proc;
+	int func = -1;
 public:
 	vector<classType> globeClassType;
 	vector<funcNode> globeFunc;
@@ -114,7 +123,6 @@ public:
 
 	void parseLibrary(string lib);
 	string parseUser();
-	varNode *parseValue();
 	varNode *parseExpression();
 	funcNode parseFuncDec();
 	stateSeq parseFuncDef(int funcid);
