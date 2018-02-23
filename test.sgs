@@ -1,10 +1,18 @@
-let string hello be 'hello'.
-let string world be 'world'.
-let integer res be 1+1+1+1.
-let res be 1+1+1.
+let integer iter be 100.
+let array arr be 0 1 2.
 
 new function test.
-start test. if res <= 10 then outln with content hello. else if res <= 15 then outln with content world. end if. end if. end test.
+start test. 
+	let result be 0. 
+	loop when iter > 0. 
+		let result be result + iter. 
+		let iter be iter - 1. 
+	end loop. 
+end test.
 
-outln with content res.
-test.
+outln with content test.
+outln with content 'hello' + ' ' + 'world'.
+outln with content arr.
+
+let arr[0] be 3.
+outln with content arr[0].
