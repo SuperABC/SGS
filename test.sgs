@@ -15,4 +15,6 @@ outln with content 'hello' + ' ' + 'world'.
 outln with content arr.
 
 let arr[0] be 3.
-outln with content arr[0].
+let arr[1] be 4.
+let arr[2] be 5.
+outln with content arr.
