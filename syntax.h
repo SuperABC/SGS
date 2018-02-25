@@ -116,7 +116,6 @@ public:
 	void prepare();
 
 	static char *opStr(int id);
-	static char *valueStr(float value);
 
 	Syntax *input(vector<string> &ids, vector<tokenPrim> &src);
 	stateSeq *parse();
@@ -141,6 +140,7 @@ public:
 };
 
 enum SYNTAXERROR {
+	SE_EXPOSE,
 	SE_UNIQUE,
 	SE_EXPDOT,
 	SE_EXPCOMMA,
