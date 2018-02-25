@@ -20,6 +20,8 @@ enum TOKENTYPE {
 enum CONSTTYPE {
 	CT_INT,
 	CT_FLOAT,
+	CT_BOOL,
+	CT_CHAR,
 	CT_STRING
 };
 
