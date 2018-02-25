@@ -80,6 +80,7 @@ Lexeme *Lexeme::input(const char *str) {
 	content = std::string(str);
 	return this;
 }
+
 vector<tokenPrim> Lexeme::parse() {
 	output.clear();
 
@@ -381,6 +382,7 @@ vector<tokenPrim> Lexeme::parse() {
 	}
 	return output;
 }
+
 int Lexeme::hash(string str) {
 	int value = 0;
 	int len = str.length();
@@ -406,6 +408,7 @@ int Lexeme::hash(string str) {
 const char *Lexeme::get() {
 	return content.c_str();
 }
+
 void Lexeme::error(const char *word, int type) {
 	switch (type) {
 	case LE_ILLEGAL:
