@@ -51,6 +51,11 @@ void Machine::execute(stateSeq *s, varNode *par, int funcid) {
 }
 void Machine::step(stateSeq *s) {
 	if (s->act.op == VO_ASSIGN) {
+		int offset = -1;
+		if (s->act.left->name[0] >= '0' && s->act.left->name[0] <= '9') {
+			offset = atoi(s->act.left->name.c_str());
+			s->act.left->name = s->act.left->name.c_str() + s->act.left->name.find('@') + 1;
+		}
 		for (unsigned int i = 0; i < globeVar.size(); i++) {
 			if (globeVar[i].name == s->act.left->name) {
 				varNode tmp = exp(s->act.right);
@@ -130,10 +135,94 @@ void Machine::step(stateSeq *s) {
 						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
 					break;
 				case VT_ARRAY:
-					if (tmp.t == VT_ARRAY)
-						globeVar[i].val = tmp.val;
-					else
-						error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+					if (offset == -1) {
+						if (tmp.t == VT_ARRAY)
+							globeVar[i].val = tmp.val;
+						else
+							error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+					}
+					else {
+						varNode *start = (varNode *)globeVar[i].val;
+						while (offset--) {
+							start = start->next;
+						}
+						switch (start->t) {
+						case VT_INTEGER:
+							if (tmp.t == VT_INTEGER) {
+								start->val = tmp.val;
+							}
+							else if (tmp.t == VT_FLOAT) {
+								start->val = new int((int)*(float *)tmp.val);
+							}
+							else if (tmp.t == VT_BOOL) {
+								start->val = new int(*(bool *)tmp.val);
+							}
+							else if (tmp.t == VT_CHAR) {
+								start->val = new int(*(char *)tmp.val);
+							}
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+							break;
+						case VT_BOOL:
+							if (tmp.t == VT_INTEGER) {
+								start->val = new bool(*(int *)tmp.val);
+							}
+							else if (tmp.t == VT_FLOAT) {
+								start->val = new bool(*(float *)tmp.val);
+							}
+							else if (tmp.t == VT_BOOL) {
+								start->val = tmp.val;
+							}
+							else if (tmp.t == VT_CHAR) {
+								start->val = new bool(*(char *)tmp.val);
+							}
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+							break;
+						case VT_CHAR:
+							if (tmp.t == VT_INTEGER) {
+								start->val = new char(*(int *)tmp.val);
+							}
+							else if (tmp.t == VT_FLOAT) {
+								start->val = new char((char)*(float *)tmp.val);
+							}
+							else if (tmp.t == VT_BOOL) {
+								start->val = new char(*(bool *)tmp.val);
+							}
+							else if (tmp.t == VT_CHAR) {
+								start->val = tmp.val;
+							}
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+							break;
+						case VT_FLOAT:
+							if (tmp.t == VT_INTEGER) {
+								start->val = new float((float)*(int *)tmp.val);
+							}
+							else if (tmp.t == VT_FLOAT) {
+								start->val = tmp.val;
+							}
+							else if (tmp.t == VT_BOOL) {
+								start->val = new float(*(bool *)tmp.val);
+							}
+							else if (tmp.t == VT_CHAR) {
+								start->val = new float(*(char *)tmp.val);
+							}
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+							break;
+						case VT_STRING:
+							if (tmp.t == VT_STRING)
+								start->val = tmp.val;
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+							break;
+						}
+					}
 
 					break;
 				case VT_NULL:
@@ -223,6 +312,97 @@ void Machine::step(stateSeq *s) {
 							globeFunc[func].localVar[i].val = tmp.val;
 						else
 							error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+						break;
+					case VT_ARRAY:
+						if (offset == -1) {
+							if (tmp.t == VT_ARRAY)
+								globeVar[i].val = tmp.val;
+							else
+								error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+						}
+						else {
+							varNode *start = (varNode *)globeVar[i].val;
+							while (offset--) {
+								start = start->next;
+							}
+							switch (start->t) {
+							case VT_INTEGER:
+								if (tmp.t == VT_INTEGER) {
+									start->val = tmp.val;
+								}
+								else if (tmp.t == VT_FLOAT) {
+									start->val = new int((int)*(float *)tmp.val);
+								}
+								else if (tmp.t == VT_BOOL) {
+									start->val = new int(*(bool *)tmp.val);
+								}
+								else if (tmp.t == VT_CHAR) {
+									start->val = new int(*(char *)tmp.val);
+								}
+								else
+									error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+								break;
+							case VT_BOOL:
+								if (tmp.t == VT_INTEGER) {
+									start->val = new bool(*(int *)tmp.val);
+								}
+								else if (tmp.t == VT_FLOAT) {
+									start->val = new bool(*(float *)tmp.val);
+								}
+								else if (tmp.t == VT_BOOL) {
+									start->val = tmp.val;
+								}
+								else if (tmp.t == VT_CHAR) {
+									start->val = new bool(*(char *)tmp.val);
+								}
+								else
+									error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+								break;
+							case VT_CHAR:
+								if (tmp.t == VT_INTEGER) {
+									start->val = new char(*(int *)tmp.val);
+								}
+								else if (tmp.t == VT_FLOAT) {
+									start->val = new char((char)*(float *)tmp.val);
+								}
+								else if (tmp.t == VT_BOOL) {
+									start->val = new char(*(bool *)tmp.val);
+								}
+								else if (tmp.t == VT_CHAR) {
+									start->val = tmp.val;
+								}
+								else
+									error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+								break;
+							case VT_FLOAT:
+								if (tmp.t == VT_INTEGER) {
+									start->val = new float((float)*(int *)tmp.val);
+								}
+								else if (tmp.t == VT_FLOAT) {
+									start->val = tmp.val;
+								}
+								else if (tmp.t == VT_BOOL) {
+									start->val = new float(*(bool *)tmp.val);
+								}
+								else if (tmp.t == VT_CHAR) {
+									start->val = new float(*(char *)tmp.val);
+								}
+								else
+									error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+
+								break;
+							case VT_STRING:
+								if (tmp.t == VT_STRING)
+									start->val = tmp.val;
+								else
+									error(s->act.left->name.c_str(), VE_TYPEMISMATCH);
+								break;
+							}
+						}
+
 						break;
 					case VT_NULL:
 						globeFunc[func].localVar[i].t = tmp.t;
@@ -494,11 +674,29 @@ varNode Machine::exp(varNode *e) {
 		}
 	}
 	else if (e->t == VT_VAR) {
+		int offset = -1;
+		if (((char *)e->val)[0] >= '0' && ((char *)e->val)[0] <= '9') {
+			offset = atoi((char *)e->val);
+			while (*(char *)e->val != '@') {
+				e->val = (char *)e->val + 1;
+			}
+			e->val = (char *)e->val + 1;
+		}
 		for (auto v : globeVar) {
 			if ((char *)e->val == v.name) {
-				ret.t = v.t;
-				ret.val = v.val;
-				break;
+				if (offset == -1) {
+					ret.t = v.t;
+					ret.val = v.val;
+					break;
+				}
+				else {
+					varNode *start = (varNode *)v.val;
+					while (offset--) {
+						start = start->next;
+					}
+					ret.t = start->t;
+					ret.val = start->val;
+				}
 			}
 		}
 		if (func != -1) {
