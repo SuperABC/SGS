@@ -67,6 +67,13 @@ int main() {
 			cout << l.get() << endl;
 			cout << se->message() << endl;
 		}
+		catch (MachineException *me) {
+			cout << l.get() << endl;
+			cout << me->message() << endl;
+		}
+
+		s.clearMem();
+		m.clearMem();
 	}
 	if (input != string("$")) {
 		try {
@@ -82,6 +89,13 @@ int main() {
 			cout << l.get() << endl;
 			cout << se->message() << endl;
 		}
+		catch (MachineException *me) {
+			cout << l.get() << endl;
+			cout << me->message() << endl;
+		}
+
+		s.clearMem();
+		m.clearMem();
 	}
 
 #else
@@ -103,6 +117,13 @@ int main() {
 		cout << l.get() << endl;
 		cout << se->message() << endl;
 	}
+	catch (MachineException *me) {
+		cout << l.get() << endl;
+		cout << me->message() << endl;
+	}
+
+	s.clearMem();
+	m.clearMem();
 #endif
 
 	system("pause");
