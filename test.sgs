@@ -1,20 +1,10 @@
-let integer iter be 100.
-let array arr be 0 1 2.
+let integer input be in.
+let integer sum be 0.
 
-new function test.
-start test. 
-	let result be 0. 
-	loop when iter > 0. 
-		let result be result + iter. 
-		let iter be iter - 1. 
-	end loop. 
-end test.
+loop when input > 0.
+	let sum be sum + input.
+	let input be input - 1.
+end loop.
 
-outln with content test.
-outln with content 'hello' + ' ' + 'world'.
-outln with content arr.
+outln with content sum.
 
-let arr[0] be 3.
-let arr[1] be 4.
-let arr[2] be 5.
-outln with content arr.
