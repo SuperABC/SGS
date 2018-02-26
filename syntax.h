@@ -1,6 +1,7 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
 #include "lexeme.h"
+#include "memory.h"
 #include <cstdio>
 #include <stack>
 
@@ -55,29 +56,26 @@ struct varNode {
 };
 struct classType {
 	string name;
-	vector<varType> varList;
-	vector<classType> classList;
+	vector<varNode> varList;
 };
 struct classNode {
+	classType type;
 	string name;
 	vector<varNode> varList;
-	vector<classNode> classList;
 	classNode() {}
 	classNode(classType t, string name) {
+		this->type = t;
 		this->name = name;
 	}
 };
 struct funcType {
 	string name;
 	vector<varNode> varList;
-	vector<classNode> classList;
 	funcType() {}
 	funcType(string name,
-		vector<varNode> vars = vector<varNode>(),
-		vector<classNode> classes = vector<classNode>()) {
+		vector<varNode> vars = vector<varNode>()) {
 		this->name = name;
 		varList = vars;
-		classList = classes;
 	}
 };
 struct funcNode {
@@ -92,6 +90,8 @@ class Syntax {
 private:
 	vector<tokenPrim> content;
 	vector<string> strId;
+
+	Memory synMem;
 
 	enum synState {
 		SS_NULL,
@@ -134,6 +134,8 @@ public:
 	int findClass();
 	int findFunc();
 	int findType();
+
+	void clearMem();
 
 	static bool compare(int op1, int op2);
 	static void error(const char *inst, int type);
