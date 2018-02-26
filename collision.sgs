@@ -1,9 +1,9 @@
-Use library "sgl.sgl"
+Use library 'sgl.sgl'
 
 New class player with point pos, bitmap cover.
 New class enemy with point pos, vector v, bitmap cover.
 
-New function move player with x, y.
+New function move player with integer x, integer y.
 New function move enemy.
 New function has collision.
 
