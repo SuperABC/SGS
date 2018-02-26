@@ -14,7 +14,7 @@ Let sum be
 	add with para1 1, para2 2.
 
 5. Class declaration
-New class point with x being 0, y being 0.
+New class point with integer x be 0, integer y be 0.
 
 6. Class assignment
 Let point p be point (1, 1).
