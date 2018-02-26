@@ -36,6 +36,20 @@ void *Memory::alloc(unsigned int size, bool local) {
 	tmp->cont[tmp->offset] = new char[size];
 	return tmp->cont[tmp->offset++];
 }
+void *Memory::alloc(void *ptr, bool local) {
+	Block *tmp;
+	if (local)tmp = localMem;
+	else tmp = globeMem;
+
+	while (tmp->offset == 255) {
+		if (!tmp->next)
+			tmp->next = new Block();
+		tmp = tmp->next;
+	}
+
+	tmp->cont[tmp->offset] = ptr;
+	return tmp->cont[tmp->offset++];
+}
 void Memory::clear() {
 	Block *tmp;
 	tmp = localMem->next;
@@ -45,4 +59,5 @@ void Memory::clear() {
 		localMem = tmp;
 		if (tmp)tmp = tmp->next;
 	}
+	localMem = new Block();
 }
