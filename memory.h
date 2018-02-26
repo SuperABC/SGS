@@ -17,6 +17,7 @@ public:
 	~Memory();
 
 	void *alloc(unsigned int size, bool local = true);
+	void *alloc(void *ptr, bool local);
 	void free(void *ptr);
 	void clear();
 };
