@@ -34,7 +34,7 @@ enum IDENTIFIER {
 	ID_ARRAY,
 	ID_CLASS,
 	ID_FUNCTION,
-	ID_NONE,
+	ID_NONE,//locked above.
 
 	ID_LET,
 	ID_BE,
