@@ -6,7 +6,7 @@ Syntax::Syntax(){
 
 	prepare();
 
-	output = new stateSeq();
+	output = new stateSeq();//Safely released [0].
 	last = output;
 }
 Syntax::Syntax(vector<string> &ids, vector<tokenPrim> &input) {
@@ -17,17 +17,17 @@ Syntax::Syntax(vector<string> &ids, vector<tokenPrim> &input) {
 
 	prepare();
 
-	output = new stateSeq();
+	output = new stateSeq();//Safely released [0].
 	last = output;
 }
 Syntax::~Syntax() {
 	stateSeq *tmp = output;
 	while (output != last) {
 		tmp = output->next;
-		delete output;
+		delete output;//Releasing [0].
 		output = tmp;
 	}
-	delete tmp;
+	delete tmp;//Releasing [0].
 }
 void Syntax::prepare() {
 	funcNode out = funcNode(funcType(string("out")));
@@ -37,6 +37,18 @@ void Syntax::prepare() {
 	funcNode outln = funcNode(funcType(string("outln")));
 	outln.declare.varList.push_back(varNode(VT_STRING, "content"));
 	globeFunc.push_back(outln);
+
+	funcNode in = funcNode(funcType(string("in")));
+	in.localVar.push_back(varNode());
+	globeFunc.push_back(in);
+
+	funcNode time = funcNode(funcType(string("current time")));
+	time.localVar.push_back(varNode());
+	globeFunc.push_back(time);
+
+	funcNode random = funcNode(funcType(string("random number")));
+	random.localVar.push_back(varNode());
+	globeFunc.push_back(random);
 }
 
 char *Syntax::opStr(int id) {
@@ -90,11 +102,11 @@ Syntax *Syntax::input(vector<string> &ids, vector<tokenPrim> &src) {
 	stateSeq *tmp = output;
 	while (output != last) {
 		tmp = output->next;
-		delete output;
+		delete output;//Releasing [0].
 		output = tmp;
 	}
-	delete tmp;
-	output = new stateSeq();
+	delete tmp;//Releasing [0].
+	output = new stateSeq();//Safely released [0].
 	last = output;
 	
 	for (auto i : ids) {
@@ -145,10 +157,16 @@ stateSeq *Syntax::parse() {
 			proc++;
 			string newVar;
 			int varType;
+			int classIdx = -1;
 			if (content[proc].type == TT_USER) {
-				int classIdx;
-				if (classIdx = findClass() >= 0) {
-
+				if ((classIdx = findClass()) >= 0) {
+					varType = VT_CLASS;
+					newVar = findVar();
+					if (newVar[0] != '$') {
+						globeVar.push_back(varNode(varType, newVar, globeClassType[classIdx].name));
+					}
+					else
+						error(newVar.c_str(), SE_REDEF);
 				}
 				else if ((newVar = findVar())[0] == '$') {
 					newVar = newVar.c_str() + 1;
@@ -197,10 +215,13 @@ stateSeq *Syntax::parse() {
 				proc++;
 				rtVal st = rtVal();
 				st.op = VO_ASSIGN;
-				st.left = new varNode(varType, newVar);
-				st.right = parseExpression();
+				if (classIdx == -1)
+					st.left = new varNode(varType, newVar);//Safely released [1].
+				else
+					st.left = new varNode(varType, newVar, globeClassType[classIdx].name);
+				st.right = parseExpression();//Safely released [2].
 				last->act = st;
-				last->next = new stateSeq();
+				last->next = new stateSeq();//Safely released [0].
 				last = last->next;
 			}
 			else
@@ -250,7 +271,7 @@ stateSeq *Syntax::parse() {
 			}
 
 			last->act = st;
-			last->next = new stateSeq();
+			last->next = new stateSeq();//Safely released [0].
 			last = last->next;
 
 			continue;
@@ -280,7 +301,7 @@ stateSeq *Syntax::parse() {
 			}
 
 			last->act = st;
-			last->next = new stateSeq();
+			last->next = new stateSeq();//Safely released [0].
 			last = last->next;
 
 			continue;
@@ -294,7 +315,7 @@ stateSeq *Syntax::parse() {
 				st.left = new varNode(VT_FUNCTION, globeFunc[funcIdx].declare.name);
 				st.right = parseParameter(funcIdx);
 				last->act = st;
-				last->next = new stateSeq();
+				last->next = new stateSeq();//Safely released [0].
 				last = last->next;
 			}
 		}
@@ -328,16 +349,47 @@ varNode *Syntax::parseExpression() {
 
 	while (proc < content.size()) {
 		if (content[proc].type == TT_SYS && content[proc].id != ID_RESULT)break;
-		else if (content[proc].type == TT_OP && content[proc].id == OP_DOT)break;
-		else if (content[proc].type == TT_OP && content[proc].id == OP_COMMA)break;
-		else if (content[proc].type == TT_OP && content[proc].id == OP_RPARENTHESIS)break;
+		else if (content[proc].type == TT_OP && 
+			(content[proc].id == OP_DOT || content[proc].id == OP_COMMA ||
+			content[proc].id == OP_LPARENTHESIS || content[proc].id == OP_RPARENTHESIS ||
+			content[proc].id == OP_LBRAKET || content[proc].id == OP_RBRAKET))break;
 		else if (content[proc].type == TT_USER ||
 			content[proc].type == TT_SYS && content[proc].id == ID_RESULT) {
 			int pre = proc;
 
 			string varTmp;
 			int funcIdx;
-			if ((varTmp = findVar())[0] == '$') {
+			int classIdx;
+
+			if ((classIdx = findClass()) >= 0) {
+				if (content[proc].type == TT_OP && content[proc].id == OP_LBRAKET) {
+					proc++;
+					varNode *tmp = new varNode(VT_CLASS, "", globeClassType[classIdx].name);
+					classNode *node = new classNode(globeClassType[classIdx], "");
+
+					varNode *ele;
+					unsigned int i;
+					for (i = 0; i < globeClassType[classIdx].varList.size(); i++) {
+						ele = parseExpression();
+						node->varList.push_back(*ele);
+
+						if (content[proc].type == TT_OP && content[proc].id == OP_COMMA) {
+							proc++;
+							continue;
+						}
+						if (content[proc].type == TT_OP && content[proc].id == OP_RBRAKET) {
+							proc++;
+							break;
+						}
+					}
+
+					tmp->val = node;
+					value.push(tmp);
+				}
+				else
+					error(globeClassType[classIdx].name.c_str(), SE_INCOMPLETE);
+			}
+			else if ((varTmp = findVar())[0] == '$') {
 
 				varNode *tmp = new varNode(VT_VAR, "");
 				string *n = new string(varTmp.c_str() + 1);
@@ -480,12 +532,8 @@ varNode *Syntax::parseExpression() {
 }
 funcNode Syntax::parseFuncDec() {
 	funcNode ret = funcNode();
-	string tmp;
-	while (content[proc].type == TT_USER) {
-		tmp += strId[content[proc++].id];
-		tmp += " ";
-	}
-	tmp.pop_back();
+	string tmp = parseUser();
+
 	if (content[proc].type == TT_SYS && content[proc].id == ID_WITH) {
 		proc++;
 		ret.declare.name = tmp;
@@ -496,7 +544,7 @@ funcNode Syntax::parseFuncDec() {
 				ret.declare.varList.push_back(varNode((varType)type, parseUser()));
 			}
 			else if ((cla = findClass()) != -1) {
-				ret.declare.classList.push_back(classNode(globeClassType[cla], parseUser()));
+				ret.declare.varList.push_back(varNode(VT_CLASS, parseUser(), globeClassType[cla].name));
 			}
 
 			if (content[proc].type == TT_OP && content[proc].id == OP_DOT)break;
@@ -525,14 +573,53 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 			proc++;
 			string newVar;
 			int varType;
+			int classIdx;
 			if (content[proc].type == TT_USER) {
-				int classIdx;
 				string valueType;
 				if (classIdx = findClass() >= 0) {
-
+					varType = VT_CLASS;
+					newVar = findVar();
+					if (newVar[0] != '$') {
+						globeFunc[funcid].localVar.push_back(varNode(varType, newVar, globeClassType[classIdx].name));
+					}
+					else
+						error(newVar.c_str(), SE_REDEF);
 				}
 				else if ((valueType = findVar())[0] == '$') {
+					newVar = newVar.c_str() + 1;
+					if (newVar[0] >= '0' &&newVar[0] <= '9') {
+						string comp = newVar;
+						int offset = atoi(newVar.c_str());
+						newVar = newVar.c_str() + newVar.find('@') + 1;
 
+						for (auto n : globeVar) {
+							if (n.name == newVar) {
+								varType = n.t;
+								break;
+							}
+						}
+						for (auto n : globeFunc[funcid].localVar) {
+							if (n.name == newVar) {
+								varType = n.t;
+								break;
+							}
+						}
+						newVar = comp;
+					}
+					else {
+						for (auto n : globeVar) {
+							if (n.name == newVar) {
+								varType = n.t;
+								break;
+							}
+						}
+						for (auto n : globeFunc[funcid].localVar) {
+							if (n.name == newVar) {
+								varType = n.t;
+								break;
+							}
+						}
+					}
 				}
 				else
 					error(strId[content[proc].id].c_str(), SE_NOID);
@@ -648,8 +735,7 @@ stateSeq Syntax::parseFuncDef(int funcid) {
 	return ret;
 }
 varNode *Syntax::parseParameter(int funcid){
-	int parNum = globeFunc[funcid].declare.varList.size() + 
-		globeFunc[funcid].declare.classList.size();
+	int parNum = globeFunc[funcid].declare.varList.size();
 	varNode *rt = new varNode();
 	varNode *last = rt;
 
@@ -712,8 +798,29 @@ varNode *Syntax::parseParameter(int funcid){
 		return rt;
 	}
 }
-classType Syntax::parseClassDec() {//Not finished.
+classType Syntax::parseClassDec() {
 	classType ret = classType();
+	string tmp = parseUser();
+
+	if (content[proc].type == TT_SYS && content[proc].id == ID_WITH) {
+		proc++;
+		ret.name = tmp;
+
+		int type, cla;
+		while (true) {
+			if ((type = findType()) != -1) {
+				ret.varList.push_back(varNode((varType)type, parseUser()));
+			}
+			else if ((cla = findClass()) != -1) {
+				//ret.classList.push_back(classNode(globeClassType[cla], parseUser()));
+			}
+
+			if (content[proc].type == TT_OP && content[proc].id == OP_DOT)break;
+			if (content[proc].type == TT_OP && content[proc].id == OP_COMMA)proc++;
+		}
+	}
+	else error("New class ", SE_INCOMPLETE);
+
 	return ret;
 }
 classNode Syntax::parseClassConstr() {//Not finished.
@@ -732,21 +839,54 @@ stateSeq *Syntax::parseBlock() {
 			if (content[proc].type == TT_USER) {
 				int classIdx;
 				if (classIdx = findClass() >= 0) {
-
+					varType = VT_CLASS;
+					newVar = findVar();
+					if (newVar[0] != '$') {
+						if(func==-1)
+							globeVar.push_back(varNode(varType, newVar, globeClassType[classIdx].name));
+						else
+							globeFunc[func].localVar.push_back(varNode(varType, newVar, globeClassType[classIdx].name));
+					}
+					else
+						error(newVar.c_str(), SE_REDEF);
 				}
 				else if ((newVar = findVar())[0] == '$') {
 					newVar = newVar.c_str() + 1;
-					for (auto n : globeVar) {
-						if (n.name == newVar) {
-							varType = n.t;
-							break;
-						}
-					}
-					if (func != -1) {
-						for (auto &n : globeFunc[func].localVar) {
+
+					if (newVar[0] >= '0' &&newVar[0] <= '9') {
+						string comp = newVar;
+						int offset = atoi(newVar.c_str());
+						newVar = newVar.c_str() + newVar.find('@') + 1;
+
+						for (auto n : globeVar) {
 							if (n.name == newVar) {
 								varType = n.t;
 								break;
+							}
+						}
+						if (func != -1) {
+							for (auto n : globeFunc[func].localVar) {
+								if (n.name == newVar) {
+									varType = n.t;
+									break;
+								}
+							}
+						}
+						newVar = comp;
+					}
+					else {
+						for (auto n : globeVar) {
+							if (n.name == newVar) {
+								varType = n.t;
+								break;
+							}
+						}
+						if (func != -1) {
+							for (auto &n : globeFunc[func].localVar) {
+								if (n.name == newVar) {
+									varType = n.t;
+									break;
+								}
 							}
 						}
 					}
@@ -761,11 +901,14 @@ stateSeq *Syntax::parseBlock() {
 					proc++;
 				}
 				else if ((varType = findType()) != -1) {
-					/*if ((newVar = findVar())[0] == '$')
+					if ((newVar = findVar())[0] == '$')
 						error(strId[content[proc].id].c_str(), SE_REDEF);
 					else {
-						globeFunc[func].localVar.push_back(varNode(varType, newVar));
-					}*/
+						if(func==-1)
+							globeVar.push_back(varNode(varType, newVar));
+						else
+							globeFunc[func].localVar.push_back(varNode(varType, newVar));
+					}
 				}
 				else
 					error(strId[content[proc].id].c_str(), SE_UNIQUE);
@@ -865,39 +1008,14 @@ string Syntax::findVar() {
 	while (proc < content.size() && content[proc].type == TT_USER ||
 		content[proc].type == TT_SYS && content[proc].id == ID_RESULT) {
 		tmp += strId[content[proc++].id];
-		tmp += " ";
-	}
-	if(tmp.size())tmp.pop_back();
-	for (auto n : globeVar) {
-		if (n.name == tmp) {
-			if (n.t == VT_ARRAY) {
-				int offset;
-				if (proc < content.size() &&
-					content[proc].type == TT_OP && content[proc].id == OP_LPARENTHESIS) {
-					proc++;
-					varNode *ofvar = parseExpression();
-					if (ofvar->t != VT_INTEGER)
-						error("Array index", SE_INVALIDTYPE);
-					if (content[proc].type != TT_OP || content[proc].id != OP_RPARENTHESIS)
-						error("[]", SE_EXPBRACE);
-					proc++;
-					offset = *(int *)ofvar->val;
 
-					char buf[16];
-					_itoa(offset, buf, 10);
-					return string("$") + buf + "@" + tmp;
-				}
-			}
-			return "$" + tmp;
-		}
-	}
-	if (func != -1) {
-		for (auto n : globeFunc[func].localVar) {
+		for (auto n : globeVar) {
 			if (n.name == tmp) {
 				if (n.t == VT_ARRAY) {
 					int offset;
 					if (proc < content.size() &&
 						content[proc].type == TT_OP && content[proc].id == OP_LPARENTHESIS) {
+						proc++;
 						varNode *ofvar = parseExpression();
 						if (ofvar->t != VT_INTEGER)
 							error("Array index", SE_INVALIDTYPE);
@@ -914,7 +1032,35 @@ string Syntax::findVar() {
 				return "$" + tmp;
 			}
 		}
+		if (func != -1) {
+			for (auto n : globeFunc[func].localVar) {
+				if (n.name == tmp) {
+					if (n.t == VT_ARRAY) {
+						int offset;
+						if (proc < content.size() &&
+							content[proc].type == TT_OP && content[proc].id == OP_LPARENTHESIS) {
+							varNode *ofvar = parseExpression();
+							if (ofvar->t != VT_INTEGER)
+								error("Array index", SE_INVALIDTYPE);
+							if (content[proc].type != TT_OP || content[proc].id != OP_RPARENTHESIS)
+								error("[]", SE_EXPBRACE);
+							proc++;
+							offset = *(int *)ofvar->val;
+
+							char buf[16];
+							_itoa(offset, buf, 10);
+							return string("$") + buf + "@" + tmp;
+						}
+					}
+					return "$" + tmp;
+				}
+			}
+		}
+
+		tmp += " ";
 	}
+	if(tmp.size())tmp.pop_back();
+
 	return tmp;
 }
 int Syntax::findClass() {
@@ -922,12 +1068,12 @@ int Syntax::findClass() {
 	int preProc = proc;
 	while (proc < content.size() && content[proc].type == TT_USER) {
 		tmp += strId[content[proc++].id];
+		for (unsigned int i = 0; i < globeClassType.size(); i++) {
+			if (globeClassType[i].name == tmp)return i;
+		}
 		tmp += " ";
 	}
 	if (tmp.size())tmp.pop_back();
-	for (unsigned int i = 0; i < globeClassType.size(); i++) {
-		if (globeClassType[i].name == tmp)return i;
-	}
 	proc = preProc;
 	return -1;
 }
@@ -952,6 +1098,10 @@ int Syntax::findType() {
 			return content[proc++].id;
 	}
 	return -1;
+}
+
+void Syntax::clearMem() {
+	synMem.clear();
 }
 
 bool Syntax::compare(int op1, int op2) {//op1<=op2
