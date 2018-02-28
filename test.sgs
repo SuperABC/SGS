@@ -1,10 +1,14 @@
 let integer input be in.
 let integer sum be 0.
 
+let integer time begin be current time.
 loop when input > 0.
 	let sum be sum + input.
 	let input be input - 1.
 end loop.
+let integer time over be current time.
+outln with content time over - time begin.
+out with content 'Result:'.
 
 outln with content sum.
 
