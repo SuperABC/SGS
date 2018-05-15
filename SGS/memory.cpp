@@ -1,10 +1,10 @@
 #include "memory.h"
 
-Memory::Memory() {
+SgsMemory::SgsMemory() {
 	localMem = new Block();
 	globeMem = new Block();
 }
-Memory::~Memory() {
+SgsMemory::~SgsMemory() {
 	Block *tmp;
 	tmp = localMem->next;
 	while (localMem) {
@@ -22,7 +22,7 @@ Memory::~Memory() {
 	}
 }
 
-void *Memory::alloc(unsigned int size, bool local) {
+void *SgsMemory::alloc(unsigned int size, bool local) {
 	Block *tmp;
 	if(local)tmp = localMem;
 	else tmp = globeMem;
@@ -36,7 +36,7 @@ void *Memory::alloc(unsigned int size, bool local) {
 	tmp->cont[tmp->offset] = new char[size];
 	return tmp->cont[tmp->offset++];
 }
-void *Memory::alloc(void *ptr, bool local) {
+void *SgsMemory::alloc(void *ptr, bool local) {
 	Block *tmp;
 	if (local)tmp = localMem;
 	else tmp = globeMem;
@@ -50,7 +50,7 @@ void *Memory::alloc(void *ptr, bool local) {
 	tmp->cont[tmp->offset] = ptr;
 	return tmp->cont[tmp->offset++];
 }
-void Memory::clear() {
+void SgsMemory::clear() {
 	Block *tmp;
 	tmp = localMem->next;
 	while (localMem) {

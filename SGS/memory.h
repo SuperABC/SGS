@@ -8,13 +8,13 @@ struct Block {
 	Block *next = NULL;
 };
 
-class Memory {
+class SgsMemory {
 private:
 	Block *localMem;
 	Block *globeMem;
 public:
-	Memory();
-	~Memory();
+	SgsMemory();
+	~SgsMemory();
 
 	void *alloc(unsigned int size, bool local = true);
 	void *alloc(void *ptr, bool local);
