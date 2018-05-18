@@ -20,59 +20,6 @@ class arrayNode;
 class funcDec;
 class funcNode;
 
-enum stateType {
-	VO_NULL,
-	VO_ASSIGN,
-	VO_CALL,
-	VO_IF,
-	VO_WHILE
-};
-class stateSeq {
-private:
-	enum stateType op;
-	void *left, *right;
-public:
-	varNode *leftValue() {
-		if (op != VO_ASSIGN)return NULL;
-		return (varNode *)left;
-	}
-	varNode *rightValue() {
-		if (op != VO_ASSIGN)return NULL;
-		return (varNode *)right;
-	}
-	funcDec *funcName() {
-		if (op != VO_CALL)return NULL;
-		return (funcDec *)left;
-	}
-	classNode *funcPara() {
-		if (op != VO_CALL)return NULL;
-		return (classNode *)right;
-	}
-	varNode *ifCondition() {
-		if (op == VO_IF)return NULL;
-		return (varNode *)left;
-	}
-	stateNode *ifTaken() {
-		if (op == VO_IF)return NULL;
-		return (stateNode *)((expNode *)right)->left;
-	}
-	stateNode *ifUntaken() {
-		if (op == VO_IF)return NULL;
-		return (stateNode *)((expNode *)right)->right;
-	}
-	varNode *loopCondition() {
-		if (op == VO_WHILE)return NULL;
-		return (varNode *)left;
-	}
-	stateNode *loopBlock() {
-		if (op == VO_WHILE)return NULL;
-		return (stateNode *)right;
-	}
-};
-class stateNode : public expNode {
-	vector<stateSeq> statements;
-};
-
 class expNode {
 public:
 	SGSOPERATOR op;
@@ -127,9 +74,9 @@ class arrayNode : public varNode {
 };
 class funcDec : public varDec {
 public:
-	vector<varNode> varList;
+	vector<varDec> varList;
 	funcDec() {}
-	funcDec(string name, vector<varNode> vars = vector<varNode>()) {
+	funcDec(string name, vector<varDec> vars = vector<varDec>()) {
 		this->name = name;
 		varList = vars;
 	}
@@ -140,6 +87,62 @@ public:
 	vector<varNode> localVar;
 	funcNode() {}
 	funcNode(funcDec dec) { declaration = dec; }
+};
+
+enum stateType {
+	VO_NULL,
+	VO_ASSIGN,
+	VO_CALL,
+	VO_IF,
+	VO_WHILE
+};
+class stateSeq {
+private:
+	enum stateType seqType;
+	void *left, *right;
+
+public:
+	int line;
+
+	varNode *leftValue() {
+		if (seqType != VO_ASSIGN)return NULL;
+		return (varNode *)left;
+	}
+	varNode *rightValue() {
+		if (seqType != VO_ASSIGN)return NULL;
+		return (varNode *)right;
+	}
+	funcDec *funcName() {
+		if (seqType != VO_CALL)return NULL;
+		return (funcDec *)left;
+	}
+	classNode *funcPara() {
+		if (seqType != VO_CALL)return NULL;
+		return (classNode *)right;
+	}
+	varNode *ifCondition() {
+		if (seqType == VO_IF)return NULL;
+		return (varNode *)left;
+	}
+	stateNode *ifTaken() {
+		if (seqType == VO_IF)return NULL;
+		return (stateNode *)((expNode *)right)->left;
+	}
+	stateNode *ifUntaken() {
+		if (seqType == VO_IF)return NULL;
+		return (stateNode *)((expNode *)right)->right;
+	}
+	varNode *loopCondition() {
+		if (seqType == VO_WHILE)return NULL;
+		return (varNode *)left;
+	}
+	stateNode *loopBlock() {
+		if (seqType == VO_WHILE)return NULL;
+		return (stateNode *)right;
+	}
+};
+class stateNode : public expNode {
+	vector<stateSeq> statements;
 };
 
 class SgsSyntax {
@@ -177,6 +180,8 @@ public:
 	vector<varNode *> globeVar;
 
 	stateNode *output;
+
+	vector<sgsMsg> msgList;
 
 	SgsSyntax();
 	SgsSyntax(vector<string> &ids, vector<sgsTokenPrim> &input);

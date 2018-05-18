@@ -127,6 +127,10 @@ vector<sgsTokenPrim> SgsLex::parse() {
 	for (int i = 0; i < len; i++) {
 		sgsTokenPrim node;
 		if (content[i] == ' ' || content[i] == '\t')continue;
+		else if (content[i] == '\n') {
+			tmpLine++;
+			continue;
+		}
 		else if (content[i] >= '0' && content[i] <= '9') {
 			node.type = SGS_TT_DATA;
 			node.start = i;
@@ -157,6 +161,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
 			if (content[i] == '.')i--;
 
 			node.end = i + 1;
+			node.line = tmpLine;
 			output.push_back(node);
 			continue;
 		}
@@ -170,8 +175,9 @@ vector<sgsTokenPrim> SgsLex::parse() {
 				content[i] >= '0'&&content[i] <= '9' || content[i] == '_') {
 				str[j++] = content[i++];
 				if (j == 31) {
-					str[j] = '\0';
 					error(str, SGS_LE_TOOLONG);
+					while (content[i] >= 'A'&&content[i] <= 'Z' || content[i] >= 'a'&&content[i] <= 'z' ||
+						content[i] >= '0'&&content[i] <= '9' || content[i] == '_')i++;
 				}
 			}
 			str[j] = '\0';
@@ -181,6 +187,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
 			}
 
 			node.end = i;
+			node.line = tmpLine;
 			output.push_back(node);
 			i--;
 			continue;
@@ -190,13 +197,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 			node.start = i;
 			node.value = 0;
 			std::string str;
-			char *a = new char[32];
+			char *a;
 			switch (content[i]) {
 			case '+':
 				if (content[i + 1] == '+') {
 					node.id = SGS_OP_PLUSPLUS;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -204,12 +212,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQPLUS;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_PLUS;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -218,6 +228,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_MINUSMINUS;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -225,12 +236,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQMINUS;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_MINUS;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -239,12 +252,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQMULTY;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_MULTY;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -253,12 +268,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQDIVIDE;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_DIVIDE;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -267,12 +284,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQMOD;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_MOD;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -281,6 +300,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_ANDAND;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -288,12 +308,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQAND;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_AND;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -302,6 +324,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_OROR;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -309,12 +332,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQOR;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_OR;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -323,12 +348,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQNOR;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_NOR;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -337,43 +364,51 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_EQINVERSE;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_INVERSE;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 			case '(':
 				node.id = SGS_OP_LBRACE;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case ')':
 				node.id = SGS_OP_RBRACE;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '[':
 				node.id = SGS_OP_LPARENTHESIS;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case ']':
 				node.id = SGS_OP_RPARENTHESIS;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '{':
 				node.id = SGS_OP_LBRAKET;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '}':
 				node.id = SGS_OP_RBRAKET;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '>':
@@ -381,12 +416,14 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_NSMALLER;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_GREATER;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
@@ -395,28 +432,33 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_NGREATER;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_SMALLER;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 			case ';':
 				node.id = SGS_OP_SEMI;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case ',':
 				node.id = SGS_OP_COMMA;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '.':
 				node.id = SGS_OP_DOT;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case  '!':
@@ -424,37 +466,43 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.id = SGS_OP_NOTEQ;
 					i++;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 				else {
 					node.id = SGS_OP_NOT;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 					continue;
 				}
 			case '=':
 				node.id = SGS_OP_EQUAL;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '?':
 				node.id = SGS_OP_QUERY;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '\"':
 				node.type = SGS_TT_DATA;
 				i++;
-				while (content[i] != '\"'&& i < (int)content.length()) {
+				while (content[i] != '\"'&& content[i] != '\n') {
 					str.push_back(content[i++]);
 				}
 				if (content[i] != '\"')
 					error("", SGS_LE_INCOMPLETE);
+				a = new char[str.length() + 1];
 				strcpy(a, str.data());
 				node.id = CT_STRING;
 				node.s = a;
 				node.end = i + 1;
+				node.line = tmpLine;
 				output.push_back(node);
 				continue;
 			case '\'':
@@ -462,12 +510,17 @@ vector<sgsTokenPrim> SgsLex::parse() {
 					node.type = SGS_TT_SYS;
 					node.id = SGS_ID_OF;
 					node.end = i + 1;
+					node.line = tmpLine;
 					output.push_back(node);
 				}
-				else error("\'s", SGS_LE_EXPOP);
+				else {
+					error("\'s", SGS_LE_EXPOP);
+					while (content[i] != '\n')i++;
+					continue;
+				}
 				continue;
 			case '#':
-				while (++i <  (int)content.size() && content[i] != '\n');
+				while (content[++i] != '\n');
 				continue;
 			}
 		}
@@ -479,15 +532,15 @@ const char *SgsLex::get() {
 	return content.data();
 }
 
-void SgsLex::error(const char *word, int type) {
+void SgsLex::error(const char *word, SGSLEXEMEERROR type) {
 	switch (type) {
 	case SGS_LE_ILLEGAL:
-		throw new SGSLexemeException(string("非法的标识符") + word);
+		msgList.push_back(sgsMsg(string("非法的标识符") + word + "。\n", MT_ERROR));
 	case SGS_LE_TOOLONG:
-		throw new SGSLexemeException(string("标识符太长：") + word);
+		msgList.push_back(sgsMsg(word + string("标识符太长，已截断。\n"), MT_WARNING));
 	case SGS_LE_INCOMPLETE:
-		throw new SGSLexemeException(string("结构不完整") + word);
+		msgList.push_back(sgsMsg(word + string("结构不完整。\n"), MT_ERROR));
 	case SGS_LE_EXPOP:
-		throw new SGSLexemeException(string("符号错误") + word);
+		msgList.push_back(sgsMsg(word + string("符号错误。\n"), MT_ERROR));
 	}
 }

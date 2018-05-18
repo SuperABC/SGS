@@ -1,5 +1,6 @@
 #ifndef LEXEME_H
 #define LEXEME_H
+#include "message.h"
 #include <cstdio>
 #include <iostream>
 #include <vector>
@@ -132,6 +133,12 @@ typedef struct {
 	int start, end;
 }sgsTokenPrim;
 
+enum SGSLEXEMEERROR {
+	SGS_LE_ILLEGAL,
+	SGS_LE_TOOLONG,
+	SGS_LE_INCOMPLETE,
+	SGS_LE_EXPOP
+};
 class SgsLex {
 private:
 	string content;
@@ -139,10 +146,12 @@ private:
 
 	sgsHashNode *list[256];
 
-	int negPos = 0;
+	int tmpLine = 1;
 public:
 	vector<sgsTokenPrim> output;
 	vector<string> strId;
+
+	vector<sgsMsg> msgList;
 
 	SgsLex(const char *input = NULL);
 	virtual ~SgsLex();
@@ -156,22 +165,7 @@ public:
 
 	const char *get();
 
-	static void error(const char *word, int type);
+	void error(const char *word, SGSLEXEMEERROR type);
 };
 
-enum SGSLEXEMEERROR {
-	SGS_LE_ILLEGAL,
-	SGS_LE_TOOLONG,
-	SGS_LE_INCOMPLETE,
-	SGS_LE_EXPOP
-};
-class SGSLexemeException {
-private:
-	std::string msg;
-public:
-	SGSLexemeException(std::string s) {
-		msg = s;
-	}
-	const char *message() { return msg.data(); }
-};
 #endif
