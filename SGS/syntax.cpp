@@ -1,6 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "syntax.h"
 
+using namespace sgs;
+
 SgsSyntax::SgsSyntax() {
 	proc = 0;
 
@@ -33,7 +35,7 @@ SgsSyntax *SgsSyntax::input(vector<string> &ids, vector<sgsTokenPrim> &src) {
 	}
 	return this;
 }
-stateNode *SgsSyntax::parse() {
+void SgsSyntax::parse() {
 	proc = 0;
 
 	while (proc < content.size()) {
@@ -54,11 +56,11 @@ stateNode *SgsSyntax::parse() {
 			proc++;
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_CLASS) {
 				proc++;
-				globeDec.push_back(parseClassDec());
+				stmts.push_back(parseClassDec());
 			}
 			else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_FUNCTION) {
 				proc++;
-				globeDec.push_back(parseFuncDec());
+				stmts.push_back(parseFuncDec());
 			}
 			else
 				error("New", SGS_SE_UNIQUE);
@@ -67,20 +69,74 @@ stateNode *SgsSyntax::parse() {
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LET) {
 			proc++;
 
-			varNode *lvalue;
-			int varType;
+			Expression *left, *right;
 			int classIdx = -1;
+			string newVar;
 			if (content[proc].type == SGS_TT_USER) {
 				if ((classIdx = findClass()) >= 0) {
-					globeVar.push_back(lvalue = new classNode(globeDec[classIdx], parseUser()));
+					stmts.push_back(new TypeDef(((TypeDef *)stmts[classIdx])->getDecType(), newVar = parseUser()));
+					left = new IdExp(newVar);
 				}
 				else {
-					lvalue = parseExp();
+					left = parseExp();
 				}
 			}
 			else if (content[proc].type == SGS_TT_SYS) {
-				if ((varType = findType()) != -1) {
-					globeVar.push_back(lvalue = new primNode(new primDec(varType), parseUser()));
+				if (content[proc].id == SGS_ID_INTEGER) {
+					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+						proc += 2;
+						int length = content[proc].value;
+						proc++;
+						stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
+					}
+					else {
+						proc++;
+						stmts.push_back(new TypeDef(new BasicType(BT_INT), newVar = parseUser()));
+						left = new IdExp(newVar);
+					}
+				}
+				else if(content[proc].id == SGS_ID_FLOAT) {
+					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+						proc += 2;
+						int length = content[proc].value;
+						proc++;
+						stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
+					}
+					else {
+						proc++;
+						stmts.push_back(new TypeDef(new BasicType(BT_FLOAT), newVar = parseUser()));
+						left = new IdExp(newVar);
+					}
+				}
+				else if (content[proc].id == SGS_ID_BOOL) {
+					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+						proc += 2;
+						int length = content[proc].value;
+						proc++;
+						stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+					}
+					else {
+						proc++;
+						stmts.push_back(new TypeDef(new BasicType(BT_BOOL), newVar = parseUser()));
+						left = new IdExp(newVar);
+					}
+				}
+				else if (content[proc].id == SGS_ID_CHAR) {
+					error("char", SGS_SE_UNSUPPORT);
+					skipLine();
+				}
+				else if (content[proc].id == SGS_ID_STRING) {
+					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+						proc += 2;
+						int length = content[proc].value;
+						proc++;
+						stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+					}
+					else {
+						proc++;
+						stmts.push_back(new TypeDef(new BasicType(BT_STRING), newVar = parseUser()));
+						left = new IdExp(newVar);
+					}
 				}
 				else {
 					error(strId[content[proc].id].data(), SGS_SE_UNIQUE);
@@ -94,23 +150,20 @@ stateNode *SgsSyntax::parse() {
 
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_BE) {
 				proc++;
-				stateSeq statement = stateSeq(VO_ASSIGN);
-				statement.left = lvalue;
-				statement.right = parseExp();
-				output->statements.push_back(statement);
+				stmts.push_back(new AssignStmt(left, parseExp()));
 			}
 			continue;
 		}
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_START) {
 			proc++;
 			int funcIdx;
-			if ((funcIdx = findFunc()) >= 0) {
-				parseFuncDef(funcIdx);
-				if (funcIdx != findFunc())
-					error(globeVar[funcIdx]->declaration->name.data(), SGS_SE_DISACCORD);
+			if ((funcIdx = findProto()) >= 0) {
+				stmts.push_back(parseFuncDef(funcIdx));
+				if (funcIdx != findProto())
+					error(((FuncProto *)stmts[funcIdx])->getName().data(), SGS_SE_DISACCORD);
 			}
 			else {
-				error(strId[content[proc].id].data(), SGS_SE_NOID);
+				error(parseUser().data() , SGS_SE_NOID);
 				skipLine();
 			}
 			continue;
@@ -118,40 +171,19 @@ stateNode *SgsSyntax::parse() {
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
 			proc++;
 
-			varNode *branch = parseExp();
+			Expression *branch = parseExp();
 			if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_THEN)
 				error("If(then)", SGS_SE_INCOMPLETE);
 			else proc++;
 
-			stateSeq statement = stateSeq(VO_IF);
-			statement.left = branch;
-			statement.right = new varNode(new varDec(SGS_DT_EXP, ""), "");
-			((varNode *)statement.right)->left= parseBlock();
-			stateNode *reject = new stateNode();
-			((varNode *)statement.right)->right = reject;
+			BlockStmt *taken = parseBlock();
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ELSE) {
 				proc++;
-				int last = 1;
-				while (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
-					proc++;
-					stateSeq statement = stateSeq(VO_IF);
-					statement.left = parseExp();
-					statement.right = new varNode(new varDec(SGS_DT_EXP, ""), "");
-					if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_THEN)
-						error("If(then)", SGS_SE_INCOMPLETE);
-					proc++;
-					((varNode *)statement.right)->left = parseBlock();
-					reject->statements.push_back(statement);
-					reject = new stateNode();
-					((varNode *)statement.right)->right = reject;
-
-					if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_ELSE) {
-						last = 0;
-						break;
-					}
-					proc++;
-				}
-				if (last)reject->statements = parseBlock()->statements;
+				BlockStmt *untaken = parseUntaken();
+				stmts.push_back(new IfStmt(branch, taken, untaken));
+			}
+			else {
+				stmts.push_back(new IfStmt(branch, taken, NULL));
 			}
 
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
@@ -162,23 +194,19 @@ stateNode *SgsSyntax::parse() {
 			}
 			else error("If(end)", SGS_SE_INCOMPLETE);
 
-			output->statements.push_back(statement);
 			continue;
 		}
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP) {
 			proc++;
 
-			varNode *cond = NULL;
+			Expression *cond;
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WHEN) {
 				proc++;
 				cond = parseExp();
 			}
 			else error("Loop(when)", SGS_SE_INCOMPLETE);
 
-			stateSeq statement = stateSeq(VO_WHILE);
-			statement.left = cond;
-			statement.right = parseBlock();
-
+			stmts.push_back(new WhileStmt(cond, parseBlock()));
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
 				proc++;
 				if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP)
@@ -188,18 +216,13 @@ stateNode *SgsSyntax::parse() {
 			}
 			else error("Loop(end)", SGS_SE_INCOMPLETE);
 
-			output->statements.push_back(statement);
 			continue;
 		}
 		else if (content[proc].type == SGS_TT_USER) {
 			int funcIdx;
 			string newVar;
-			if ((funcIdx = findFunc()) != -1) {
-				stateSeq statement = stateSeq(VO_CALL);
-				statement.left = globeDec[funcIdx];
-				statement.right = parseParam(funcIdx);
-
-				output->statements.push_back(statement);
+			if ((funcIdx = findDef()) != -1) {
+				stmts.push_back(new CallStmt(((FuncDef *)stmts[funcIdx]), parseParam()));
 			}
 			else error("Function", SGS_SE_NOID);
 			continue;
@@ -209,8 +232,6 @@ stateNode *SgsSyntax::parse() {
 			continue;
 		}
 	}
-
-	return output;
 }
 
 void SgsSyntax::skipLine() {
@@ -220,7 +241,7 @@ void SgsSyntax::skipLine() {
 void SgsSyntax::parseLib(string lib) {
 
 }
-varNode *SgsSyntax::parseExp() {
+Expression *SgsSyntax::parseExp() {
 	std::stack<int> op;
 	std::stack<varNode*> value;
 
@@ -261,21 +282,31 @@ varNode *SgsSyntax::parseExp() {
 					error(globeDec[classIdx]->name.data(), SGS_SE_INCOMPLETE);
 			}
 			else {
-				if (globeVar[varIdx = findVar()]->declaration->type == SGS_DT_FUNCTION) {
-					proc = pre;
-					if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ITSELF) {
-						value.push(globeVar[varIdx]);
-					}
-					else {
-						varNode *tmp = new varNode(new varDec(SGS_DT_FUNCTION, ""), "");
-						tmp->left = globeVar[varIdx];
-						tmp->right = parseParam(varIdx);
-
-						value.push(tmp);
+				int matched = 0;
+				if (func != -1) {
+					varIdx = findVar();
+					if (varIdx != -1) {
+						value.push(((funcNode *)globeVar[((funcDec *)globeDec[func])->varIdx])->localVar[varIdx]);
+						matched = 1;
 					}
 				}
-				else {
-					value.push(globeVar[varIdx]);
+				if (!matched) {
+					if (globeVar[varIdx = findVar()]->declaration->type == SGS_DT_FUNCTION) {
+						proc = pre;
+						if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ITSELF) {
+							value.push(globeVar[varIdx]);
+						}
+						else {
+							varNode *tmp = new varNode(new varDec(SGS_DT_FUNCTION, ""), "");
+							tmp->left = globeVar[varIdx];
+							tmp->right = parseParam(varIdx);
+
+							value.push(tmp);
+						}
+					}
+					else {
+						value.push(globeVar[varIdx]);
+					}
 				}
 			}
 		}
@@ -403,38 +434,211 @@ varNode *SgsSyntax::parseExp() {
 	}
 	return NULL;
 }
-funcDec *SgsSyntax::parseFuncDec() {
+TypeDef *SgsSyntax::parseClassDec() {
 	return NULL;
 }
-stateNode *SgsSyntax::parseFuncDef(int funcid) {
+FuncProto *SgsSyntax::parseFuncDec() {
+	funcDec *ret = new funcDec();
+	ret->type = SGS_DT_FUNCTION;
+	ret->name = parseUser();
+
+	if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WITH) {
+		proc++;
+
+		int type, cla;
+		while (true) {
+			if ((cla = findClass()) != -1) {
+				ret->varList.push_back(new varNode(globeDec[cla], parseUser()));
+			}
+			else if ((type = findType()) != -1) {
+				ret->varList.push_back(new varNode(new varDec((decType)type, ""), parseUser()));
+			}
+			else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)proc++;
+			else break;
+		}
+	}
+
+	if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
+		int type, cla;
+		if ((cla = findClass()) != -1) {
+			ret->result = globeDec[cla];
+		}
+		else if ((type = findType()) != -1) {
+			ret->result = new varDec((decType)type, "");
+		}
+	}
+	return ret;
+}
+FuncDef *SgsSyntax::parseFuncDef(int funcid) {
+	int preFunc = func;
+	func = funcid;
+	funcNode *tmpFunc = new funcNode(globeDec[funcid], globeDec[funcid]->name, NULL, vector<varNode *>());
+	tmpFunc->localVar.push_back(new varNode(globeDec[funcid], "result"));
+	for (auto v : ((funcDec *)globeDec[funcid])->varList)
+		tmpFunc->localVar.push_back(v);
+
+	stateNode *ret = new stateNode();
+	while (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_END) {
+		if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LET) {
+			proc++;
+
+			varNode *lvalue;
+			int varType;
+			int classIdx = -1;
+			if (content[proc].type == SGS_TT_USER) {
+				if ((classIdx = findClass()) >= 0) {
+					tmpFunc->localVar.push_back(lvalue = new classNode(globeDec[classIdx], parseUser()));
+				}
+				else {
+					lvalue = parseExp();
+				}
+			}
+			else if (content[proc].type == SGS_TT_SYS) {
+				if ((varType = findType()) != -1) {
+					tmpFunc->localVar.push_back(lvalue = new primNode(new primDec(varType), parseUser()));
+				}
+				else {
+					error(strId[content[proc].id].data(), SGS_SE_UNIQUE);
+					skipLine();
+				}
+			}
+			else {
+				error("Let", SGS_SE_UNIQUE);
+				skipLine();
+			}
+
+			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_BE) {
+				proc++;
+				stateSeq statement = stateSeq(VO_ASSIGN);
+				statement.left = lvalue;
+				statement.right = parseExp();
+				ret->statements.push_back(statement);
+			}
+
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
+			proc++;
+			varNode *branch = parseExp();
+			if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_THEN)
+				error("If(then)", SGS_SE_INCOMPLETE);
+			else proc++;
+
+			stateSeq statement = stateSeq(VO_IF);
+			statement.left = branch;
+			statement.right = new varNode(new varDec(SGS_DT_EXP, ""), "");
+			((varNode *)statement.right)->left = parseBlock();
+			stateNode *reject = new stateNode();
+			((varNode *)statement.right)->right = reject;
+			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ELSE) {
+				proc++;
+				int last = 1;
+				while (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
+					proc++;
+					stateSeq statement = stateSeq(VO_IF);
+					statement.left = parseExp();
+					statement.right = new varNode(new varDec(SGS_DT_EXP, ""), "");
+					if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_THEN)
+						error("If(then)", SGS_SE_INCOMPLETE);
+					proc++;
+					((varNode *)statement.right)->left = parseBlock();
+					reject->statements.push_back(statement);
+					reject = new stateNode();
+					((varNode *)statement.right)->right = reject;
+
+					if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_ELSE) {
+						last = 0;
+						break;
+					}
+					proc++;
+				}
+				if (last)reject->statements = parseBlock()->statements;
+			}
+
+			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
+				proc++;
+				if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF)
+					proc++;
+				else error("End if", SGS_SE_INCOMPLETE);
+			}
+			else error("If(end)", SGS_SE_INCOMPLETE);
+
+			ret->statements.push_back(statement);
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP) {
+			proc++;
+			varNode *cond = NULL;
+			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WHEN) {
+				proc++;
+				cond = parseExp();
+			}
+			else error("Loop(when)", SGS_SE_INCOMPLETE);
+
+			stateSeq statement = stateSeq(VO_WHILE);
+			statement.left = cond;
+			statement.right = parseBlock();
+
+			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
+				proc++;
+				if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP)
+					proc++;
+				else
+					error("End loop", SGS_SE_INCOMPLETE);
+			}
+			else error("Loop(end)", SGS_SE_INCOMPLETE);
+
+			ret->statements.push_back(statement);
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_USER) {
+			int funcIdx;
+			string newVar;
+			if ((funcIdx = findProto()) != -1) {
+				stateSeq statement = stateSeq(VO_CALL);
+				statement.left = globeDec[funcIdx];
+				statement.right = parseParam(funcIdx);
+
+				ret->statements.push_back(statement);
+			}
+			else error("Function", SGS_SE_NOID);
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_DOT) {
+			proc++;
+			continue;
+		}
+	}
+	proc++;
+	tmpFunc->content = ret;
+
+	func = preFunc;
+	globeVar.push_back(tmpFunc);
+}
+vector<sgs::Expression *>SgsSyntax::parseParam() {
+
+}
+BlockStmt *SgsSyntax::parseBlock() {
 	return NULL;
 }
-classNode *SgsSyntax::parseParam(int funcid) {
-	return NULL;
+sgs::BlockStmt *SgsSyntax::parseUntaken() {
+
 }
-classDec *SgsSyntax::parseClassDec() {
-	return NULL;
-}
-stateNode *SgsSyntax::parseBlock() {
-	return NULL;
-}
+
 string SgsSyntax::parseUser() {
 	return string();
 }
 int SgsSyntax::findVar() {
-	return -1;
-}
-int SgsSyntax::findType() {
-	return -1;
+
 }
 int SgsSyntax::findClass() {
-	return -1;
+
 }
-int SgsSyntax::findFunc() {
-	return -1;
+int SgsSyntax::findProto() {
+
 }
-int SgsSyntax::findArray() {
-	return -1;
+int SgsSyntax::findDef() {
+
 }
 
 void SgsSyntax::clearMem() {
