@@ -4,194 +4,120 @@
 #include "memory.h"
 #include <cstdio>
 #include <stack>
+#include <memory>
 
-class stateSeq;
-class stateNode;
+using std::unique_ptr;
 
-class expNode;
-class varDec;
-class varNode;
-class primDec;
-class primNode;
-class classDec;
-class classNode;
-class arrayDec;
-class arrayNode;
-class funcDec;
-class funcNode;
+namespace sgs {
+	enum ASTTYPE {
+		AT_STMT,
+		AT_EXP
+	};
+	class AST {
+	public:
+		ASTTYPE type;
+	};
 
-class expNode {
-public:
-	SGSOPERATOR op;
-	expNode *left, *right;
-};
-enum decType {
-	SGS_DT_INTEGER,
-	SGS_DT_CHAR,
-	SGS_DT_STRING,
-	SGS_DT_FLOAT,
-	SGS_DT_BOOL,
-	SGS_DT_EXP,
-	SGS_DT_CLASS,
-	SGS_DT_ARRAY,
-	SGS_DT_FUNCTION,
-	SGS_DT_NULL
-};
-class varDec {
-public:
-	decType type;
-	string name;
-};
-class varNode : public expNode {
-public:
-	varDec declaration;
-	string name;
-};
-class primDec :public varDec {
+	enum StmtType {
+		ST_DEC,
+		ST_ASSIGN,
+		ST_CALL,
+		ST_IF,
+		ST_WHILE,
+		ST_RETURN,
+		ST_BREAK,
+		ST_CONTINUE,
+		ST_BLOCK
+	};
+	class Statement : public AST {
+	public:
+		StmtType type;
+	};
+	class DecStmt : public Statement {
 
-};
-class primNode : public varNode {
-	void *value;
-};
-class classDec : public varDec {
-	vector<varDec> varList;
-};
-class classNode : public varNode {
-public:
-	vector<varNode> varList;
-	classNode() {}
-	classNode(classDec t, string name) {
-		this->declaration = t;
-		this->name = name;
-	}
-};
-class arrayDec : public varDec {
-public:
-	varDec type;
-};
-class arrayNode : public varNode {
-	vector<varNode> content;
-};
-class funcDec : public varDec {
-public:
-	vector<varDec> varList;
-	funcDec() {}
-	funcDec(string name, vector<varDec> vars = vector<varDec>()) {
-		this->name = name;
-		varList = vars;
-	}
-};
-class funcNode : public varNode {
-public:
-	vector<stateSeq> content;
-	vector<varNode> localVar;
-	funcNode() {}
-	funcNode(funcDec dec) { declaration = dec; }
-};
+	};
+	class AssignStmt : public Statement {
 
-enum stateType {
-	VO_NULL,
-	VO_ASSIGN,
-	VO_CALL,
-	VO_IF,
-	VO_WHILE
-};
-class stateSeq {
-private:
-	enum stateType seqType;
-	void *left, *right;
+	};
+	class CallStmt : public Statement {
 
-public:
-	int line;
+	};
+	class IfStmt : public Statement {
 
-	varNode *leftValue() {
-		if (seqType != VO_ASSIGN)return NULL;
-		return (varNode *)left;
-	}
-	varNode *rightValue() {
-		if (seqType != VO_ASSIGN)return NULL;
-		return (varNode *)right;
-	}
-	funcDec *funcName() {
-		if (seqType != VO_CALL)return NULL;
-		return (funcDec *)left;
-	}
-	classNode *funcPara() {
-		if (seqType != VO_CALL)return NULL;
-		return (classNode *)right;
-	}
-	varNode *ifCondition() {
-		if (seqType == VO_IF)return NULL;
-		return (varNode *)left;
-	}
-	stateNode *ifTaken() {
-		if (seqType == VO_IF)return NULL;
-		return (stateNode *)((expNode *)right)->left;
-	}
-	stateNode *ifUntaken() {
-		if (seqType == VO_IF)return NULL;
-		return (stateNode *)((expNode *)right)->right;
-	}
-	varNode *loopCondition() {
-		if (seqType == VO_WHILE)return NULL;
-		return (varNode *)left;
-	}
-	stateNode *loopBlock() {
-		if (seqType == VO_WHILE)return NULL;
-		return (stateNode *)right;
-	}
-};
-class stateNode : public expNode {
-	vector<stateSeq> statements;
-};
+	};
+	class WhileStmt : public Statement {
 
-class SgsSyntax {
-private:
-	vector<sgsTokenPrim> content;
-	vector<string> strId;
+	};
+	class ReturnStmt : public Statement {
 
-	SgsMemory synMem;
+	};
+	class BreakStmt : public Statement {
 
-	unsigned int proc;
-	int func = -1;
+	};
+	class ContinueStmt : public Statement {
 
-	void prepare();
+	};
+	class BlockStmt : public Statement {
 
-	void parseLib(string lib);
-	expNode *parseExp();
-	funcNode *parseFuncDec();
-	stateNode *parseFuncDef(int funcid);
-	classNode *parseParam(int funcid);
-	stateNode *parseBlock();
-	classDec *parseClassDec();
+	};
 
-	int findType();
-	int findVar();
-	int findClass();
-	int findFunc();
-	int findArray();
+	enum EXPTYPE {
+		ET_OP,
+		ET_LETERAL,
+		ET_ID
+	};
+	class Expression : public AST {
+	public:
+		EXPTYPE type;
+	};
+	class OpExp : public Expression {
 
-	void clearMem();
+	};
+	class LiteralExp : public Expression {
 
-	static bool compare(int op1, int op2);
+	};
+	class IdExp : public Expression {
 
-public:
-	vector<varDec *> globeDec;
-	vector<varNode *> globeVar;
+	};
 
-	stateNode *output;
+	enum DECTYPE {
+		DT_BASIC,
+		DT_ARRAY,
+		DT_CLASS
+	};
+	class VarDec {
+		DECTYPE type;
+	};
+	enum BASICTYPE {
+		PT_INT,
+		PT_FLOAT,
+		PT_BOOL,
+		PT_CHAR,
+		PT_STRING
+	};
+	class BasicDec : public VarDec {
+		BASICTYPE type;
+	};
+	class ArrayDec : public VarDec {
+		VarDec *eleType;
+		int length;
+	};
+	class ClassDec : public VarDec {
+		string name;
+		vector <std::pair<VarDec *, string>> eleList;
+	};
+	class FuncProto {
+		VarDec *returnType;
+		string name;
+		vector <std::pair<VarDec *, string>> eleList;
 
-	vector<sgsMsg> msgList;
+		bool def = false;
+	};
+	class FuncDef : FuncProto {
+		vector<AST> stmts;
+	};
 
-	SgsSyntax();
-	SgsSyntax(vector<string> &ids, vector<sgsTokenPrim> &input);
-	~SgsSyntax();
-
-	SgsSyntax *input(vector<string> &ids, vector<sgsTokenPrim> &src);
-	stateNode *parse();
-
-	static void error(const char *inst, int type);
-};
+}
 
 enum SGSYNTAXERROR {
 	SGS_SE_EXPOSE,
@@ -207,13 +133,51 @@ enum SGSYNTAXERROR {
 	SGS_SE_UNKNOWN,
 	SGS_SE_UNSUPPORT
 };
-class SGSyntaxException {
+class SgsSyntax {
 private:
-	std::string msg;
+	vector<sgsTokenPrim> content;
+	vector<string> strId;
+
+	SgsMemory synMem;
+
+	unsigned int proc;
+	int func = -1;
+
+	void prepare();
+
+	void skipLine();
+	void parseLib(string lib);
+	sgs::Expression *parseExp();
+	sgs::FuncProto *parseFuncDec();
+	sgs::FuncDef *parseFuncDef(int funcid);
+	vector<sgs::AST *> parseBlock();
+	sgs::ClassDec *parseClassDec();
+
+	string parseUser();
+	int findVar();
+	int findType();
+	int findClass();
+	int findFunc();
+	int findArray();
+
+	void clearMem();
+
+	static bool compare(int op1, int op2);
+
 public:
-	SGSyntaxException(std::string s) {
-		msg = s;
-	}
-	const char *message() { return msg.data(); }
+	vector<sgs::AST *> stmts;
+	vector<sgs::FuncProto *> funcs;
+
+	vector<sgsMsg> msgList;
+
+	SgsSyntax();
+	SgsSyntax(vector<string> &ids, vector<sgsTokenPrim> &input);
+	~SgsSyntax();
+
+	SgsSyntax *input(vector<string> &ids, vector<sgsTokenPrim> &src);
+	void parse();
+
+	void error(const char *word, SGSYNTAXERROR type);
 };
+
 #endif
