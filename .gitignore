@@ -2,3 +2,10 @@
 *.suo
 *.db
 *.opendb
+*.log
+*.tlog
+*.obj
+*.ilk
+*.pdb
+*.idb
+*.lastbuildstate

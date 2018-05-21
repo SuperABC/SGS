@@ -9,6 +9,16 @@
 using std::unique_ptr;
 
 namespace sgs {
+	class AST;
+	class VarType; class BasicType; class ArrayType; class ClassType; class TypeDef;
+	class ClassDef;
+	class Expression; class OpExp; class LiteralExp;
+	class IntLiteral; class FloatLiteral; class BoolLiteral; class StrLiteral; class ArrayLiteral; class ClassLiteral;
+	class IdExp; class CallExp; class AccessExp; class VisitExp;
+	class Statement; class AssignStmt; class BlockStmt; class CallStmt; class IfStmt; class WhileStmt;
+	class ReturnStmt; class BreakStmt; class ContinueStmt;
+	class FuncProto;
+	class FuncDef;
 
 	enum AST_TYPE {
 		AT_TYPEDEF,
@@ -135,17 +145,17 @@ namespace sgs {
 		explicit IntLiteral(int value = 0) : LiteralExp(new BasicType(BT_INT)), value(value) {}
 		int getValue() const { return value; }
 	};
-	class BoolLiteral : public LiteralExp {
-		bool value;
-	public:
-		explicit BoolLiteral(bool value = false) : LiteralExp(new BasicType(BT_BOOL)), value(value) {}
-		bool getValue() const { return value; }
-	};
 	class FloatLiteral : public LiteralExp {
 		double value;
 	public:
 		explicit FloatLiteral(double value = 0) : LiteralExp(new BasicType(BT_FLOAT)), value(value) {}
 		double getValue() const { return value; }
+	};
+	class BoolLiteral : public LiteralExp {
+		bool value;
+	public:
+		explicit BoolLiteral(bool value = false) : LiteralExp(new BasicType(BT_BOOL)), value(value) {}
+		bool getValue() const { return value; }
 	};
 	class StrLiteral : public LiteralExp {
 		string value;
@@ -193,13 +203,13 @@ namespace sgs {
 	};
 	class CallExp : public Expression {
 	private:
-		string caller;
+		FuncProto * function;
 		vector <Expression *> paramList;
 	public:
-		CallExp(string f, vector<Expression*> paramList) :
-			Expression(ET_CALL), caller(f), paramList(std::move(paramList)) {}
+		CallExp(FuncProto *f, vector<Expression*> paramList) :
+			Expression(ET_CALL), function(f), paramList(std::move(paramList)) {}
 		void pushParam(Expression *e) { paramList.push_back(e); }
-		string getFunction() const { return caller; };
+		FuncProto *getFunction() const { return function; };
 		const vector <Expression *>& getParam() const { return paramList; };
 	};
 
@@ -364,7 +374,7 @@ private:
 	sgs::FuncProto *parseFuncDec();
 	sgs::FuncDef *parseFuncDef(int funcid);
 	vector<sgs::Expression *>parseParam(int funcid);
-	sgs::BlockStmt *parseBlock();
+	sgs::BlockStmt *parseBlock(bool untaken = false);
 	sgs::BlockStmt *parseUntaken();
 
 	string parseUser(string guide = "");
