@@ -189,8 +189,11 @@ void SgsSyntax::parse() {
 			BlockStmt *taken = parseBlock();
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ELSE) {
 				proc++;
-				BlockStmt *untaken = parseUntaken();
-				stmts.push_back(new IfStmt(branch, taken, untaken));
+				if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
+					proc++;
+					stmts.push_back(new IfStmt(branch, taken, parseBlock(true)));
+				}
+				else stmts.push_back(new IfStmt(branch, taken, parseBlock()));
 			}
 			else {
 				stmts.push_back(new IfStmt(branch, taken, NULL));
@@ -687,8 +690,11 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 			BlockStmt *taken = parseBlock();
 			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ELSE) {
 				proc++;
-				BlockStmt *untaken = parseUntaken();
-				block->pushAST(new IfStmt(branch, taken, untaken));
+				if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
+					proc++;
+					block->pushAST(new IfStmt(branch, taken, parseBlock(true)));
+				}
+				else block->pushAST(new IfStmt(branch, taken, parseBlock()));
 			}
 			else {
 				block->pushAST(new IfStmt(branch, taken, NULL));
@@ -755,14 +761,6 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 		}
 	}
 	return block;
-}
-BlockStmt *SgsSyntax::parseUntaken() {
-	if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
-		return parseBlock(true);
-	}
-	else {
-		return parseBlock();;
-	}
 }
 
 string SgsSyntax::parseUser(string guide) {

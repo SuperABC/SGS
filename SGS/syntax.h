@@ -375,7 +375,6 @@ private:
 	sgs::FuncDef *parseFuncDef(int funcid);
 	vector<sgs::Expression *>parseParam(int funcid);
 	sgs::BlockStmt *parseBlock(bool untaken = false);
-	sgs::BlockStmt *parseUntaken();
 
 	string parseUser(string guide = "");
 	int parseUser(vector<string> guides);
