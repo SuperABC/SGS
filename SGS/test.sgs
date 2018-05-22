@@ -1,2 +1,2 @@
 let integer a be 10.
-print number a.
+print an int with value a.
