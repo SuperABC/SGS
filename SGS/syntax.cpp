@@ -256,6 +256,7 @@ void SgsSyntax::parse() {
 			continue;
 		}
 	}
+	return;
 }
 
 void SgsSyntax::skipLine() {

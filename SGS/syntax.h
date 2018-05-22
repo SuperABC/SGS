@@ -25,8 +25,8 @@ namespace sgs {
 		AT_CLASS,
 		AT_EXP,
 		AT_STMT,
-		AT_FUNC,
-		AT_PROTO
+		AT_PROTO,
+		AT_FUNC
 	};
 	class AST {
 	public:
