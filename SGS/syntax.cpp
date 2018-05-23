@@ -22,8 +22,8 @@ SgsSyntax::~SgsSyntax() {
 void SgsSyntax::prepare() {
 	vector<std::pair<VarType *, string>> piParam;
 	piParam.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), "value"));
-	stmts.push_back(new FuncProto(nullptr, "print an int", piParam));
-	funcList.push_back(new FuncProto(nullptr, "print an int", piParam));
+	stmts.push_back(new FuncProto(nullptr, "print a number", piParam));
+	funcList.push_back(new FuncProto(nullptr, "print a number", piParam));
 }
 
 SgsSyntax *SgsSyntax::input(vector<string> &ids, vector<sgsTokenPrim> &src) {
@@ -486,6 +486,15 @@ ClassLiteral *SgsSyntax::parseClassConst(int classid) {
 	}
 	for (unsigned int i = 0; i < classList[classid]->getEle().size(); i++) {
 		int idx = parseUser(name);
+		if (idx == -1 && i == 0) {
+			ele[i] = parseExp();
+			break;
+		}
+		else {
+			error(name[i].data(), SGS_SE_INCOMPLETE);
+			skipLine();
+			return nullptr;
+		}
 		ele[idx] = parseExp();
 	}
 	return new ClassLiteral(classList[classid]->getName(), ele);
@@ -582,8 +591,18 @@ vector<Expression *> SgsSyntax::parseParam(int funcid) {
 	}
 	for (unsigned int i = 0; i < funcList[funcid]->getParam().size(); i++) {
 		int idx = parseUser(name);
+		if (idx == -1 && i == 0) {
+			para[i] = parseExp();
+			break;
+		}
+		else {
+			error(name[i].data(), SGS_SE_INCOMPLETE);
+			skipLine();
+			return vector<Expression *>();
+		}
 		para[idx] = parseExp();
 	}
+
 	return para;
 }
 BlockStmt *SgsSyntax::parseBlock(bool untaken) {
@@ -750,6 +769,18 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 			}
 			else error("Function", SGS_SE_NOID);
 			continue;
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
+			proc++;
+			block->pushAST(new ReturnStmt());
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_BREAK) {
+			proc++;
+			block->pushAST(new BreakStmt());
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_REDO) {
+			proc++;
+			block->pushAST(new ContinueStmt());
 		}
 		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_DOT) {
 			proc++;
