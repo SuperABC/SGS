@@ -22,8 +22,23 @@ SgsSyntax::~SgsSyntax() {
 void SgsSyntax::prepare() {
 	vector<std::pair<VarType *, string>> piParam;
 	piParam.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), "value"));
-	stmts.push_back(new FuncProto(nullptr, "print a number", piParam));
-	funcList.push_back(new FuncProto(nullptr, "print a number", piParam));
+	stmts.push_back(new FuncProto(nullptr, "print an int", piParam));
+	funcList.push_back(new FuncProto(nullptr, "print an int", piParam));
+
+	vector<std::pair<VarType *, string>> pnParam;
+	pnParam.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a number", pnParam));
+	funcList.push_back(new FuncProto(nullptr, "print a number", pnParam));
+
+	vector<std::pair<VarType *, string>> pbParam;
+	pbParam.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
+	funcList.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
+
+	vector<std::pair<VarType *, string>> psParam;
+	psParam.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
+	funcList.push_back(new FuncProto(nullptr, "print a str", psParam));
 }
 
 SgsSyntax *SgsSyntax::input(vector<string> &ids, vector<sgsTokenPrim> &src) {
