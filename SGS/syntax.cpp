@@ -431,7 +431,7 @@ Expression *SgsSyntax::parseExp() {
 		return new ArrayLiteral(t, cont);
 	}
 }
-sgs::Expression *SgsSyntax::parseVar() {
+Expression *SgsSyntax::parseVar() {
 	Expression *ret = NULL;
 
 	while (proc < content.size()) {
@@ -975,27 +975,39 @@ void SgsSyntax::error(const char *inst, SGSYNTAXERROR type) {
 	switch (type) {
 	case SGS_SE_EXPOSE:
 		msgList.push_back(sgsMsg(string("语句块不封闭。\n"), MT_ERROR));
+		break;
 	case SGS_SE_UNIQUE:
 		msgList.push_back(sgsMsg(inst + string("无此用法。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPDOT:
 		msgList.push_back(sgsMsg(string("缺少句号。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPCOMMA:
 		msgList.push_back(sgsMsg(inst + string("缺少逗号。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPBRACE:
 		msgList.push_back(sgsMsg(string("括号不完整。\n"), MT_ERROR));
+		break;
 	case SGS_SE_REDEF:
 		msgList.push_back(sgsMsg(inst + string("重定义。\n"), MT_WARNING));
+		break;
 	case SGS_SE_INVALIDTYPE:
 		msgList.push_back(sgsMsg(inst + string("操作对象类型错误。\n"), MT_WARNING));
+		break;
 	case SGS_SE_DISACCORD:
 		msgList.push_back(sgsMsg(inst + string("前后不一致。\n"), MT_WARNING));
+		break;
 	case SGS_SE_NOID:
 		msgList.push_back(sgsMsg(inst + string("未定义。\n"), MT_ERROR));
+		break;
 	case SGS_SE_INCOMPLETE:
 		msgList.push_back(sgsMsg(inst + string("语句不完整。\n"), MT_WARNING));
+		break;
 	case SGS_SE_UNKNOWN:
 		msgList.push_back(sgsMsg(string("未知错误。\n"), MT_ERROR));
+		break;
 	case SGS_SE_UNSUPPORT:
 		msgList.push_back(sgsMsg(string("暂不支持。\n"), MT_ERROR));
+		break;
 	}
 }

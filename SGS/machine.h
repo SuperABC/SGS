@@ -2,31 +2,44 @@
 #define MACHINE_H
 #include "syntax.h"
 
-class SgsMachine {
-private:
-	vector<sgs::AST *> stmts;
+namespace sgs {
+	class VarNode {
+	public:
+		VarType *type;
+		string name;
+	};
+	class IntNode : public VarNode {
+	public:
+		int value;
+	};
+	class FloatNode : public VarNode {
+	public:
+		float value;
+	};
+	class BoolNode : public VarNode {
+	public:
+		bool value;
+	};
+	class StrNode : public VarNode {
+	public:
+		string value;
+	};
+	class ArrayNode : public VarNode {
+	public:
+		vector<VarNode *> content;
+	};
+	class ClassNode : public VarNode {
+	public:
+		vector<VarNode *> content;
+	};
+}
 
-	vector<sgs::ClassType *>classList;
-	vector<sgs::FuncProto *>funcList;
-
-	SgsMemory macMem;
-
-	void *env;
-	void initModule();
-	void loadDlls();
-
+class Symbol {
 public:
-	SgsMachine();
-	~SgsMachine();
+	sgs::VarNode *var;
+	Symbol *next;
 
-	SgsMachine *input(vector<sgs::AST *> *s,
-		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
-	void execute();
-	void step(sgs::AST *s);
-	void environment(void *env);
-
-	void clearMem();
-	static void error(const char *inst, int type);
+	Symbol(sgs::VarNode *var) : var(var) {}
 };
 
 enum SGSVMERROR {
@@ -34,13 +47,57 @@ enum SGSVMERROR {
 	VE_TYPEMISMATCH,
 	VE_BROKEN
 };
-class SGSMachineException {
+class SgsMachine {
 private:
-	std::string msg;
+	vector<sgs::AST *> stmts;
+
+	vector<sgs::ClassType *>classList;
+	vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
+
+	Symbol *table[256];
+
+	SgsMemory macMem;
+
+	void *env;
+	void initModule();
+	void loadDlls();
+
+	void addSymbol(sgs::VarNode *var);
+	sgs::VarNode *findSymbol(string name);
+	void removeLocal(vector<string> local);
+
+	void step(sgs::AST *s);
+	void declare(sgs::AST *s);
+	void structure(sgs::AST *s);
+	void statement(sgs::AST *s);
+	void prototype(sgs::AST *s);
+	void definition(sgs::AST *s);
+
+	void assignValue(sgs::VarNode *left, sgs::VarNode *right);
+	sgs::VarNode *callFunc(sgs::FuncProto *func, vector<sgs::Expression *> paras);
+	void exeBlock(sgs::BlockStmt *block);
+	sgs::VarNode *getPointer(sgs::Expression *e);
+	sgs::VarNode *expValue(sgs::Expression *e);
+	sgs::VarNode *arrayElement(sgs::Expression *e);
+	sgs::VarNode *classAttrib(sgs::Expression *e);
+
+	sgs::IntLiteral *getInt(sgs::VarNode *val);
+	sgs::FloatLiteral *getFloat(sgs::VarNode *val);
+	sgs::BoolLiteral *getBool(sgs::VarNode *val);
+	sgs::StrLiteral *getStr(sgs::VarNode *val);
 public:
-	SGSMachineException(std::string s) {
-		msg = s;
-	}
-	const char *message() { return msg.data(); }
+	vector<sgsMsg> msgList;
+
+	SgsMachine();
+	~SgsMachine();
+
+	SgsMachine *input(vector<sgs::AST *> s,
+		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
+	void execute();
+	void environment(void *env);
+
+	void clearMem();
+	void error(const char *inst, SGSVMERROR type);
 };
+
 #endif
