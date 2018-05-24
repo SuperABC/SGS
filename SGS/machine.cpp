@@ -3,6 +3,7 @@
 
 using namespace sgs;
 
+
 SgsMachine::SgsMachine() {
 
 }
