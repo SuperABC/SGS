@@ -47,30 +47,28 @@ VarNode *SgsMachine::findSymbol(string name) {
 	}
 	return NULL;
 }
-void SgsMachine::removeLocal(vector<string> local, bool del) {
-	for (auto s : local) {
-		int index = 0;
-		for (auto c : s)index += c;
-		index = index % 256;
-		Symbol *tmp = table[index];
-		Symbol *pre = NULL;
-		while (tmp) {
-			if (tmp->var->name == s) {
-				if (pre) {
-					pre->next = tmp->next;
-					if(del)delete tmp;
-					break;
-				}
-				else {
-					table[index] = tmp->next;
-					if (del)delete tmp;
-					break;
-				}
+void SgsMachine::removeLocal(string local, bool del) {
+	int index = 0;
+	for (auto c : local)index += c;
+	index = index % 256;
+	Symbol *tmp = table[index];
+	Symbol *pre = NULL;
+	while (tmp) {
+		if (tmp->var->name == local) {
+			if (pre) {
+				pre->next = tmp->next;
+				if(del)delete tmp;
+				break;
 			}
 			else {
-				pre = tmp;
-				tmp = tmp->next;
+				table[index] = tmp->next;
+				if (del)delete tmp;
+				break;
 			}
+		}
+		else {
+			pre = tmp;
+			tmp = tmp->next;
 		}
 	}
 }
@@ -141,6 +139,7 @@ void SgsMachine::declare(AST *s) {
 		break;
 	}
 	addSymbol(tmp);
+	stack.push(tmp->name);
 }
 void SgsMachine::structure(AST *s) {
 
@@ -276,9 +275,9 @@ VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 					assignValue(tmp, expValue(paras[i]));
 					addSymbol(tmp);
 				}
-				vector<string> local = exeBlock(func.second->getBody());
+				exeBlock(func.second->getBody());
 				VarNode *res = findSymbol("result");
-				removeLocal(local);
+				removeLocal("result", false);
 				return res;
 			}
 		}
@@ -292,9 +291,14 @@ VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 	}
 	return NULL;
 }
-vector<string> SgsMachine::exeBlock(BlockStmt *block) { //suspend.
-	vector<string> local;
-	return local;
+void SgsMachine::exeBlock(BlockStmt *block) {
+	stack.push("");
+	for (auto s : block->getContent())step(s);
+	while (stack.top() != "") {
+		removeLocal(stack.top());
+		stack.pop();
+	}
+	stack.pop();
 }
 VarNode *SgsMachine::getPointer(Expression *e) {
 	switch (e->getExpType()) {
@@ -337,7 +341,7 @@ VarNode *SgsMachine::expValue(Expression *e) {
 			return NULL;
 		}
 	case ET_CALL:
-		return callFunc(((CallStmt *)e)->getFunction(), ((CallStmt *)e)->getParam());
+		return callFunc(((CallExp *)e)->getFunction(), ((CallExp *)e)->getParam());
 	case ET_IDENT:
 		return findSymbol(((IdExp *)e)->getName());
 	case ET_VISIT:
@@ -348,7 +352,7 @@ VarNode *SgsMachine::expValue(Expression *e) {
 		return NULL;
 	}
 }
-VarNode *SgsMachine::binCalc(Expression *a, Expression *b) {
+VarNode *SgsMachine::binCalc(Expression *a, Expression *b) { //suspend.
 	return NULL;
 }
 VarNode *SgsMachine::arrayElement(Expression *e) { //suspend.

@@ -532,12 +532,15 @@ FuncProto *SgsSyntax::parseFuncDec() {
 			}
 			else if (content[proc].type == SGS_TT_SYS) {
 				if (content[proc].id == SGS_ID_INTEGER) {
+					proc++;
 					params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
 				}
 				else if (content[proc].id == SGS_ID_FLOAT) {
+					proc++;
 					params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
 				}
 				else if (content[proc].id == SGS_ID_BOOL) {
+					proc++;
 					params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
 				}
 				else if (content[proc].id == SGS_ID_CHAR) {
@@ -545,6 +548,7 @@ FuncProto *SgsSyntax::parseFuncDec() {
 					skipLine();
 				}
 				else if (content[proc].id == SGS_ID_STRING) {
+					proc++;
 					params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
 				}
 				else break;
@@ -553,6 +557,7 @@ FuncProto *SgsSyntax::parseFuncDec() {
 		}
 	}
 	if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
+		proc++;
 		if (content[proc].type == SGS_TT_USER) {
 			if ((classIdx = findClass()) >= 0) {
 				return new FuncProto(classList[classIdx], name, params);
@@ -633,7 +638,8 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 			Expression *left;
 			int classIdx = -1;
 			string newVar;
-			if (content[proc].type == SGS_TT_USER) {
+			if (content[proc].type == SGS_TT_USER || 
+				(content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RESULT)) {
 				if ((classIdx = findClass()) >= 0) {
 					block->pushAST(new TypeDef(classList[classIdx], newVar = parseUser()));
 					left = new IdExp(newVar);
@@ -805,6 +811,9 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 			proc++;
 			continue;
 		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
+			break;
+		}
 		else {
 			error("", SGS_SE_UNKNOWN);
 			skipLine();
@@ -816,7 +825,8 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 
 string SgsSyntax::parseUser(string guide) {
 	string tmp;
-	while (proc < content.size() && content[proc].type == SGS_TT_USER) {
+	while (proc < content.size() && (content[proc].type == SGS_TT_USER ||
+		content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RESULT)) {
 		tmp += strId[content[proc++].id];
 		if (tmp == guide)break;
 		tmp += " ";

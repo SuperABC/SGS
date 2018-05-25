@@ -1,8 +1,6 @@
-let integer test i be 10.
-print an int with value test i.
-let float test f be 0.0.
-print a number with value test f.
-let bool test b be true.
-print a boolean with value test b.
-let string test s be "hello world".
-print a str with value test s.
+new function convert ftoi with float f return integer.
+start convert ftoi.
+	let result be f.
+end convert ftoi.
+
+print an int with value convert ftoi with f 100.

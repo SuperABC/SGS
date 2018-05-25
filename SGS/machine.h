@@ -76,6 +76,7 @@ private:
 	vector<HINSTANCE> dllList;
 
 	Symbol *table[256] = { NULL };
+	std::stack<string> stack;
 
 	SgsMemory macMem;
 
@@ -85,7 +86,7 @@ private:
 
 	void addSymbol(sgs::VarNode *var);
 	sgs::VarNode *findSymbol(string name);
-	void removeLocal(vector<string> local, bool del = true);
+	void removeLocal(string local, bool del = true);
 
 	void step(sgs::AST *s);
 	void declare(sgs::AST *s);
@@ -96,7 +97,7 @@ private:
 
 	void assignValue(sgs::VarNode *left, sgs::VarNode *right);
 	sgs::VarNode *callFunc(sgs::FuncProto *func, vector<sgs::Expression *> paras);
-	vector<string> exeBlock(sgs::BlockStmt *block);
+	void exeBlock(sgs::BlockStmt *block);
 	sgs::VarNode *getPointer(sgs::Expression *e);
 	sgs::VarNode *expValue(sgs::Expression *e);
 	sgs::VarNode *binCalc(sgs::Expression *a, sgs::Expression *b);
