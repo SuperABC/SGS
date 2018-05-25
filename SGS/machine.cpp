@@ -90,6 +90,9 @@ void SgsMachine::environment(void *env) {
 void SgsMachine::execute() {
 	for (auto s : stmts)step(s);
 }
+VarNode *SgsMachine::execute(BlockStmt *block) {
+	for (auto s : block->getContent())step(s);
+}
 void SgsMachine::step(AST *s) {
 	switch (s->astType) {
 	case AT_TYPEDEF:
@@ -240,6 +243,11 @@ void SgsMachine::assignValue(VarNode *left, VarNode *right) {
 VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 	string name = func->getName();
 	SGSFUNC tmp = NULL;
+	for (auto func : funcList) {
+		if (name == func.first->getName()) {
+			return execute(func.second->getBody());
+		}
+	}
 	for (auto dll : dllList) {
 		if (tmp = (SGSFUNC)GetProcAddress(dll, nameReform(name).data())) {
 			vector<VarNode *> list;

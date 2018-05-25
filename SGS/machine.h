@@ -103,6 +103,7 @@ public:
 	SgsMachine *input(vector<sgs::AST *> s,
 		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
 	void execute();
+	VarNode *execute(BlockStmt *block);
 	void environment(void *env);
 
 	void clearMem();
