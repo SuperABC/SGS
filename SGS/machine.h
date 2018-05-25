@@ -1,5 +1,6 @@
 #ifndef MACHINE_H
 #define MACHINE_H
+#include <windows.h>
 #include "syntax.h"
 
 namespace sgs {
@@ -7,10 +8,14 @@ namespace sgs {
 	public:
 		VarType *type;
 		string name;
+
+		VarNode(VarType *t, string n) : type(t), name(n) {}
 	};
 	class IntNode : public VarNode {
 	public:
 		int value;
+
+		IntNode(int v, string n) : VarNode(new BasicType(BT_INT), n), value(v) {}
 	};
 	class FloatNode : public VarNode {
 	public:
@@ -34,6 +39,7 @@ namespace sgs {
 	};
 }
 
+#ifndef SGS_DLL
 class Symbol {
 public:
 	sgs::VarNode *var;
@@ -41,6 +47,8 @@ public:
 
 	Symbol(sgs::VarNode *var) : var(var) {}
 };
+
+typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
 
 enum SGSVMERROR {
 	VE_DIVBYZERO,
@@ -53,6 +61,7 @@ private:
 
 	vector<sgs::ClassType *>classList;
 	vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
+	vector<HINSTANCE> dllList;
 
 	Symbol *table[256];
 
@@ -99,5 +108,6 @@ public:
 	void clearMem();
 	void error(const char *inst, SGSVMERROR type);
 };
+#endif
 
 #endif
