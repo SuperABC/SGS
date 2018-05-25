@@ -100,7 +100,7 @@ private:
 	void exeBlock(sgs::BlockStmt *block);
 	sgs::VarNode *getPointer(sgs::Expression *e);
 	sgs::VarNode *expValue(sgs::Expression *e);
-	sgs::VarNode *binCalc(sgs::Expression *a, sgs::Expression *b);
+	sgs::VarNode *binCalc(SGSOPERATOR op, sgs::Expression *a, sgs::Expression *b);
 	sgs::VarNode *arrayElement(sgs::Expression *e);
 	sgs::VarNode *classAttrib(sgs::Expression *e);
 
