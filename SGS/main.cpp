@@ -3,7 +3,7 @@
 #include <fstream>
 #include "machine.h"
 
-#define SGS_COMPILE
+//#define SGS_COMPILE
 
 using std::cin;
 using std::cout;

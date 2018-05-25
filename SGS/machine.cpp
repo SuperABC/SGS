@@ -15,13 +15,13 @@ string nameReform(string input) {
 }
 
 SgsMachine::SgsMachine() {
-	loadDlls();
+	initModule();
 }
 SgsMachine::~SgsMachine() {
 
 }
 void SgsMachine::initModule() {
-
+	loadDlls();
 }
 void SgsMachine::loadDlls() {
 	dllList.push_back(LoadLibrary("Function.dll"));
@@ -90,8 +90,9 @@ void SgsMachine::environment(void *env) {
 void SgsMachine::execute() {
 	for (auto s : stmts)step(s);
 }
-VarNode *SgsMachine::execute(BlockStmt *block) {
+VarNode *SgsMachine::execute(BlockStmt *block) { //suspend.
 	for (auto s : block->getContent())step(s);
+	return NULL;
 }
 void SgsMachine::step(AST *s) {
 	switch (s->astType) {
@@ -122,7 +123,7 @@ void SgsMachine::declare(AST *s) {
 void SgsMachine::structure(AST *s) {
 
 }
-void SgsMachine::statement(AST *s) {
+void SgsMachine::statement(AST *s) { //suspend.
 	Statement *stmt = (Statement *)s;
 	switch (stmt->getStmtType()) {
 	case ST_ASSIGN: {
@@ -245,7 +246,7 @@ VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 	SGSFUNC tmp = NULL;
 	for (auto func : funcList) {
 		if (name == func.first->getName()) {
-			return execute(func.second->getBody());
+			if(func.second)return execute(func.second->getBody());
 		}
 	}
 	for (auto dll : dllList) {
@@ -257,7 +258,7 @@ VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 	}
 	return NULL;
 }
-void SgsMachine::exeBlock(BlockStmt *block) {
+void SgsMachine::exeBlock(BlockStmt *block) { //suspend.
 
 }
 VarNode *SgsMachine::getPointer(Expression *e) {
@@ -273,7 +274,7 @@ VarNode *SgsMachine::getPointer(Expression *e) {
 		return NULL;
 	}
 }
-VarNode *SgsMachine::expValue(Expression *e) {
+VarNode *SgsMachine::expValue(Expression *e) { //suspend.
 	switch (e->getExpType()) {
 	case ET_IDENT:
 		return findSymbol(((IdExp *)e)->getName());
@@ -292,24 +293,24 @@ VarNode *SgsMachine::expValue(Expression *e) {
 		return NULL;
 	}
 }
-VarNode *SgsMachine::arrayElement(Expression *e) {
+VarNode *SgsMachine::arrayElement(Expression *e) { //suspend.
 	return NULL;
 }
-VarNode *SgsMachine::classAttrib(Expression *e) {
+VarNode *SgsMachine::classAttrib(Expression *e) { //suspend.
 	return NULL;
 }
 
-IntLiteral *SgsMachine::getInt(VarNode *val) {
-	return NULL;
+int SgsMachine::getInt(VarNode *val) {
+	return ((IntNode *)val)->value;
 }
-FloatLiteral *SgsMachine::getFloat(VarNode *val) {
-	return NULL;
+float SgsMachine::getFloat(VarNode *val) {
+	return ((FloatNode *)val)->value;
 }
-BoolLiteral *SgsMachine::getBool(VarNode *val) {
-	return NULL;
+bool SgsMachine::getBool(VarNode *val) {
+	return ((BoolNode *)val)->value;
 }
-StrLiteral *SgsMachine::getStr(VarNode *val) {
-	return NULL;
+const char *SgsMachine::getStr(VarNode *val) {
+	return ((StrNode *)val)->value.data();
 }
 
 void SgsMachine::clearMem() {

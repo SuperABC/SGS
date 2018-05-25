@@ -90,10 +90,10 @@ private:
 	sgs::VarNode *arrayElement(sgs::Expression *e);
 	sgs::VarNode *classAttrib(sgs::Expression *e);
 
-	sgs::IntLiteral *getInt(sgs::VarNode *val);
-	sgs::FloatLiteral *getFloat(sgs::VarNode *val);
-	sgs::BoolLiteral *getBool(sgs::VarNode *val);
-	sgs::StrLiteral *getStr(sgs::VarNode *val);
+	int getInt(sgs::VarNode *val);
+	float getFloat(sgs::VarNode *val);
+	bool getBool(sgs::VarNode *val);
+	const char *getStr(sgs::VarNode *val);
 public:
 	vector<sgsMsg> msgList;
 
@@ -103,7 +103,7 @@ public:
 	SgsMachine *input(vector<sgs::AST *> s,
 		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
 	void execute();
-	VarNode *execute(BlockStmt *block);
+	sgs::VarNode *execute(sgs::BlockStmt *block);
 	void environment(void *env);
 
 	void clearMem();
