@@ -129,7 +129,7 @@ namespace sgs {
 			// TODO
 		}
 		Expression *getLeft() const { return left; }
-		Expression *getRigth() const { return right; }
+		Expression *getRight() const { return right; }
 		SGSOPERATOR getOp() const { return op; }
 
 	};
@@ -182,6 +182,7 @@ namespace sgs {
 		string name;
 	public:
 		explicit IdExp(string n) : Expression(ET_IDENT), name(std::move(n)) {}
+		string getName() { return name; }
 	};
 	class AccessExp : public Expression {
 		Expression* object;
@@ -238,7 +239,7 @@ namespace sgs {
 		void setLeft(Expression *l) { left = l; }
 		void setRigth(Expression *r) { right = r; }
 		Expression *getLeft() const { return left; }
-		Expression *getRigth() const { return right; }
+		Expression *getRight() const { return right; }
 	};
 	class BlockStmt : public Statement {
 	private:
@@ -355,9 +356,6 @@ private:
 	vector<sgsTokenPrim> content;
 	vector<string> strId;
 
-	vector<sgs::ClassType *>classList;
-	vector<sgs::FuncProto *>funcList;
-
 	SgsMemory synMem;
 
 	unsigned int proc;
@@ -387,6 +385,9 @@ private:
 
 public:
 	vector<sgs::AST *> stmts;
+
+	vector<sgs::ClassType *>classList;
+	vector<sgs::FuncProto *>funcList;
 
 	vector<sgsMsg> msgList;
 

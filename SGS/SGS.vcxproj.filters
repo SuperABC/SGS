@@ -27,6 +27,12 @@
     <ClCompile Include="syntax.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="machine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="generator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexeme.h">
@@ -41,9 +47,18 @@
     <ClInclude Include="message.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="machine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="generator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="test.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="debug.sgs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

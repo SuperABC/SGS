@@ -22,8 +22,23 @@ SgsSyntax::~SgsSyntax() {
 void SgsSyntax::prepare() {
 	vector<std::pair<VarType *, string>> piParam;
 	piParam.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), "value"));
-	stmts.push_back(new FuncProto(nullptr, "print a number", piParam));
-	funcList.push_back(new FuncProto(nullptr, "print a number", piParam));
+	stmts.push_back(new FuncProto(nullptr, "print an int", piParam));
+	funcList.push_back(new FuncProto(nullptr, "print an int", piParam));
+
+	vector<std::pair<VarType *, string>> pnParam;
+	pnParam.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a number", pnParam));
+	funcList.push_back(new FuncProto(nullptr, "print a number", pnParam));
+
+	vector<std::pair<VarType *, string>> pbParam;
+	pbParam.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
+	funcList.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
+
+	vector<std::pair<VarType *, string>> psParam;
+	psParam.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), "value"));
+	stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
+	funcList.push_back(new FuncProto(nullptr, "print a str", psParam));
 }
 
 SgsSyntax *SgsSyntax::input(vector<string> &ids, vector<sgsTokenPrim> &src) {
@@ -416,7 +431,7 @@ Expression *SgsSyntax::parseExp() {
 		return new ArrayLiteral(t, cont);
 	}
 }
-sgs::Expression *SgsSyntax::parseVar() {
+Expression *SgsSyntax::parseVar() {
 	Expression *ret = NULL;
 
 	while (proc < content.size()) {
@@ -484,18 +499,20 @@ ClassLiteral *SgsSyntax::parseClassConst(int classid) {
 	for (auto item : classList[classid]->getEle()) {
 		name.push_back(item.second);
 	}
+	bool hide = false;
 	for (unsigned int i = 0; i < classList[classid]->getEle().size(); i++) {
 		int idx = parseUser(name);
-		if (idx == -1 && i == 0) {
+		if (idx == -1) {
+			if (i == 0)hide = true;
+			else error(parseUser().data(), SGS_SE_NOID);
+		}
+		if (hide) {
 			ele[i] = parseExp();
 			break;
 		}
 		else {
-			error(name[i].data(), SGS_SE_INCOMPLETE);
-			skipLine();
-			return nullptr;
+			ele[idx] = parseExp();
 		}
-		ele[idx] = parseExp();
 	}
 	return new ClassLiteral(classList[classid]->getName(), ele);
 }
@@ -589,18 +606,20 @@ vector<Expression *> SgsSyntax::parseParam(int funcid) {
 	for (auto item : funcList[funcid]->getParam()) {
 		name.push_back(item.second);
 	}
+	bool hide = false;
 	for (unsigned int i = 0; i < funcList[funcid]->getParam().size(); i++) {
 		int idx = parseUser(name);
-		if (idx == -1 && i == 0) {
+		if (idx == -1) {
+			if(i == 0)hide = true;
+			else error(parseUser().data(), SGS_SE_NOID);
+		}
+		if (hide) {
 			para[i] = parseExp();
 			break;
 		}
 		else {
-			error(name[i].data(), SGS_SE_INCOMPLETE);
-			skipLine();
-			return vector<Expression *>();
+			para[idx] = parseExp();
 		}
-		para[idx] = parseExp();
 	}
 
 	return para;
@@ -810,6 +829,7 @@ string SgsSyntax::parseUser(string guide) {
 }
 int SgsSyntax::parseUser(vector<string> guides) {
 	string tmp;
+	int pre = proc;
 	while (proc < content.size() && content[proc].type == SGS_TT_USER) {
 		tmp += strId[content[proc++].id];
 		for (unsigned int i = 0; i < guides.size(); i++) {
@@ -823,6 +843,7 @@ int SgsSyntax::parseUser(vector<string> guides) {
 	else {
 		error(tmp.data(), SGS_SE_NOID);
 	}
+	proc = pre;
 	return -1;
 }
 int SgsSyntax::findClass() {
@@ -960,27 +981,39 @@ void SgsSyntax::error(const char *inst, SGSYNTAXERROR type) {
 	switch (type) {
 	case SGS_SE_EXPOSE:
 		msgList.push_back(sgsMsg(string("语句块不封闭。\n"), MT_ERROR));
+		break;
 	case SGS_SE_UNIQUE:
 		msgList.push_back(sgsMsg(inst + string("无此用法。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPDOT:
 		msgList.push_back(sgsMsg(string("缺少句号。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPCOMMA:
 		msgList.push_back(sgsMsg(inst + string("缺少逗号。\n"), MT_ERROR));
+		break;
 	case SGS_SE_EXPBRACE:
 		msgList.push_back(sgsMsg(string("括号不完整。\n"), MT_ERROR));
+		break;
 	case SGS_SE_REDEF:
 		msgList.push_back(sgsMsg(inst + string("重定义。\n"), MT_WARNING));
+		break;
 	case SGS_SE_INVALIDTYPE:
 		msgList.push_back(sgsMsg(inst + string("操作对象类型错误。\n"), MT_WARNING));
+		break;
 	case SGS_SE_DISACCORD:
 		msgList.push_back(sgsMsg(inst + string("前后不一致。\n"), MT_WARNING));
+		break;
 	case SGS_SE_NOID:
 		msgList.push_back(sgsMsg(inst + string("未定义。\n"), MT_ERROR));
+		break;
 	case SGS_SE_INCOMPLETE:
 		msgList.push_back(sgsMsg(inst + string("语句不完整。\n"), MT_WARNING));
+		break;
 	case SGS_SE_UNKNOWN:
 		msgList.push_back(sgsMsg(string("未知错误。\n"), MT_ERROR));
+		break;
 	case SGS_SE_UNSUPPORT:
 		msgList.push_back(sgsMsg(string("暂不支持。\n"), MT_ERROR));
+		break;
 	}
 }
