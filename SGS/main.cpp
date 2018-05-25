@@ -3,6 +3,8 @@
 #include <fstream>
 #include "machine.h"
 
+//#define SGS_COMPILE
+
 using std::cin;
 using std::cout;
 using std::endl;
@@ -22,5 +24,9 @@ void main() {
 
 	l.input(input.c_str())->parse();
 	s.input(l.strId, l.output)->parse();
+#ifndef SGS_COMPILE
 	m.input(s.stmts, s.classList, s.funcList)->execute();
+#endif
+
+	system("pause");
 }

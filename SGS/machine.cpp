@@ -3,18 +3,28 @@
 
 using namespace sgs;
 
+string nameReform(string input) {
+	string ret;
+	for (unsigned int i = 0; i < input.length(); i++) {
+		if (input[i] != ' ')ret.push_back(input[i]);
+		else {
+			ret.push_back(input[++i] & ~0x20);
+		}
+	}
+	return ret;
+}
 
 SgsMachine::SgsMachine() {
-
+	initModule();
 }
 SgsMachine::~SgsMachine() {
 
 }
 void SgsMachine::initModule() {
-
+	loadDlls();
 }
 void SgsMachine::loadDlls() {
-
+	dllList.push_back(LoadLibrary("Function.dll"));
 }
 void SgsMachine::addSymbol(VarNode *var) {
 	string name = var->name;
@@ -80,6 +90,10 @@ void SgsMachine::environment(void *env) {
 void SgsMachine::execute() {
 	for (auto s : stmts)step(s);
 }
+VarNode *SgsMachine::execute(BlockStmt *block) { //suspend.
+	for (auto s : block->getContent())step(s);
+	return NULL;
+}
 void SgsMachine::step(AST *s) {
 	switch (s->astType) {
 	case AT_TYPEDEF:
@@ -103,15 +117,13 @@ void SgsMachine::step(AST *s) {
 }
 void SgsMachine::declare(AST *s) {
 	TypeDef *dec = (TypeDef *)s;
-	VarNode *tmp = new VarNode();
-	tmp->type = dec->getDecType();
-	tmp->name = dec->getName();
+	VarNode *tmp = new VarNode(dec->getDecType(), dec->getName());
 	addSymbol(tmp);
 }
 void SgsMachine::structure(AST *s) {
 
 }
-void SgsMachine::statement(AST *s) {
+void SgsMachine::statement(AST *s) { //suspend.
 	Statement *stmt = (Statement *)s;
 	switch (stmt->getStmtType()) {
 	case ST_ASSIGN: {
@@ -163,12 +175,90 @@ void SgsMachine::definition(AST *s) {
 }
 
 void SgsMachine::assignValue(VarNode *left, VarNode *right) {
-
+	switch (left->type->getVarType()) {
+	case sgs::VT_BASIC:
+		switch (((BasicType *)left->type)->getBasicType()) {
+		case BT_INT:
+			if (((BasicType *)right->type)->getBasicType() == BT_INT)
+				((IntNode *)left)->value = (int)((IntNode *)right)->value;
+			else if(((BasicType *)right->type)->getBasicType() == BT_FLOAT)
+				((IntNode *)left)->value = (int)((FloatNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
+				((IntNode *)left)->value = (int)((BoolNode *)right)->value;
+			else error("", VE_TYPEMISMATCH);
+			break;
+		case BT_FLOAT:
+			if (((BasicType *)right->type)->getBasicType() == BT_INT)
+				((FloatNode *)left)->value = (float)((IntNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT)
+				((FloatNode *)left)->value = (float)((FloatNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
+				((FloatNode *)left)->value = (float)((BoolNode *)right)->value;
+			else error("", VE_TYPEMISMATCH);
+			break;
+		case BT_BOOL:
+			if (((BasicType *)right->type)->getBasicType() == BT_INT)
+				((BoolNode *)left)->value = (bool)((IntNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT)
+				((BoolNode *)left)->value = (bool)((FloatNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
+				((BoolNode *)left)->value = (bool)((BoolNode *)right)->value;
+			else error("", VE_TYPEMISMATCH);
+			break;
+		case BT_STRING:
+			if (((BasicType *)right->type)->getBasicType() == BT_INT) {
+				char *buffer = (char *)malloc((int)log10(((IntNode *)right)->value) + 2);
+				sprintf(buffer, "%d", ((IntNode *)right)->value);
+				((StrNode *)left)->value = buffer;
+			}
+			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT) {
+				char *buffer = (char *)malloc((int)log10(((FloatNode *)right)->value) + 2);
+				sprintf(buffer, "%f", ((FloatNode *)right)->value);
+				((StrNode *)left)->value = buffer;
+			}
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL) {
+				if (((BoolNode *)right)->value)((StrNode *)left)->value = "true";
+				else ((StrNode *)left)->value = "false";
+			}
+			else if (((BasicType *)right->type)->getBasicType() == BT_STRING) {
+				((StrNode *)left)->value = ((StrNode *)right)->value;
+			}
+			else error("", VE_TYPEMISMATCH);
+			break;
+		}
+		break;
+	case sgs::VT_ARRAY:
+		if (right->type->getVarType() == sgs::VT_ARRAY &&
+			((ArrayType *)left->type)->getEleType() == ((ArrayType *)right->type)->getEleType())
+			((ArrayNode *)left)->content = ((ArrayNode *)right)->content;
+		else error("", VE_TYPEMISMATCH);
+		break;
+	case sgs::VT_CLASS:
+		if (right->type->getVarType() == VT_CLASS &&
+			((ClassType *)left->type)->getName() == ((ClassType *)right->type)->getName())
+			((ClassNode *)left)->content = ((ClassNode *)right)->content;
+		else error("", VE_TYPEMISMATCH);
+		break;
+	}
 }
 VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
-
+	string name = func->getName();
+	SGSFUNC tmp = NULL;
+	for (auto func : funcList) {
+		if (name == func.first->getName()) {
+			if(func.second)return execute(func.second->getBody());
+		}
+	}
+	for (auto dll : dllList) {
+		if (tmp = (SGSFUNC)GetProcAddress(dll, nameReform(name).data())) {
+			vector<VarNode *> list;
+			for (auto exp : paras)list.push_back(expValue(exp));
+			return tmp(list);
+		}
+	}
+	return NULL;
 }
-void SgsMachine::exeBlock(BlockStmt *block) {
+void SgsMachine::exeBlock(BlockStmt *block) { //suspend.
 
 }
 VarNode *SgsMachine::getPointer(Expression *e) {
@@ -181,30 +271,46 @@ VarNode *SgsMachine::getPointer(Expression *e) {
 		return classAttrib(e);
 		break;
 	default:
-		break;
+		return NULL;
 	}
 }
-VarNode *SgsMachine::expValue(Expression *e) {
-
+VarNode *SgsMachine::expValue(Expression *e) { //suspend.
+	switch (e->getExpType()) {
+	case ET_IDENT:
+		return findSymbol(((IdExp *)e)->getName());
+	case ET_LITERAL:
+		switch (((LiteralExp *)e)->getType()->getVarType()) {
+		case sgs::VT_BASIC:
+			switch (((BasicType *)((LiteralExp *)e)->getType())->getBasicType()) {
+			case BT_INT:
+				return new IntNode(((IntLiteral *)e)->getValue(), "");
+			}
+			break;
+		default:
+			break;
+		}
+	default:
+		return NULL;
+	}
 }
-VarNode *SgsMachine::arrayElement(Expression *e) {
-
+VarNode *SgsMachine::arrayElement(Expression *e) { //suspend.
+	return NULL;
 }
-VarNode *SgsMachine::classAttrib(Expression *e) {
-
+VarNode *SgsMachine::classAttrib(Expression *e) { //suspend.
+	return NULL;
 }
 
-IntLiteral *SgsMachine::getInt(VarNode *val) {
-
+int SgsMachine::getInt(VarNode *val) {
+	return ((IntNode *)val)->value;
 }
-FloatLiteral *SgsMachine::getFloat(VarNode *val) {
-
+float SgsMachine::getFloat(VarNode *val) {
+	return ((FloatNode *)val)->value;
 }
-BoolLiteral *SgsMachine::getBool(VarNode *val) {
-
+bool SgsMachine::getBool(VarNode *val) {
+	return ((BoolNode *)val)->value;
 }
-StrLiteral *SgsMachine::getStr(VarNode *val) {
-
+const char *SgsMachine::getStr(VarNode *val) {
+	return ((StrNode *)val)->value.data();
 }
 
 void SgsMachine::clearMem() {

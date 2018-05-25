@@ -609,18 +609,20 @@ ClassLiteral *SgsSyntax::parseClassConst(int classid) {
 	for (auto item : classList[classid]->getEle()) {
 		name.push_back(item.second);
 	}
+	bool hide = false;
 	for (unsigned int i = 0; i < classList[classid]->getEle().size(); i++) {
 		int idx = parseUser(name);
-		if (idx == -1 && i == 0) {
+		if (idx == -1) {
+			if (i == 0)hide = true;
+			else error(parseUser().data(), SGS_SE_NOID);
+		}
+		if (hide) {
 			ele[i] = parseExp();
 			break;
 		}
 		else {
-			error(name[i].data(), SGS_SE_INCOMPLETE);
-			skipLine();
-			return nullptr;
+			ele[idx] = parseExp();
 		}
-		ele[idx] = parseExp();
 	}
 	return new ClassLiteral(classList[classid]->getName(), ele);
 }
@@ -714,18 +716,20 @@ vector<Expression *> SgsSyntax::parseParam(int funcid) {
 	for (auto item : funcList[funcid]->getParam()) {
 		name.push_back(item.second);
 	}
+	bool hide = false;
 	for (unsigned int i = 0; i < funcList[funcid]->getParam().size(); i++) {
 		int idx = parseUser(name);
-		if (idx == -1 && i == 0) {
+		if (idx == -1) {
+			if(i == 0)hide = true;
+			else error(parseUser().data(), SGS_SE_NOID);
+		}
+		if (hide) {
 			para[i] = parseExp();
 			break;
 		}
 		else {
-			error(name[i].data(), SGS_SE_INCOMPLETE);
-			skipLine();
-			return vector<Expression *>();
+			para[idx] = parseExp();
 		}
-		para[idx] = parseExp();
 	}
 
 	return para;
@@ -935,6 +939,7 @@ string SgsSyntax::parseUser(string guide) {
 }
 int SgsSyntax::parseUser(vector<string> guides) {
 	string tmp;
+	int pre = proc;
 	while (proc < content.size() && content[proc].type == SGS_TT_USER) {
 		tmp += strId[content[proc++].id];
 		for (unsigned int i = 0; i < guides.size(); i++) {
@@ -948,6 +953,7 @@ int SgsSyntax::parseUser(vector<string> guides) {
 	else {
 		error(tmp.data(), SGS_SE_NOID);
 	}
+	proc = pre;
 	return -1;
 }
 int SgsSyntax::findClass() {
