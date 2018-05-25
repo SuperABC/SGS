@@ -20,22 +20,34 @@ namespace sgs {
 	class FloatNode : public VarNode {
 	public:
 		float value;
+
+		FloatNode(float v, string n) : VarNode(new BasicType(BT_FLOAT), n), value(v) {}
 	};
 	class BoolNode : public VarNode {
 	public:
 		bool value;
+
+		BoolNode(bool v, string n) : VarNode(new BasicType(BT_BOOL), n), value(v) {}
 	};
 	class StrNode : public VarNode {
 	public:
 		string value;
+
+		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n), value(v) {}
 	};
 	class ArrayNode : public VarNode {
 	public:
 		vector<VarNode *> content;
+
+		ArrayNode(VarType *t, int length, string n) : 
+			VarNode(new ArrayType(t,length), n), content(vector<VarNode *>(length)) {}
 	};
 	class ClassNode : public VarNode {
 	public:
 		vector<VarNode *> content;
+
+		ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
+			VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {}
 	};
 }
 
@@ -63,7 +75,7 @@ private:
 	vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
 	vector<HINSTANCE> dllList;
 
-	Symbol *table[256];
+	Symbol *table[256] = { NULL };
 
 	SgsMemory macMem;
 
@@ -73,7 +85,7 @@ private:
 
 	void addSymbol(sgs::VarNode *var);
 	sgs::VarNode *findSymbol(string name);
-	void removeLocal(vector<string> local);
+	void removeLocal(vector<string> local, bool del = true);
 
 	void step(sgs::AST *s);
 	void declare(sgs::AST *s);
@@ -84,9 +96,10 @@ private:
 
 	void assignValue(sgs::VarNode *left, sgs::VarNode *right);
 	sgs::VarNode *callFunc(sgs::FuncProto *func, vector<sgs::Expression *> paras);
-	void exeBlock(sgs::BlockStmt *block);
+	vector<string> exeBlock(sgs::BlockStmt *block);
 	sgs::VarNode *getPointer(sgs::Expression *e);
 	sgs::VarNode *expValue(sgs::Expression *e);
+	sgs::VarNode *binCalc(sgs::Expression *a, sgs::Expression *b);
 	sgs::VarNode *arrayElement(sgs::Expression *e);
 	sgs::VarNode *classAttrib(sgs::Expression *e);
 

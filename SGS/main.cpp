@@ -3,7 +3,7 @@
 #include <fstream>
 #include "machine.h"
 
-#define SGS_COMPILE
+//#define SGS_COMPILE
 
 using std::cin;
 using std::cout;
@@ -16,7 +16,7 @@ SgsMachine m = SgsMachine();
 
 void testTool(vector<sgs::AST *> stmts)
 {
-	int loopNum;
+	unsigned int loopNum;
 	for (loopNum = 0; loopNum < stmts.size(); ++loopNum)
 	{
 		std::cout << "No." << loopNum << " statement is parsed" << std::endl;

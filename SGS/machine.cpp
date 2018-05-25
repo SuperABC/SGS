@@ -47,7 +47,7 @@ VarNode *SgsMachine::findSymbol(string name) {
 	}
 	return NULL;
 }
-void SgsMachine::removeLocal(vector<string> local) {
+void SgsMachine::removeLocal(vector<string> local, bool del) {
 	for (auto s : local) {
 		int index = 0;
 		for (auto c : s)index += c;
@@ -58,12 +58,12 @@ void SgsMachine::removeLocal(vector<string> local) {
 			if (tmp->var->name == s) {
 				if (pre) {
 					pre->next = tmp->next;
-					delete tmp;
+					if(del)delete tmp;
 					break;
 				}
 				else {
 					table[index] = tmp->next;
-					delete tmp;
+					if (del)delete tmp;
 					break;
 				}
 			}
@@ -90,10 +90,6 @@ void SgsMachine::environment(void *env) {
 void SgsMachine::execute() {
 	for (auto s : stmts)step(s);
 }
-VarNode *SgsMachine::execute(BlockStmt *block) { //suspend.
-	for (auto s : block->getContent())step(s);
-	return NULL;
-}
 void SgsMachine::step(AST *s) {
 	switch (s->astType) {
 	case AT_TYPEDEF:
@@ -117,7 +113,33 @@ void SgsMachine::step(AST *s) {
 }
 void SgsMachine::declare(AST *s) {
 	TypeDef *dec = (TypeDef *)s;
-	VarNode *tmp = new VarNode(dec->getDecType(), dec->getName());
+	VarNode *tmp = NULL;
+	switch (dec->getDecType()->getVarType()) {
+	case sgs::VT_BASIC:
+		switch (((BasicType *)dec->getDecType())->getBasicType()) {
+		case BT_INT:
+			tmp = new IntNode(0, dec->getName());
+			break;
+		case BT_FLOAT:
+			tmp = new FloatNode(0.f, dec->getName());
+			break;
+		case BT_BOOL:
+			tmp = new BoolNode(false, dec->getName());
+			break;
+		case BT_STRING:
+			tmp = new StrNode("", dec->getName());
+			break;
+		}
+		break;
+	case sgs::VT_ARRAY:
+		tmp = new ArrayNode(((ArrayType *)dec->getDecType())->getEleType(),
+			((ArrayType *)dec->getDecType())->getLength(), "");
+		break;
+	case sgs::VT_CLASS:
+		tmp = new ClassNode(((ClassType *)dec->getDecType())->getEle(),
+			((ClassType *)dec->getDecType())->getName(), "");
+		break;
+	}
 	addSymbol(tmp);
 }
 void SgsMachine::structure(AST *s) {
@@ -241,12 +263,24 @@ void SgsMachine::assignValue(VarNode *left, VarNode *right) {
 		break;
 	}
 }
-VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) { //suspend.
+VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
 	string name = func->getName();
 	SGSFUNC tmp = NULL;
 	for (auto func : funcList) {
 		if (name == func.first->getName()) {
-			if(func.second)return execute(func.second->getBody());
+			if (func.second) {
+				addSymbol(new VarNode(func.first->getReturnType(), "result"));
+				for (unsigned int i = 0; i < paras.size(); i++) {
+					VarNode *tmp = new VarNode(
+						func.first->getParam()[i].first, func.first->getParam()[i].second);
+					assignValue(tmp, expValue(paras[i]));
+					addSymbol(tmp);
+				}
+				vector<string> local = exeBlock(func.second->getBody());
+				VarNode *res = findSymbol("result");
+				removeLocal(local);
+				return res;
+			}
 		}
 	}
 	for (auto dll : dllList) {
@@ -258,8 +292,9 @@ VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) { //s
 	}
 	return NULL;
 }
-void SgsMachine::exeBlock(BlockStmt *block) { //suspend.
-
+vector<string> SgsMachine::exeBlock(BlockStmt *block) { //suspend.
+	vector<string> local;
+	return local;
 }
 VarNode *SgsMachine::getPointer(Expression *e) {
 	switch (e->getExpType()) {
@@ -269,29 +304,52 @@ VarNode *SgsMachine::getPointer(Expression *e) {
 		return arrayElement(e);
 	case ET_ACCESS:
 		return classAttrib(e);
-		break;
 	default:
 		return NULL;
 	}
 }
-VarNode *SgsMachine::expValue(Expression *e) { //suspend.
+VarNode *SgsMachine::expValue(Expression *e) {
 	switch (e->getExpType()) {
-	case ET_IDENT:
-		return findSymbol(((IdExp *)e)->getName());
+	case ET_OP:
+		return binCalc(((OpExp *)e)->getLeft(), ((OpExp *)e)->getRight());
 	case ET_LITERAL:
 		switch (((LiteralExp *)e)->getType()->getVarType()) {
 		case sgs::VT_BASIC:
 			switch (((BasicType *)((LiteralExp *)e)->getType())->getBasicType()) {
 			case BT_INT:
 				return new IntNode(((IntLiteral *)e)->getValue(), "");
+			case BT_FLOAT:
+				return new FloatNode(((FloatLiteral *)e)->getValue(), "");
+			case BT_BOOL:
+				return new BoolNode(((BoolLiteral *)e)->getValue(), "");
+			case BT_STRING:
+				return new StrNode(((StrLiteral *)e)->getValue().data(), "");
+			default:
+				return NULL;
 			}
-			break;
+		case sgs::VT_ARRAY:
+			return new ArrayNode(((ArrayType *)((ArrayLiteral *)e)->getType())->getEleType(), 
+				((ArrayType *)((ArrayLiteral *)e)->getType())->getLength(), "");
+		case sgs::VT_CLASS:
+			return new ClassNode(((ClassType *)((ClassLiteral *)e)->getType())->getEle(),
+				((ClassType *)((ClassLiteral *)e)->getType())->getName(), "");
 		default:
-			break;
+			return NULL;
 		}
+	case ET_CALL:
+		return callFunc(((CallStmt *)e)->getFunction(), ((CallStmt *)e)->getParam());
+	case ET_IDENT:
+		return findSymbol(((IdExp *)e)->getName());
+	case ET_VISIT:
+		return arrayElement(e);
+	case ET_ACCESS:
+		return classAttrib(e);
 	default:
 		return NULL;
 	}
+}
+VarNode *SgsMachine::binCalc(Expression *a, Expression *b) {
+	return NULL;
 }
 VarNode *SgsMachine::arrayElement(Expression *e) { //suspend.
 	return NULL;
