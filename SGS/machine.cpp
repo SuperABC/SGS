@@ -241,7 +241,7 @@ void SgsMachine::assignValue(VarNode *left, VarNode *right) {
 		break;
 	}
 }
-VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) {
+VarNode *SgsMachine::callFunc(FuncProto *func, vector<Expression *> paras) { //suspend.
 	string name = func->getName();
 	SGSFUNC tmp = NULL;
 	for (auto func : funcList) {
