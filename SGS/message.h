@@ -11,21 +11,24 @@ class sgsMsg {
 private:
 	SGSMSGLEVEL level;
 	std::string msg;
+
 public:
 	sgsMsg(std::string s, SGSMSGLEVEL l) {
 		msg = s;
 		level = l;
 	}
-	const char *message() {
+
+	std::string getMsg() {
 		switch (level) {
 		case MT_INFO:
-			return ("Info: " + msg).data();
+			return "Info: " + msg;
 		case MT_WARNING:
-			return ("Warning: " + msg).data();
+			return "Warning: " + msg;
 		case MT_ERROR:
-			return ("Error: " + msg).data();
+			return "Error: " + msg;
 		default:
-			return msg.data();
+			return msg;
 		}
 	}
+	SGSMSGLEVEL getLevel() { return level; }
 };

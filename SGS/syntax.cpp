@@ -871,10 +871,6 @@ int SgsSyntax::findClass() {
 		}
 		tmp += " ";
 	}
-	if (proc == content.size()) {
-		error(tmp.data(), SGS_SE_INCOMPLETE);
-	}
-	else error(tmp.data(), SGS_SE_NOID);
 	proc = pre;
 	return -1;
 }
@@ -888,10 +884,6 @@ int SgsSyntax::findFunc() {
 		}
 		tmp += " ";
 	}
-	if (proc == content.size()) {
-		error(tmp.data(), SGS_SE_INCOMPLETE);
-	}
-	else error(tmp.data(), SGS_SE_NOID);
 	proc = pre;
 	return -1;
 }

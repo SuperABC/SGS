@@ -196,6 +196,7 @@ void SgsMachine::definition(AST *s) {
 }
 
 void SgsMachine::assignValue(VarNode *left, VarNode *right) {
+	if (left == nullptr || right == nullptr)return;
 	switch (left->type->getVarType()) {
 	case sgs::VT_BASIC:
 		switch (((BasicType *)left->type)->getBasicType()) {
@@ -301,9 +302,15 @@ void SgsMachine::exeBlock(BlockStmt *block) {
 	stack.pop();
 }
 VarNode *SgsMachine::getPointer(Expression *e) {
+	VarNode *ret;
 	switch (e->getExpType()) {
 	case ET_IDENT:
-		return findSymbol(((IdExp *)e)->getName());
+		ret = findSymbol(((IdExp *)e)->getName());
+		if (ret)return ret;
+		else {
+			error(((IdExp *)e)->getName().data(), VE_NOID);
+			return NULL;
+		}
 	case ET_VISIT:
 		return arrayElement(e);
 	case ET_ACCESS:
@@ -584,6 +591,9 @@ void SgsMachine::error(const char *inst, SGSVMERROR type) {
 	switch (type) {
 	case VE_DIVBYZERO:
 		msgList.push_back(sgsMsg(string("除数为零。"), MT_ERROR));
+		break;
+	case VE_NOID:
+		msgList.push_back(sgsMsg(string("找不到") + inst, MT_ERROR));
 		break;
 	case VE_TYPEMISMATCH:
 		msgList.push_back(sgsMsg(string("无法进行类型转换。"), MT_ERROR));

@@ -136,7 +136,17 @@ void main() {
 	l.input(input.c_str())->parse();
 	s.input(l.strId, l.output)->parse();
 #ifndef SGS_COMPILE
-	m.input(s.stmts, s.classList, s.funcList)->execute();
+	bool success = true;
+	if (s.msgList.size()) {
+		for (auto msg : s.msgList) {
+			std::cout << msg.getMsg();
+			if (msg.getLevel() == MT_ERROR)success = false;
+		}
+	}
+	if (success) {
+		m.input(s.stmts, s.classList, s.funcList)->execute();
+		for (auto msg : m.msgList)std::cout << msg.getMsg();
+	}
 #else
 	testTool(s.stmts);
 #endif

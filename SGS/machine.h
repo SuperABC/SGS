@@ -64,6 +64,7 @@ typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
 
 enum SGSVMERROR {
 	VE_DIVBYZERO,
+	VE_NOID,
 	VE_TYPEMISMATCH,
 	VE_BROKEN
 };
