@@ -116,26 +116,26 @@ void SgsMachine::declare(AST *s) {
 	case sgs::VT_BASIC:
 		switch (((BasicType *)dec->getDecType())->getBasicType()) {
 		case BT_INT:
-			tmp = new IntNode(0, dec->getName());
+			tmp = new IntNode(dec->getName());
 			break;
 		case BT_FLOAT:
-			tmp = new FloatNode(0.f, dec->getName());
+			tmp = new FloatNode(dec->getName());
 			break;
 		case BT_BOOL:
-			tmp = new BoolNode(false, dec->getName());
+			tmp = new BoolNode(dec->getName());
 			break;
 		case BT_STRING:
-			tmp = new StrNode("", dec->getName());
+			tmp = new StrNode(dec->getName());
 			break;
 		}
 		break;
 	case sgs::VT_ARRAY:
 		tmp = new ArrayNode(((ArrayType *)dec->getDecType())->getEleType(),
-			((ArrayType *)dec->getDecType())->getLength(), "");
+			((ArrayType *)dec->getDecType())->getLength(), dec->getName());
 		break;
 	case sgs::VT_CLASS:
 		tmp = new ClassNode(((ClassType *)dec->getDecType())->getEle(),
-			((ClassType *)dec->getDecType())->getName(), "");
+			((ClassType *)dec->getDecType())->getName(), dec->getName());
 		break;
 	}
 	addSymbol(tmp);
@@ -564,11 +564,13 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 	}
 	return NULL;
 }
-VarNode *SgsMachine::arrayElement(Expression *e) { //suspend.
-	return NULL;
+VarNode *SgsMachine::arrayElement(Expression *e) {
+	return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
+		((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
 }
-VarNode *SgsMachine::classAttrib(Expression *e) { //suspend.
-	return NULL;
+VarNode *SgsMachine::classAttrib(Expression *e) {
+	return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
+		((AccessExp *)e)->getMember());
 }
 
 int SgsMachine::getInt(VarNode *val) {

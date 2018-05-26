@@ -16,38 +16,57 @@ namespace sgs {
 		int value;
 
 		IntNode(int v, string n) : VarNode(new BasicType(BT_INT), n), value(v) {}
+		IntNode(string n) : VarNode(new BasicType(BT_INT), n), value(0) {}
 	};
 	class FloatNode : public VarNode {
 	public:
 		float value;
 
 		FloatNode(float v, string n) : VarNode(new BasicType(BT_FLOAT), n), value(v) {}
+		FloatNode(string n) : VarNode(new BasicType(BT_FLOAT), n), value(0.f) {}
 	};
 	class BoolNode : public VarNode {
 	public:
 		bool value;
 
 		BoolNode(bool v, string n) : VarNode(new BasicType(BT_BOOL), n), value(v) {}
+		BoolNode(string n) : VarNode(new BasicType(BT_BOOL), n), value(false) {}
 	};
 	class StrNode : public VarNode {
 	public:
 		string value;
 
 		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n), value(v) {}
+		StrNode(string n) : VarNode(new BasicType(BT_STRING), n), value("") {}
 	};
 	class ArrayNode : public VarNode {
 	public:
 		vector<VarNode *> content;
 
 		ArrayNode(VarType *t, int length, string n) : 
-			VarNode(new ArrayType(t,length), n), content(vector<VarNode *>(length)) {}
+			VarNode(new ArrayType(t,length), n), content(vector<VarNode *>(length)) {
+			for (auto e : content) {
+
+			}
+		}
 	};
 	class ClassNode : public VarNode {
 	public:
 		vector<VarNode *> content;
 
 		ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
-			VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {}
+			VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
+			for (auto e : content) {
+
+			}
+		}
+		VarNode *operator [](string m) {
+			vector <std::pair<VarType *, string>> elements = ((ClassType *)type)->getEle();
+			for (unsigned int i = 0; i < elements.size(); i++) {
+				if (elements[i].second == m)return content[i];
+			}
+			return nullptr;
+		}
 	};
 }
 

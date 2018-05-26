@@ -450,7 +450,7 @@ Expression *SgsSyntax::parseVar() {
 		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_LPARENTHESIS) {
 			proc++;
 			ret = new VisitExp(ret, parseExp());
-			if (content[proc].type != SGS_TT_OP || content[proc].id == SGS_OP_RPARENTHESIS)
+			if (content[proc].type != SGS_TT_OP || content[proc].id != SGS_OP_RPARENTHESIS)
 				error("array index", SGS_SE_EXPBRACE);
 			else proc++;
 		}
