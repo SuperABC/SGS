@@ -39,6 +39,10 @@ void SgsSyntax::prepare() {
 	psParam.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), "value"));
 	stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
 	funcList.push_back(new FuncProto(nullptr, "print a str", psParam));
+
+	vector<std::pair<VarType *, string>> ctParam;
+	stmts.push_back(new FuncProto(new BasicType(BT_INT), "current time", ctParam));
+	funcList.push_back(new FuncProto(new BasicType(BT_INT), "current time", ctParam));
 }
 
 SgsSyntax *SgsSyntax::input(vector<string> &ids, vector<sgsTokenPrim> &src) {
@@ -811,7 +815,8 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
 			proc++;
 			continue;
 		}
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END ||
+			content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ELSE) {
 			break;
 		}
 		else {

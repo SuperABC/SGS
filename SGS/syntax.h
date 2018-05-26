@@ -125,13 +125,9 @@ namespace sgs {
 		explicit OpExp(SGSOPERATOR op) : Expression(ET_OP), op(op), left(nullptr), right(nullptr) {}
 		void setLeft(Expression *l) { left = l; }
 		void setRight(Expression *r) { right = r; }
-		void checkType() {
-			// TODO
-		}
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
 		SGSOPERATOR getOp() const { return op; }
-
 	};
 	class LiteralExp : public Expression {
 		VarType *type;

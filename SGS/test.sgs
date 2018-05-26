@@ -1,6 +1,7 @@
-new function convert ftoi with float f return integer.
-start convert ftoi.
-	let result be f.
-end convert ftoi.
-
-print an int with value convert ftoi with f 100.
+let integer rounds be 10.
+loop when rounds > 0
+	if rounds > 5 then let rounds be rounds - 2.
+	else let rounds be rounds - 1.
+	end if.
+	print an int with value rounds.
+end loop.

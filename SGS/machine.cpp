@@ -353,8 +353,8 @@ VarNode *SgsMachine::expValue(Expression *e) {
 	}
 }
 VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
-	VarNode *v1 = expValue(a);
-	VarNode *v2 = expValue(b);
+	VarNode *v2 = expValue(a);
+	VarNode *v1 = expValue(b);
 	switch (op) {
 	case SGS_OP_PLUS:
 		if (v1->type->getVarType() == sgs::VT_BASIC &&
