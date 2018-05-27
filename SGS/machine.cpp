@@ -484,6 +484,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 				((BasicType *)v2->type)->getBasicType() == BT_INT) {
 				return new IntNode(((IntNode *)v1)->value & ((IntNode *)v2)->value, "");
 			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value & ((BoolNode *)v2)->value, "");
+			}
 		}
 		break;
 	case SGS_OP_ANDAND:
@@ -497,6 +501,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 				((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
 				return new BoolNode(((FloatNode *)v1)->value && ((FloatNode *)v2)->value, "");
 			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value && ((BoolNode *)v2)->value, "");
+			}
 		}
 		break;
 	case SGS_OP_OR:
@@ -505,6 +513,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 			if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
 				((BasicType *)v2->type)->getBasicType() == BT_INT) {
 				return new IntNode(((IntNode *)v1)->value | ((IntNode *)v2)->value, "");
+			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value | ((BoolNode *)v2)->value, "");
 			}
 		}
 		break;
@@ -519,6 +531,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 				((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
 				return new BoolNode(((FloatNode *)v1)->value || ((FloatNode *)v2)->value, "");
 			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value || ((BoolNode *)v2)->value, "");
+			}
 		}
 		break;
 	case SGS_OP_NOR:
@@ -527,6 +543,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 			if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
 				((BasicType *)v2->type)->getBasicType() == BT_INT) {
 				return new IntNode(((IntNode *)v1)->value ^ ((IntNode *)v2)->value, "");
+			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value ^ ((BoolNode *)v2)->value, "");
 			}
 		}
 		break;
@@ -593,6 +613,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 				((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
 				return new BoolNode(((FloatNode *)v1)->value != ((FloatNode *)v2)->value, "");
 			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value != ((BoolNode *)v2)->value, "");
+			}
 		}
 		break;
 	case SGS_OP_EQUAL:
@@ -605,6 +629,10 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
 			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
 				((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
 				return new BoolNode(((FloatNode *)v1)->value == ((FloatNode *)v2)->value, "");
+			}
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+				((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
+				return new BoolNode(((BoolNode *)v1)->value == ((BoolNode *)v2)->value, "");
 			}
 		}
 		break;

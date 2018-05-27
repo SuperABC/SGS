@@ -1,4 +1,4 @@
 new class point with integer x, integer y.
 let point test point be point{x 1, y 1}.
-print a number with value 2 * 2 + (7 & 3 > 2 + test point's x * test point's y) / 2.
-print a boolean with value true && (false || true + false)
+print an int with value 2 * 2 + (7  + test point's x * test point's y) / 2.
+print a boolean with value true && false.

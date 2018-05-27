@@ -15,7 +15,8 @@ extern "C" {
 		return NULL;
 	}
 	__declspec(dllexport) VarNode *printABoolean(vector<VarNode *> param) {
-		std::cout << ((BoolNode *)param[0])->value << std::endl;
+		if(((BoolNode *)param[0])->value)std::cout << "true" << std::endl;
+		else std::cout << "false" << std::endl;
 		return NULL;
 	}
 	__declspec(dllexport) VarNode *printAStr(vector<VarNode *> param) {
