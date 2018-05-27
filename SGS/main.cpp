@@ -3,7 +3,7 @@
 #include <fstream>
 #include "machine.h"
 
-//#define SGS_COMPILE
+#define SGS_INTERPRETER
 
 using std::cin;
 using std::cout;
@@ -135,7 +135,7 @@ void main() {
 
 	l.input(input.c_str())->parse();
 	s.input(l.strId, l.output)->parse();
-#ifndef SGS_COMPILE
+#ifndef SGS_INTERPRETER
 	bool success = true;
 	if (s.msgList.size()) {
 		for (auto msg : s.msgList) {
