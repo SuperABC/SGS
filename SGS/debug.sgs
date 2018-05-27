@@ -4,7 +4,7 @@ print an int with value a.
 
 #typedef and assign
 let integer test i be 10.
-print an int with value test int.
+print an int with value test i.
 let float test f be 0.0.
 print a number with value test f.
 let bool test b be true.
@@ -30,7 +30,10 @@ end add.
 print an int with value add with a 1, b 2.
 
 #array
-let string array str list be "abc" "def" "ghi".
+let string array 10 str list.
+let str list[0] be "abc".
+let str list[1] be "def".
+let str list[2] be "ghi".
 let integer iterator be 0.
 loop when iterator < 3.
 	print a str with value str list[iterator].

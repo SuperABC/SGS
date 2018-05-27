@@ -4,6 +4,10 @@
 #include "syntax.h"
 
 namespace sgs {
+	class VarNode;
+	class IntNode; class FloatNode; class BoolNode; class StrNode;
+	class ArrayNode; class ClassNode;
+
 	class VarNode {
 	public:
 		VarType *type;
@@ -16,26 +20,47 @@ namespace sgs {
 		int value;
 
 		IntNode(int v, string n) : VarNode(new BasicType(BT_INT), n), value(v) {}
+		IntNode(string n) : VarNode(new BasicType(BT_INT), n), value(0) {}
 	};
 	class FloatNode : public VarNode {
 	public:
 		float value;
+
+		FloatNode(float v, string n) : VarNode(new BasicType(BT_FLOAT), n), value(v) {}
+		FloatNode(string n) : VarNode(new BasicType(BT_FLOAT), n), value(0.f) {}
 	};
 	class BoolNode : public VarNode {
 	public:
 		bool value;
+
+		BoolNode(bool v, string n) : VarNode(new BasicType(BT_BOOL), n), value(v) {}
+		BoolNode(string n) : VarNode(new BasicType(BT_BOOL), n), value(false) {}
 	};
 	class StrNode : public VarNode {
 	public:
 		string value;
+
+		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n), value(v) {}
+		StrNode(string n) : VarNode(new BasicType(BT_STRING), n), value("") {}
 	};
 	class ArrayNode : public VarNode {
 	public:
 		vector<VarNode *> content;
+
+		ArrayNode(VarType *t, int length, string n);
 	};
 	class ClassNode : public VarNode {
 	public:
 		vector<VarNode *> content;
+
+		ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n);
+		VarNode *operator [](string m) {
+			vector <std::pair<VarType *, string>> elements = ((ClassType *)type)->getEle();
+			for (unsigned int i = 0; i < elements.size(); i++) {
+				if (elements[i].second == m)return content[i];
+			}
+			return nullptr;
+		}
 	};
 }
 
@@ -52,6 +77,7 @@ typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
 
 enum SGSVMERROR {
 	VE_DIVBYZERO,
+	VE_NOID,
 	VE_TYPEMISMATCH,
 	VE_BROKEN
 };
@@ -63,7 +89,8 @@ private:
 	vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
 	vector<HINSTANCE> dllList;
 
-	Symbol *table[256];
+	Symbol *table[256] = { NULL };
+	std::stack<string> stack;
 
 	SgsMemory macMem;
 
@@ -73,7 +100,7 @@ private:
 
 	void addSymbol(sgs::VarNode *var);
 	sgs::VarNode *findSymbol(string name);
-	void removeLocal(vector<string> local);
+	void removeLocal(string local, bool del = true);
 
 	void step(sgs::AST *s);
 	void declare(sgs::AST *s);
@@ -87,13 +114,14 @@ private:
 	void exeBlock(sgs::BlockStmt *block);
 	sgs::VarNode *getPointer(sgs::Expression *e);
 	sgs::VarNode *expValue(sgs::Expression *e);
+	sgs::VarNode *binCalc(SGSOPERATOR op, sgs::Expression *a, sgs::Expression *b);
 	sgs::VarNode *arrayElement(sgs::Expression *e);
 	sgs::VarNode *classAttrib(sgs::Expression *e);
 
-	sgs::IntLiteral *getInt(sgs::VarNode *val);
-	sgs::FloatLiteral *getFloat(sgs::VarNode *val);
-	sgs::BoolLiteral *getBool(sgs::VarNode *val);
-	sgs::StrLiteral *getStr(sgs::VarNode *val);
+	int getInt(sgs::VarNode *val);
+	float getFloat(sgs::VarNode *val);
+	bool getBool(sgs::VarNode *val);
+	const char *getStr(sgs::VarNode *val);
 public:
 	vector<sgsMsg> msgList;
 
@@ -103,6 +131,7 @@ public:
 	SgsMachine *input(vector<sgs::AST *> s,
 		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
 	void execute();
+	sgs::VarNode *execute(sgs::BlockStmt *block);
 	void environment(void *env);
 
 	void clearMem();

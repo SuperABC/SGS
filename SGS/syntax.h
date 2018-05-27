@@ -125,13 +125,9 @@ namespace sgs {
 		explicit OpExp(SGSOPERATOR op) : Expression(ET_OP), op(op), left(nullptr), right(nullptr) {}
 		void setLeft(Expression *l) { left = l; }
 		void setRight(Expression *r) { right = r; }
-		void checkType() {
-			// TODO
-		}
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
 		SGSOPERATOR getOp() const { return op; }
-
 	};
 	class LiteralExp : public Expression {
 		VarType *type;
@@ -146,10 +142,10 @@ namespace sgs {
 		int getValue() const { return value; }
 	};
 	class FloatLiteral : public LiteralExp {
-		double value;
+		float value;
 	public:
-		explicit FloatLiteral(double value = 0) : LiteralExp(new BasicType(BT_FLOAT)), value(value) {}
-		double getValue() const { return value; }
+		explicit FloatLiteral(float value = 0) : LiteralExp(new BasicType(BT_FLOAT)), value(value) {}
+		float getValue() const { return value; }
 	};
 	class BoolLiteral : public LiteralExp {
 		bool value;
@@ -173,8 +169,9 @@ namespace sgs {
 	class ClassLiteral : public LiteralExp {
 		vector<Expression *> cont;
 	public:
-		explicit ClassLiteral(string n, vector<Expression *> cont) :
-			LiteralExp(new ClassType(n)), cont(cont) {}
+		explicit ClassLiteral(string n, vector<std::pair<VarType *, string>> dec,
+			vector<Expression *> cont) :
+			LiteralExp(new ClassType(n, dec)), cont(cont) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
 	class IdExp : public Expression {
