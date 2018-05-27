@@ -258,9 +258,11 @@ void SgsSyntax::parse() {
 			string newVar;
 			if ((funcIdx = findFunc()) != -1) {
 				if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_WITH)
-					error(funcList[funcIdx]->getName().data(), SGS_SE_INCOMPLETE);
-				else proc++;
-				stmts.push_back(new CallStmt(funcList[funcIdx], parseParam(funcIdx)));
+					stmts.push_back(new CallStmt(funcList[funcIdx], vector<Expression *>()));
+				else {
+					proc++;
+					stmts.push_back(new CallStmt(funcList[funcIdx], parseParam(funcIdx)));
+				}
 			}
 			else error("Function", SGS_SE_NOID);
 			continue;
@@ -319,9 +321,11 @@ Expression *SgsSyntax::parseExp() {
 			}
 			else if ((funcIdx = findFunc()) >= 0) {
 				if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_WITH)
-					error(funcList[funcIdx]->getName().data(), SGS_SE_INCOMPLETE);
-				else proc++;
-				value.push(new CallExp(funcList[funcIdx], parseParam(funcIdx)));
+					value.push(new CallExp(funcList[funcIdx], vector<Expression *>()));
+				else {
+					proc++;
+					value.push(new CallExp(funcList[funcIdx], parseParam(funcIdx)));
+				}
 			}
 			else {
 				value.push(parseVar());
