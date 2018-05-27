@@ -4,6 +4,10 @@
 #include "syntax.h"
 
 namespace sgs {
+	class VarNode;
+	class IntNode; class FloatNode; class BoolNode; class StrNode;
+	class ArrayNode; class ClassNode;
+
 	class VarNode {
 	public:
 		VarType *type;
@@ -43,23 +47,13 @@ namespace sgs {
 	public:
 		vector<VarNode *> content;
 
-		ArrayNode(VarType *t, int length, string n) : 
-			VarNode(new ArrayType(t,length), n), content(vector<VarNode *>(length)) {
-			for (auto e : content) {
-
-			}
-		}
+		ArrayNode(VarType *t, int length, string n);
 	};
 	class ClassNode : public VarNode {
 	public:
 		vector<VarNode *> content;
 
-		ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
-			VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
-			for (auto e : content) {
-
-			}
-		}
+		ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n);
 		VarNode *operator [](string m) {
 			vector <std::pair<VarType *, string>> elements = ((ClassType *)type)->getEle();
 			for (unsigned int i = 0; i < elements.size(); i++) {

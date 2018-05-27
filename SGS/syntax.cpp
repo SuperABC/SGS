@@ -290,7 +290,7 @@ Expression *SgsSyntax::parseExp() {
 	std::stack<Expression*> value;
 
 	while (proc < content.size()) {
-		if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)continue;
+		if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)break;
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id != SGS_ID_RESULT &&
 			content[proc].id != SGS_ID_FALSE && content[proc].id != SGS_ID_TRUE)break;
 		else if (content[proc].type == SGS_TT_OP && (content[proc].id == SGS_OP_DOT ||
@@ -307,12 +307,12 @@ Expression *SgsSyntax::parseExp() {
 				if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_LBRAKET) {
 					proc++;
 					value.push(parseClassConst(classIdx));
-					if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_RBRAKET) {
+					/*if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_RBRAKET) {
 						proc++;
 					}
 					else {
 						error(classList[classIdx]->getName().data(), SGS_SE_EXPBRACE);
-					}
+					}*/
 				}
 				else
 					error(classList[classIdx]->getName().data(), SGS_SE_INCOMPLETE);
@@ -476,12 +476,15 @@ ClassDef *SgsSyntax::parseClassDec() {
 		}
 		else if (content[proc].type == SGS_TT_SYS) {
 			if (content[proc].id == SGS_ID_INTEGER) {
+				proc++;
 				elements.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
 			}
 			else if (content[proc].id == SGS_ID_FLOAT) {
+				proc++;
 				elements.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
 			}
 			else if (content[proc].id == SGS_ID_BOOL) {
+				proc++;
 				elements.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
 			}
 			else if (content[proc].id == SGS_ID_CHAR) {
@@ -489,9 +492,14 @@ ClassDef *SgsSyntax::parseClassDec() {
 				skipLine();
 			}
 			else if (content[proc].id == SGS_ID_STRING) {
+				proc++;
 				elements.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
 			}
 			else break;
+		}
+		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+			proc++;
+			continue;
 		}
 		else break;
 	}
@@ -504,21 +512,25 @@ ClassLiteral *SgsSyntax::parseClassConst(int classid) {
 		name.push_back(item.second);
 	}
 	bool hide = false;
+	int idx;
 	for (unsigned int i = 0; i < classList[classid]->getEle().size(); i++) {
-		int idx = parseUser(name);
-		if (idx == -1) {
-			if (i == 0)hide = true;
-			else error(parseUser().data(), SGS_SE_NOID);
+		if (!hide) {
+			idx = parseUser(name);
+			if (idx == -1) {
+				if (i == 0)hide = true;
+				else error(parseUser().data(), SGS_SE_NOID);
+			}
 		}
 		if (hide) {
 			ele[i] = parseExp();
-			break;
+			proc++;
 		}
 		else {
 			ele[idx] = parseExp();
+			proc++;
 		}
 	}
-	return new ClassLiteral(classList[classid]->getName(), ele);
+	return new ClassLiteral(classList[classid]->getName(), classList[classid]->getEle(), ele);
 }
 FuncProto *SgsSyntax::parseFuncDec() {
 	string name = parseUser();
@@ -839,7 +851,7 @@ string SgsSyntax::parseUser(string guide) {
 	if (proc == content.size()) {
 		error(tmp.data(), SGS_SE_INCOMPLETE);
 	}
-	tmp.pop_back();
+	if(tmp.length())tmp.pop_back();
 	return tmp;
 }
 int SgsSyntax::parseUser(vector<string> guides) {
@@ -854,9 +866,6 @@ int SgsSyntax::parseUser(vector<string> guides) {
 	}
 	if (proc == content.size()) {
 		error(tmp.data(), SGS_SE_INCOMPLETE);
-	}
-	else {
-		error(tmp.data(), SGS_SE_NOID);
 	}
 	proc = pre;
 	return -1;

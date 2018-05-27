@@ -2,6 +2,45 @@
 #include "machine.h"
 
 using namespace sgs;
+ArrayNode::ArrayNode(VarType *t, int length, string n) :
+	VarNode(new ArrayType(t, length), n), content(vector<VarNode *>(length)) {
+	for (auto &e : content) {
+		switch (t->getVarType()) {
+		case VT_BASIC:
+			switch (((BasicType *)t)->getBasicType()) {
+			case BT_INT:
+				e = new IntNode("");
+				break;
+			case BT_FLOAT:
+				e = new FloatNode("");
+				break;
+			case BT_BOOL:
+				e = new BoolNode("");
+				break;
+			case BT_STRING:
+				e = new StrNode("");
+				break;
+			default:
+				break;
+			}
+			break;
+		case VT_ARRAY:
+			e = new ArrayNode(((ArrayType *)t)->getEleType(), ((ArrayType *)t)->getLength(), "");
+			break;
+		case VT_CLASS:
+			e = new ClassNode(((ClassType *)t)->getEle(), ((ClassType *)t)->getName(), "");
+			break;
+		default:
+			break;
+		}
+	}
+}
+ClassNode::ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
+	VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
+	for (auto e : content) {
+
+	}
+}
 
 string nameReform(string input) {
 	string ret;
@@ -338,12 +377,22 @@ VarNode *SgsMachine::expValue(Expression *e) {
 			default:
 				return NULL;
 			}
-		case sgs::VT_ARRAY:
-			return new ArrayNode(((ArrayType *)((ArrayLiteral *)e)->getType())->getEleType(), 
+		case sgs::VT_ARRAY: {
+			ArrayNode *ret = new ArrayNode(((ArrayType *)((ArrayLiteral *)e)->getType())->getEleType(),
 				((ArrayType *)((ArrayLiteral *)e)->getType())->getLength(), "");
-		case sgs::VT_CLASS:
-			return new ClassNode(((ClassType *)((ClassLiteral *)e)->getType())->getEle(),
+			for (unsigned int i = 0; i < ((ArrayLiteral *)e)->getValue().size(); i++) {
+				ret->content[i] = expValue(((ArrayLiteral *)e)->getValue()[i]);
+			}
+			return ret;
+		}
+		case sgs::VT_CLASS: {
+			ClassNode *ret = new ClassNode(((ClassType *)((ClassLiteral *)e)->getType())->getEle(),
 				((ClassType *)((ClassLiteral *)e)->getType())->getName(), "");
+			for (unsigned int i = 0; i < ((ClassLiteral *)e)->getValue().size(); i++) {
+				ret->content[i] = expValue(((ClassLiteral *)e)->getValue()[i]);
+			}
+			return ret;
+		}
 		default:
 			return NULL;
 		}

@@ -169,8 +169,9 @@ namespace sgs {
 	class ClassLiteral : public LiteralExp {
 		vector<Expression *> cont;
 	public:
-		explicit ClassLiteral(string n, vector<Expression *> cont) :
-			LiteralExp(new ClassType(n)), cont(cont) {}
+		explicit ClassLiteral(string n, vector<std::pair<VarType *, string>> dec,
+			vector<Expression *> cont) :
+			LiteralExp(new ClassType(n, dec)), cont(cont) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
 	class IdExp : public Expression {
