@@ -14,6 +14,67 @@ SgsLex l = SgsLex();
 SgsSyntax s = SgsSyntax();
 SgsMachine m = SgsMachine();
 
+void printBasicType(sgs::VarType *stmtVar)
+{
+	sgs::BasicType *basicVar = (sgs::BasicType *)stmtVar;
+	switch (basicVar->getBasicType())
+	{
+	case 0: std::cout << "	basicType: BT_INT" << std::endl; break;
+	case 1: std::cout << "	basicType: BT_FLOAT" << std::endl; break;
+	case 2: std::cout << "	basicType: BT_BOOL" << std::endl; break;
+	case 3: std::cout << "	basicType: BT_STRING" << std::endl; break;
+	default:
+		break;
+	}
+	return;
+}
+void printArrayType(sgs::VarType *stmtVar)
+{
+	sgs::ArrayType *arrayVar = (sgs::ArrayType *)stmtVar;
+	std::cout << "	decType: VT_ARRAY" << std::endl;
+	std::cout << "	length:  " << arrayVar->getLength() << std::endl;
+	switch (arrayVar->getEleType()->getVarType())
+	{
+	case 0: printBasicType(arrayVar->getEleType()); break;
+	case 1: std::cout << "decType: VT_ARRAY" << std::endl; break;
+	case 2: std::cout << "decType: VT_CLASS" << std::endl; break;
+	default:break;
+	}
+	return;
+}
+enum conditionUseVarType {
+	TYPEDEF,
+	CLASS,
+	EXP,
+	FUNC,
+	PROTO
+};
+void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
+{
+	//first, do type conversion
+	switch (choice)
+	{
+	case 0: 
+	{
+		sgs::TypeDef *currentStmt = (sgs::TypeDef *)s;
+		switch (currentStmt->getDecType()->getVarType())
+		{
+		case 0: printBasicType(currentStmt->getDecType()); break;
+		case 1: printArrayType(currentStmt->getDecType()); break;
+		case 2: std::cout << "decType: VT_CLASS" << std::endl; break;
+		default:break;
+		}
+		break; 
+	}
+	case 1: {break; }
+	case 2: {break; }
+	case 3: {break; }
+	case 4: {break; }
+	default:
+		break;
+	}
+	
+}
 void testTool(vector<sgs::AST *> stmts)
 {
 	unsigned int loopNum;
@@ -27,14 +88,8 @@ void testTool(vector<sgs::AST *> stmts)
 		{
 			sgs::TypeDef *currentStmt = (sgs::TypeDef *)stmts[loopNum];
 			std::cout << "astType: AT_TYPEDEF" << std::endl;
-			switch (currentStmt->getDecType()->getVarType())
-			{
-			case 0: std::cout << "decType: VT_BASIC" << std::endl; break;
-			case 1: std::cout << "decType: VT_ARRAY" << std::endl; break;
-			case 2: std::cout << "decType: VT_CLASS" << std::endl; break;
-			default:break;
-			}
-			std::cout << "name:    " + currentStmt->getName() << std::endl;
+			dealWithVarType(currentStmt, TYPEDEF);
+			std::cout << "newVarName: " + currentStmt->getName() << std::endl;
 			std::cout << std::endl;
 			break;
 		}
