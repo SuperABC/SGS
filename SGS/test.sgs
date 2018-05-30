@@ -1,4 +1,1 @@
-new class point with integer x, integer y.
-let point test point be point{x 1, y 1}.
-print an int with value 2 * 2 + (7  + test point's x * test point's y) / 2.
-print a boolean with value true && false.
+let char array 10 str be "hello word".

@@ -50,6 +50,7 @@ namespace sgs {
 		BT_INT,
 		BT_FLOAT,
 		BT_BOOL,
+		BT_CHAR,
 		BT_STRING
 	};
 	class BasicType : public VarType {
