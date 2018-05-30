@@ -649,6 +649,9 @@ VarNode *SgsMachine::classAttrib(Expression *e) {
 	return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
 		((AccessExp *)e)->getMember());
 }
+VarType *SgsMachine::checkExp(sgs::Expression *e) {
+	return NULL;
+}
 
 int SgsMachine::getInt(VarNode *val) {
 	return ((IntNode *)val)->value;

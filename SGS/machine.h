@@ -117,6 +117,7 @@ private:
 	sgs::VarNode *binCalc(SGSOPERATOR op, sgs::Expression *a, sgs::Expression *b);
 	sgs::VarNode *arrayElement(sgs::Expression *e);
 	sgs::VarNode *classAttrib(sgs::Expression *e);
+	sgs::VarType *checkExp(sgs::Expression *e);
 
 	int getInt(sgs::VarNode *val);
 	float getFloat(sgs::VarNode *val);
