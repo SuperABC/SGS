@@ -264,6 +264,22 @@ void dealWithExpType(sgs::AST *s)
 	default:break;
 	}
 }
+void dealWithStmtType(sgs::AST *s)
+{
+	sgs::Statement *currentStmt = (sgs::Statement *)s;
+	switch (currentStmt->getStmtType())
+	{
+	case STMT_TYPE::ST_ASSIGN: std::cout << "stmtType: ST_ASSIGN" << std::endl; break;
+	case STMT_TYPE::ST_CALL: std::cout << "stmtType: ST_CALL" << std::endl; break;
+	case STMT_TYPE::ST_IF: std::cout << "stmtType: ST_IF" << std::endl; break;
+	case STMT_TYPE::ST_WHILE: std::cout << "stmtType: ST_WHILE" << std::endl; break;
+	case STMT_TYPE::ST_RETURN: std::cout << "stmtType: ST_RETURN" << std::endl; break;
+	case STMT_TYPE::ST_BREAK: std::cout << "stmtType: ST_BREAK" << std::endl; break;
+	case STMT_TYPE::ST_CONTINUE: std::cout << "stmtType: ST_CONTINUE" << std::endl; break;
+	case STMT_TYPE::ST_BLOCK: std::cout << "stmtType: ST_BLOCK" << std::endl; break;
+	default:break;
+	}
+}
 void testTool(vector<sgs::AST *> stmts)
 {
 	unsigned int loopNum;
@@ -304,18 +320,7 @@ void testTool(vector<sgs::AST *> stmts)
 		{
 			sgs::Statement *currentStmt = (sgs::Statement *)stmts[loopNum];
 			std::cout << "astType: AT_STMT" << std::endl;
-			switch (currentStmt->getStmtType())
-			{
-			case 0: std::cout << "stmtType: ST_ASSIGN" << std::endl; break;
-			case 1: std::cout << "stmtType: ST_CALL" << std::endl; break;
-			case 2: std::cout << "stmtType: ST_IF" << std::endl; break;
-			case 3: std::cout << "stmtType: ST_WHILE" << std::endl; break;
-			case 4: std::cout << "stmtType: ST_RETURN" << std::endl; break;
-			case 5: std::cout << "stmtType: ST_BREAK" << std::endl; break;
-			case 6: std::cout << "stmtType: ST_CONTINUE" << std::endl; break;
-			case 7: std::cout << "stmtType: ST_BLOCK" << std::endl; break;
-			default:break;
-			}
+			dealWithStmtType(currentStmt);
 			std::cout << std::endl;
 			break;
 		}
@@ -372,7 +377,7 @@ void main() {
 	testTool(s.stmts);
 #endif
 	//(sgs::IdExp *)(((sgs::AssignStmt*)s.stmts[5])->getLeft());
-	dealWithExpType(((sgs::AssignStmt*)s.stmts[11])->getRight());
+	//dealWithExpType(((sgs::AssignStmt*)s.stmts[11])->getRight());
 	//dealWithExpType(((sgs::AssignStmt*)s.stmts[6])->getLeft());
 	system("pause");
 }
