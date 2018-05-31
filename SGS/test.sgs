@@ -1,1 +1,4 @@
-let float test b be true.
+new class point with integer x, integer y.
+let point left top be point{x 0, y 0}.
+let point right bottom be point{10, 10}.
+let integer a be left top's x.

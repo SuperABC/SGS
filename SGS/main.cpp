@@ -151,6 +151,33 @@ void printLiteralExp(sgs::Expression *stmtExp)
 		break;
 	}
 }
+void printIdExp(sgs::Expression *stmtExp)
+{
+	sgs::IdExp *idExp = (sgs::IdExp *)stmtExp;
+	std::cout << "name:" << idExp->getName() << endl;
+	return;
+}
+void printVisitExp(sgs::Expression *stmtExp)
+{
+	sgs::VisitExp *visitExp = (sgs::VisitExp *)stmtExp;
+	std::cout << "array name: " << std::endl;
+	dealWithExpType(visitExp->getArray());
+	std::cout << "index: " << std::endl;
+	dealWithExpType(visitExp->getIndex());
+	return;
+}
+void printCallExp(sgs::Expression *stmtExp)
+{
+
+}
+void printAccessExp(sgs::Expression *stmtExp)
+{
+	sgs::AccessExp *accessExp = (sgs::AccessExp *)stmtExp;
+	std::cout << "object:" << std::endl;
+	dealWithExpType(accessExp->getObject());
+	std::cout << "member" << std::endl;
+	std::cout << accessExp->getMember() << std::endl;
+}
 enum conditionUseVarType {
 	TYPEDEF,
 	CLASS,
@@ -217,16 +244,22 @@ void dealWithExpType(sgs::AST *s)
 		printLiteralExp(currentStmt);
 		break;
 	case 2: 
-		std::cout << "expType: ET_IDENT" << std::endl; 
+		std::cout << "expType: ET_IDENT" << std::endl;
+		std::cout << "    ";
+		printIdExp(currentStmt);
 		break;
 	case 3: 
-		std::cout << "expType: ET_VISIT" << std::endl; 
+		std::cout << "expType: ET_VISIT" << std::endl;
+		std::cout << "    ";
+		printVisitExp(currentStmt);
 		break;
 	case 4: 
 		std::cout << "expType: ET_CALL" << std::endl; 
 		break;
 	case 5: 
-		std::cout << "expType: ET_ACCESS" << std::endl; 
+		std::cout << "expType: ET_ACCESS" << std::endl;
+		std::cout << "    ";
+		printAccessExp(currentStmt);
 		break;
 	default:break;
 	}
@@ -339,6 +372,7 @@ void main() {
 	testTool(s.stmts);
 #endif
 	//(sgs::IdExp *)(((sgs::AssignStmt*)s.stmts[5])->getLeft());
-	//dealWithExpType(((sgs::AssignStmt*)s.stmts[6])->getRight());
+	dealWithExpType(((sgs::AssignStmt*)s.stmts[11])->getRight());
+	//dealWithExpType(((sgs::AssignStmt*)s.stmts[6])->getLeft());
 	system("pause");
 }
