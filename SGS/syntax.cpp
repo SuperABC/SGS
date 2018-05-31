@@ -100,7 +100,15 @@ void SgsSyntax::parse() {
 			string newVar;
 			if (content[proc].type == SGS_TT_USER) {
 				if ((classIdx = findClass()) >= 0) {
-					stmts.push_back(new TypeDef(classList[classIdx], newVar = parseUser()));
+					if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
+						proc++;
+						int length = (int)content[proc].value;
+						proc++;
+						stmts.push_back(new TypeDef(new ArrayType(classList[classIdx], length), newVar = parseUser()));
+					}
+					else {
+						stmts.push_back(new TypeDef(classList[classIdx], newVar = parseUser()));
+					}
 					left = new IdExp(newVar);
 				}
 				else {
