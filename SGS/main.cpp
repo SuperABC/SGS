@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include "machine.h"
 
 #define SGS_INTERPRETER
@@ -21,11 +22,8 @@ public:
 	Tab(int n) : num(n) {}
 	friend std::ostream& operator<< (std::ostream& os, Tab t) {
 		for (int i = 0; i < t.num; ++i)
-			os << "    ";
-		if (t.num == 0)
-			return os;
-		else
-			return os << "|-";
+			os << "   |";
+		return os;
 	}
 };
 int depth = 0;
@@ -748,5 +746,5 @@ void main() {
 #else
 	testTool(s.stmts);
 #endif
-	system("pause");
+	system((char *)"pause");
 }
