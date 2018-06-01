@@ -14,6 +14,22 @@ SgsLex l = SgsLex();
 SgsSyntax s = SgsSyntax();
 SgsMachine m = SgsMachine();
 
+class Tab {
+private:
+	int num;
+public:
+	Tab(int n) : num(n) {}
+	friend std::ostream& operator<< (std::ostream& os, Tab t) {
+		for (int i = 0; i < t.num; ++i)
+			os << "    ";
+		if (t.num == 0)
+			return os;
+		else
+			return os << "|-";
+	}
+};
+int depth = 0;
+
 void printBasicType(sgs::VarType *stmtVar);
 void printArrayType(sgs::VarType *stmtVar);
 void printClassType(sgs::VarType *stmtVar);
@@ -24,16 +40,23 @@ void dealWithFuncDefType(sgs::AST *s);
 void dealWithFuncProtoType(sgs::AST *s);
 void testTool(vector<sgs::AST *> stmts);
 
+void printTab(string output, int depth)
+{
+	for (int i = 0; i < depth; ++depth)
+		std::cout << "    ";
+	std::cout << "|-";
+	std::cout << output << std::endl;
+}
 void printBasicType(sgs::VarType *stmtVar)
 {
 	sgs::BasicType *basicVar = (sgs::BasicType *)stmtVar;
 	switch (basicVar->getBasicType())
 	{
-	case BASIC_TYPE::BT_INT:    std::cout << "basicType: BT_INT" << std::endl; break;
-	case BASIC_TYPE::BT_FLOAT:  std::cout << "basicType: BT_FLOAT" << std::endl; break;
-	case BASIC_TYPE::BT_BOOL:   std::cout << "basicType: BT_BOOL" << std::endl; break;
-	case BASIC_TYPE::BT_CHAR:   std::cout << "basicType: BT_CHAR" << std::endl; break;
-	case BASIC_TYPE::BT_STRING: std::cout << "basicType: BT_STRING" << std::endl; break;
+	case BASIC_TYPE::BT_INT:    std::cout << Tab(depth) << "basicType: BT_INT" << std::endl; break;
+	case BASIC_TYPE::BT_FLOAT:  std::cout << Tab(depth) << "basicType: BT_FLOAT" << std::endl; break;
+	case BASIC_TYPE::BT_BOOL:   std::cout << Tab(depth) << "basicType: BT_BOOL" << std::endl; break;
+	case BASIC_TYPE::BT_CHAR:   std::cout << Tab(depth) << "basicType: BT_CHAR" << std::endl; break;
+	case BASIC_TYPE::BT_STRING: std::cout << Tab(depth) << "basicType: BT_STRING" << std::endl; break;
 	default:
 		break;
 	}
@@ -42,8 +65,9 @@ void printBasicType(sgs::VarType *stmtVar)
 void printArrayType(sgs::VarType *stmtVar)
 {
 	sgs::ArrayType *arrayVar = (sgs::ArrayType *)stmtVar;
-	std::cout << "decType: VT_ARRAY" << std::endl;
-	std::cout << "length:  " << arrayVar->getLength() << std::endl;
+	std::cout << Tab(depth) << "decType: VT_ARRAY" << std::endl;
+	std::cout << Tab(depth) << "length:  " << arrayVar->getLength() << std::endl;
+	depth++;
 	switch (arrayVar->getEleType()->getVarType())
 	{
 	case VAR_TYPE::VT_BASIC: printBasicType(arrayVar->getEleType()); break;
@@ -51,21 +75,24 @@ void printArrayType(sgs::VarType *stmtVar)
 	case VAR_TYPE::VT_CLASS: printClassType(arrayVar->getEleType()); break;
 	default:break;
 	}
+	depth--;
 	return;
 }
 void printClassType(sgs::VarType *stmtVar)
 {
 	sgs::ClassType *classVar = (sgs::ClassType *)stmtVar;
-	std::cout << "decType: VT_CLASS" << std::endl;
-	std::cout << "className:  " << classVar->getName() << std::endl;
-	std::cout << "classMember: " << std::endl;
+	std::cout << Tab(depth) << "decType: VT_CLASS" << std::endl;
+	std::cout << Tab(depth) << "className:  " << classVar->getName() << std::endl;
+	std::cout << Tab(depth) << "classMember: " << std::endl;
+	depth++;
 	int count = classVar->getEle().size();
 	vector <std::pair<VarType *, string>> classElements = classVar->getEle();
 	for (int i = 0; i < count; ++i)
 	{
 		sgs::VarType *currentMember = classElements[i].first;
-		std::cout << "No." << (i + 1) << " Member:" << std::endl;
-		std::cout << "memberName:" + classElements[i].second << std::endl;
+		std::cout << Tab(depth) << "No." << (i + 1) << " Member:" << std::endl;
+		std::cout << Tab(depth) << "memberName:" + classElements[i].second << std::endl;
+		depth++;
 		switch (currentMember->getVarType())
 		{
 		case VAR_TYPE::VT_BASIC: printBasicType(currentMember); break;
@@ -73,7 +100,9 @@ void printClassType(sgs::VarType *stmtVar)
 		case VAR_TYPE::VT_CLASS: printClassType(currentMember); break;
 		default:break;
 		}
+		depth--;
 	}
+	depth--;
 	return;
 }
 void opSwitchCase(SGSOPERATOR OP)
@@ -81,133 +110,133 @@ void opSwitchCase(SGSOPERATOR OP)
 	switch (OP)
 	{
 	case SGS_OP_PLUS:
-		std::cout << "PLUS" << std::endl;
+		std::cout << Tab(depth) << "PLUS" << std::endl;
 		break;
 	case SGS_OP_PLUSPLUS:
-		std::cout << "PLUSPLUS" << std::endl;
+		std::cout << Tab(depth) << "PLUSPLUS" << std::endl;
 		break;
 	case SGS_OP_EQPLUS:
-		std::cout << "EQPLUS" << std::endl;
+		std::cout << Tab(depth) << "EQPLUS" << std::endl;
 		break;
 	case SGS_OP_MINUS:
-		std::cout << "MINUS" << std::endl;
+		std::cout << Tab(depth) << "MINUS" << std::endl;
 		break;
 	case SGS_OP_MINUSMINUS:
-		std::cout << "MINUSMINUS" << std::endl;
+		std::cout << Tab(depth) << "MINUSMINUS" << std::endl;
 		break;
 	case SGS_OP_EQMINUS:
-		std::cout << "EQMINUS" << std::endl;
+		std::cout << Tab(depth) << "EQMINUS" << std::endl;
 		break;
 	case SGS_OP_NEG:
-		std::cout << "NEG" << std::endl;
+		std::cout << Tab(depth) << "NEG" << std::endl;
 		break;
 	case SGS_OP_MULTY:
-		std::cout << "MULTY" << std::endl;
+		std::cout << Tab(depth) << "MULTY" << std::endl;
 		break;
 	case SGS_OP_EQMULTY:
-		std::cout << "EQMULTY" << std::endl;
+		std::cout << Tab(depth) << "EQMULTY" << std::endl;
 		break;
 	case SGS_OP_DIVIDE:
-		std::cout << "DIVIDE" << std::endl;
+		std::cout << Tab(depth) << "DIVIDE" << std::endl;
 		break;
 	case SGS_OP_EQDIVIDE:
-		std::cout << "EQDIVIDE" << std::endl;
+		std::cout << Tab(depth) << "EQDIVIDE" << std::endl;
 		break;
 	case SGS_OP_MOD:
-		std::cout << "MOD" << std::endl;
+		std::cout << Tab(depth) << "MOD" << std::endl;
 		break;
 	case SGS_OP_EQMOD:
-		std::cout << "EQMOD" << std::endl;
+		std::cout << Tab(depth) << "EQMOD" << std::endl;
 		break;
 	case SGS_OP_AND:
-		std::cout << "AND" << std::endl;
+		std::cout << Tab(depth) << "AND" << std::endl;
 		break;
 	case SGS_OP_ANDAND:
-		std::cout << "ANDAND" << std::endl;
+		std::cout << Tab(depth) << "ANDAND" << std::endl;
 		break;
 	case SGS_OP_EQAND:
-		std::cout << "EQAND" << std::endl;
+		std::cout << Tab(depth) << "EQAND" << std::endl;
 		break;
 	case SGS_OP_OR:
-		std::cout << "OR" << std::endl;
+		std::cout << Tab(depth) << "OR" << std::endl;
 		break;
 	case SGS_OP_OROR:
-		std::cout << "OROR" << std::endl;
+		std::cout << Tab(depth) << "OROR" << std::endl;
 		break;
 	case SGS_OP_EQOR:
-		std::cout << "EQOR" << std::endl;
+		std::cout << Tab(depth) << "EQOR" << std::endl;
 		break;
 	case SGS_OP_NOR:
-		std::cout << "NOR" << std::endl;
+		std::cout << Tab(depth) << "NOR" << std::endl;
 		break;
 	case SGS_OP_EQNOR:
-		std::cout << "EQNOR" << std::endl;
+		std::cout << Tab(depth) << "EQNOR" << std::endl;
 		break;
 	case SGS_OP_INVERSE:
-		std::cout << "INVERSE" << std::endl;
+		std::cout << Tab(depth) << "INVERSE" << std::endl;
 		break;
 	case SGS_OP_EQINVERSE:
-		std::cout << "EQINVERSE" << std::endl;
+		std::cout << Tab(depth) << "EQINVERSE" << std::endl;
 		break;
 	case SGS_OP_LBRACE:
-		std::cout << "LBRACE" << std::endl;
+		std::cout << Tab(depth) << "LBRACE" << std::endl;
 		break;
 	case SGS_OP_RBRACE:
-		std::cout << "RBRACE" << std::endl;
+		std::cout << Tab(depth) << "RBRACE" << std::endl;
 		break;
 	case SGS_OP_LPARENTHESIS:
-		std::cout << "LPARENTHESIS" << std::endl;
+		std::cout << Tab(depth) << "LPARENTHESIS" << std::endl;
 		break;
 	case SGS_OP_RPARENTHESIS:
-		std::cout << "RPARENTHESIS" << std::endl;
+		std::cout << Tab(depth) << "RPARENTHESIS" << std::endl;
 		break;
 	case SGS_OP_LBRAKET:
-		std::cout << "LBRAKET" << std::endl;
+		std::cout << Tab(depth) << "LBRAKET" << std::endl;
 		break;
 	case SGS_OP_RBRAKET:
-		std::cout << "RBRAKET" << std::endl;
+		std::cout << Tab(depth) << "RBRAKET" << std::endl;
 		break;
 	case SGS_OP_SEMI:
-		std::cout << "SEMI" << std::endl;
+		std::cout << Tab(depth) << "SEMI" << std::endl;
 		break;
 	case SGS_OP_COMMA:
-		std::cout << "COMMA" << std::endl;
+		std::cout << Tab(depth) << "COMMA" << std::endl;
 		break;
 	case SGS_OP_DOT:
-		std::cout << "DOT" << std::endl;
+		std::cout << Tab(depth) << "DOT" << std::endl;
 		break;
 	case SGS_OP_SMALLER:
-		std::cout << "SMALLER" << std::endl;
+		std::cout << Tab(depth) << "SMALLER" << std::endl;
 		break;
 	case SGS_OP_NSMALLER:
-		std::cout << "NSMALLER" << std::endl;
+		std::cout << Tab(depth) << "NSMALLER" << std::endl;
 		break;
 	case SGS_OP_GREATER:
-		std::cout << "GREATER" << std::endl;
+		std::cout << Tab(depth) << "GREATER" << std::endl;
 		break;
 	case SGS_OP_NGREATER:
-		std::cout << "NGREATER" << std::endl;
+		std::cout << Tab(depth) << "NGREATER" << std::endl;
 		break;
 	case SGS_OP_NOT:
-		std::cout << "NOT" << std::endl;
+		std::cout << Tab(depth) << "NOT" << std::endl;
 		break;
 	case SGS_OP_NOTEQ:
-		std::cout << "NOTEQ" << std::endl;
+		std::cout << Tab(depth) << "NOTEQ" << std::endl;
 		break;
 	case SGS_OP_EQUAL:
-		std::cout << "EQUAL" << std::endl;
+		std::cout << Tab(depth) << "EQUAL" << std::endl;
 		break;
 	case SGS_OP_QUERY:
-		std::cout << "QUERY" << std::endl;
+		std::cout << Tab(depth) << "QUERY" << std::endl;
 		break;
 	case SGS_OP_QUOT:
-		std::cout << "QUOT" << std::endl;
+		std::cout << Tab(depth) << "QUOT" << std::endl;
 		break;
 	case SGS_OP_DBQUOT:
-		std::cout << "DBQUOT" << std::endl;
+		std::cout << Tab(depth) << "DBQUOT" << std::endl;
 		break;
 	case SGS_OP_CROSS:
-		std::cout << "CROSS" << std::endl;
+		std::cout << Tab(depth) << "CROSS" << std::endl;
 		break;
 	default:
 		break;
@@ -216,12 +245,12 @@ void opSwitchCase(SGSOPERATOR OP)
 void printOpExp(sgs::Expression *stmtExp)
 {
 	sgs::OpExp *opExp = (sgs::OpExp *)stmtExp;
-	std::cout << "opExpOperator:"  << std::endl;
-	opSwitchCase(opExp->getOp());
-	std::cout << "leftExp:" << std::endl;
-	dealWithExpType(opExp->getLeft());
-	std::cout << "RightExp:" << std::endl;
-	dealWithExpType(opExp->getRight());
+	std::cout << Tab(depth) << "opExpOperator:"  << std::endl;
+	depth++; opSwitchCase(opExp->getOp()); depth--;
+	std::cout << Tab(depth) << "leftExp:" << std::endl;
+	depth++; dealWithExpType(opExp->getLeft()); depth--;
+	std::cout << Tab(depth) << "RightExp:" << std::endl;
+	depth++; dealWithExpType(opExp->getRight()); depth--;
 }
 void printLiteralExp(sgs::Expression *stmtExp)
 {
@@ -236,25 +265,25 @@ void printLiteralExp(sgs::Expression *stmtExp)
 		case BASIC_TYPE::BT_INT:
 		{
 			sgs::IntLiteral *intLiteralExp = (sgs::IntLiteral *)literalExp;
-			std::cout << "int value:" << intLiteralExp->getValue() << std::endl;
+			std::cout << Tab(depth) << "int value:" << intLiteralExp->getValue() << std::endl;
 			break;
 		}
 		case BASIC_TYPE::BT_FLOAT:
 		{
 			sgs::FloatLiteral *floatLiteralExp = (sgs::FloatLiteral *)literalExp;
-			std::cout << "float value:" << floatLiteralExp->getValue() << std::endl;
+			std::cout << Tab(depth) << "float value:" << floatLiteralExp->getValue() << std::endl;
 			break;
 		}
 		case BASIC_TYPE::BT_BOOL:
 		{
 			sgs::BoolLiteral *boolLiteralExp = (sgs::BoolLiteral *)literalExp;
-			std::cout << "Bool value:" << boolLiteralExp->getValue() << std::endl;
+			std::cout << Tab(depth) << "Bool value:" << boolLiteralExp->getValue() << std::endl;
 			break;
 		}
 		case BASIC_TYPE::BT_STRING:
 		{
 			sgs::StrLiteral *strLiteralExp = (sgs::StrLiteral *)literalExp;
-			std::cout << "String value:" << strLiteralExp->getValue() << std::endl;
+			std::cout << Tab(depth) << "String value:" << strLiteralExp->getValue() << std::endl;
 			break;
 		}
 		default:
@@ -265,27 +294,31 @@ void printLiteralExp(sgs::Expression *stmtExp)
 	case VAR_TYPE::VT_ARRAY:
 	{
 		sgs::ArrayLiteral *arrayLiteralExp = (sgs::ArrayLiteral *)literalExp;
-		std::cout << "Array value:"  << std::endl;
+		std::cout << Tab(depth) << "Array value:"  << std::endl;
+		depth++;
 		vector<Expression *>arrayConent = arrayLiteralExp->getValue();
 		int count = arrayConent.size();
 		for (int i = 0; i < count; ++i)
 		{
-			std::cout << "No. " << i << " content" << std::endl;
-			dealWithExpType(arrayConent[i]);
+			std::cout << Tab(depth) << "No. " << i << " content" << std::endl;
+			depth++; dealWithExpType(arrayConent[i]); depth--;
 		}
+		depth--;
 		break;
 	}
 	case VAR_TYPE::VT_CLASS:
 	{
 		sgs::ClassLiteral *classLiteralExp = (sgs::ClassLiteral *)literalExp;
-		std::cout << "Class value:" << std::endl;
+		std::cout << Tab(depth) << "Class value:" << std::endl;
+		depth++;
 		vector<Expression *>classConent = classLiteralExp->getValue();
 		int count = classConent.size();
 		for (int i = 0; i < count; ++i)
 		{
-			std::cout << "content " << i << std::endl;
-			dealWithExpType(classConent[i]);
+			std::cout << Tab(depth) << "content " << i << std::endl;
+			depth++; dealWithExpType(classConent[i]); depth--;
 		}
+		depth--;
 		break;
 	}
 	default:
@@ -295,85 +328,103 @@ void printLiteralExp(sgs::Expression *stmtExp)
 void printIdExp(sgs::Expression *stmtExp)
 {
 	sgs::IdExp *idExp = (sgs::IdExp *)stmtExp;
-	std::cout << "name:" << idExp->getName() << endl;
+	std::cout << Tab(depth) << "name:" << idExp->getName() << endl;
 	return;
 }
 void printVisitExp(sgs::Expression *stmtExp)
 {
 	sgs::VisitExp *visitExp = (sgs::VisitExp *)stmtExp;
-	std::cout << "array name: " << std::endl;
-	dealWithExpType(visitExp->getArray());
-	std::cout << "index: " << std::endl;
-	dealWithExpType(visitExp->getIndex());
+	std::cout << Tab(depth) << "array name: " << std::endl;
+	depth++; dealWithExpType(visitExp->getArray()); depth--;
+	std::cout << Tab(depth) << "index: " << std::endl;
+	depth++; dealWithExpType(visitExp->getIndex()); depth--;
 	return;
 }
 void printCallExp(sgs::Expression *stmtExp)
 {
 	sgs::CallExp *callExp = (sgs::CallExp *)stmtExp;
-	std::cout << "function" << std::endl;
-	dealWithFuncProtoType(callExp->getFunction());
+	std::cout << Tab(depth) << "function" << std::endl;
+	depth++; dealWithFuncProtoType(callExp->getFunction()); depth--;
+	depth++;
 	int count = callExp->getParam().size();
 	vector <Expression *> paramList = callExp->getParam();
 	for (int i = 0; i < count; ++i)
 	{
 		sgs::Expression *currentParameter = paramList[i];
-		std::cout << "No." << (i + 1) << " parameter:" << std::endl;
-		dealWithExpType(currentParameter);
+		std::cout << Tab(depth) << "No." << (i + 1) << " parameter:" << std::endl;
+		depth++; dealWithExpType(currentParameter); depth--;
 	}
+	depth--;
 }
 void printAccessExp(sgs::Expression *stmtExp)
 {
 	sgs::AccessExp *accessExp = (sgs::AccessExp *)stmtExp;
-	std::cout << "object:" << std::endl;
-	dealWithExpType(accessExp->getObject());
-	std::cout << "member" << std::endl;
-	std::cout << accessExp->getMember() << std::endl;
+	std::cout << Tab(depth) << "object:" << std::endl;
+	depth++; dealWithExpType(accessExp->getObject()); depth--;
+	std::cout << Tab(depth) << "member" << std::endl;
+	depth++; std::cout << Tab(depth) << accessExp->getMember() << std::endl; depth--;
 }
 void printAssignStmt(sgs::Statement *stmtStmt)
 {
 	sgs::AssignStmt *AssignStmt = (sgs::AssignStmt *)stmtStmt;
-	std::cout << "Left Expression:" << std::endl;
-	dealWithExpType(AssignStmt->getLeft());
-	std::cout << "Right Expression:" << std::endl;
-	dealWithExpType(AssignStmt->getRight());
+	std::cout << Tab(depth) << "Left Expression:" << std::endl;
+	depth++; dealWithExpType(AssignStmt->getLeft()); depth--;
+	std::cout << Tab(depth) << "Right Expression:" << std::endl;
+	depth++; dealWithExpType(AssignStmt->getRight()); depth--;
 }
 void printCallStmt(sgs::Statement *stmtStmt)
 {
 	sgs::CallStmt *callStmt = (sgs::CallStmt *)stmtStmt;
-	std::cout << "function" << std::endl;
+	std::cout << Tab(depth) << "function" << std::endl;
+	depth++;
 	dealWithFuncProtoType(callStmt->getFunction());
+	depth--;
 	int count = callStmt->getParam().size();
 	vector <Expression *> paramList = callStmt->getParam();
 	for (int i = 0; i < count; ++i)
 	{
 		sgs::Expression *currentParameter = paramList[i];
-		std::cout << "No." << (i + 1) << " parameter:" << std::endl;
+		std::cout << Tab(depth) << "No." << (i + 1) << " parameter:" << std::endl;
+		depth++;
 		dealWithExpType(currentParameter);
+		depth--;
 	}
 }
 void printBlockStmt(sgs::Statement *stmtStmt)
 {
 	sgs::BlockStmt *blockStmt = (sgs::BlockStmt *)stmtStmt;
-	std::cout << "block content" << std::endl;
+	std::cout << Tab(depth) << "block content" << std::endl;
+	depth++;
 	testTool(blockStmt->getContent());
+	depth--;
 }
 void printIfStmt(sgs::Statement *stmtStmt)
 {
 	sgs::IfStmt *IfStmt = (sgs::IfStmt *)stmtStmt;
-	std::cout << "If condition:" << std::endl;
+	std::cout << Tab(depth) << "If condition:" << std::endl;
+	depth++;
 	dealWithExpType(IfStmt->getCond());
-	std::cout << "taken:" << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "taken:" << std::endl;
+	depth++;
 	printBlockStmt(IfStmt->getTaken());
-	std::cout << "untaken:" << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "untaken:" << std::endl;
+	depth++;
 	printBlockStmt(IfStmt->getUntaken());
+	depth--;
 }
 void printWhileStmt(sgs::Statement *stmtStmt)
 {
 	sgs::WhileStmt *whileStmt = (sgs::WhileStmt *)stmtStmt;
-	std::cout << "condition:" << std::endl;
+	std::cout << Tab(depth) << "condition:" << std::endl;
+	depth++;
 	dealWithExpType(whileStmt->getCondition());
-	std::cout << "body" << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "body" << std::endl;
+	depth++;
 	printBlockStmt(whileStmt->getBody());
+	depth--;
 }
 enum conditionUseVarType {
 	TYPEDEF,
@@ -389,7 +440,8 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
 	case conditionUseVarType::TYPEDEF: //TYPEDEF
 	{
 		sgs::TypeDef *currentStmt = (sgs::TypeDef *)s;
-		std::cout << "newVarName: " + currentStmt->getName() << std::endl;
+		std::cout << Tab(depth) << "newVarName: " + currentStmt->getName() << std::endl;
+		depth++;
 		switch (currentStmt->getDecType()->getVarType())
 		{
 		case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getDecType()); break;
@@ -397,19 +449,23 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
 		case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getDecType()); break;
 		default:break;
 		}
+		depth--;
 		break; 
 	}
 	case conditionUseVarType::CLASS:
 	{
 		sgs::ClassDef *currentStmt = (sgs::ClassDef *)s;
-		std::cout << "className: " + currentStmt->getDecType()->getName() << std::endl;
+		std::cout << Tab(depth) << "className: " + currentStmt->getDecType()->getName() << std::endl;
+		depth++;
 		printClassType(currentStmt->getDecType());
+		depth--;
 		break; 
 	}
 	case conditionUseVarType::EXP: 
 	{
 		sgs::Expression *currentStmt = (sgs::Expression *)s;
 		//std::cout << "	expRes:" << std::endl;
+		depth++;
 		switch (currentStmt->getResType()->getVarType())
 		{
 		case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
@@ -417,6 +473,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
 		case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getResType()); break;
 		default:break;
 		}
+		depth--;
 		break; 
 	}
 	case conditionUseVarType::FUNC: 
@@ -429,7 +486,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
 		sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
 		if (NULL == currentStmt->getReturnType())
 		{
-			std::cout << "return type is void" << std::endl;
+			std::cout << Tab(depth) << "return type is void" << std::endl;
 			break;
 		}
 		switch (currentStmt->getReturnType()->getVarType())
@@ -445,7 +502,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice)
 		break;
 	}
 	
-}//not complete
+}
 void dealWithExpType(sgs::AST *s)
 {
 	sgs::Expression *currentStmt = (sgs::Expression *)s;
@@ -453,38 +510,50 @@ void dealWithExpType(sgs::AST *s)
 	{
 	case EXP_TYPE::ET_OP: 
 	{
-		std::cout << "expType: ET_OP" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_OP" << std::endl;
+		depth++;
 		printOpExp(currentStmt);
+		depth--;
 		break;
 	}
 	case EXP_TYPE::ET_LITERAL:
 	{
-		std::cout << "expType: ET_LITERAL" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_LITERAL" << std::endl;
+		depth++;
 		printLiteralExp(currentStmt);
+		depth--;
 		break;
 	}
 	case EXP_TYPE::ET_IDENT:
 	{
-		std::cout << "expType: ET_IDENT" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_IDENT" << std::endl;
+		depth++;
 		printIdExp(currentStmt);
+		depth--;
 		break;
 	}
 	case EXP_TYPE::ET_VISIT:
 	{
-		std::cout << "expType: ET_VISIT" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_VISIT" << std::endl;
+		depth++;
 		printVisitExp(currentStmt);
+		depth--;
 		break;
 	}
 	case EXP_TYPE::ET_CALL:
 	{
-		std::cout << "expType: ET_CALL" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_CALL" << std::endl;
+		depth++;
 		printCallExp(currentStmt);
+		depth--;
 		break;
 	}
 	case EXP_TYPE::ET_ACCESS:
 	{
-		std::cout << "expType: ET_ACCESS" << std::endl;
+		std::cout << Tab(depth) << "expType: ET_ACCESS" << std::endl;
+		depth++;
 		printAccessExp(currentStmt);
+		depth--;
 		break;
 	}
 	default:break;
@@ -497,35 +566,45 @@ void dealWithStmtType(sgs::AST *s)
 	{
 	case STMT_TYPE::ST_ASSIGN: 
 	{
-		std::cout << "stmtType: ST_ASSIGN" << std::endl;
+		std::cout << Tab(depth) << "stmtType: ST_ASSIGN" << std::endl;
+		depth++;
 		printAssignStmt(currentStmt);
+		depth--;
 		break;
 	}
 	case STMT_TYPE::ST_CALL: 
 	{
-		std::cout << "stmtType: ST_CALL" << std::endl; 
+		std::cout << Tab(depth) << "stmtType: ST_CALL" << std::endl;
+		depth++;
 		printCallStmt(currentStmt);
+		depth--;
 		break; 
 	}
 	case STMT_TYPE::ST_IF: 
 	{
-		std::cout << "stmtType: ST_IF" << std::endl;
+		std::cout << Tab(depth) << "stmtType: ST_IF" << std::endl;
+		depth++;
 		printIfStmt(currentStmt);
+		depth--;
 		break;
 	}
 	case STMT_TYPE::ST_WHILE: 
 	{
-		std::cout << "stmtType: ST_WHILE" << std::endl;
+		std::cout << Tab(depth) << "stmtType: ST_WHILE" << std::endl;
+		depth++;
 		printWhileStmt(currentStmt);
+		depth--;
 		break;
 	}
-	case STMT_TYPE::ST_RETURN: std::cout << "stmtType: ST_RETURN" << std::endl; break;
-	case STMT_TYPE::ST_BREAK: std::cout << "stmtType: ST_BREAK" << std::endl; break;
-	case STMT_TYPE::ST_CONTINUE: std::cout << "stmtType: ST_CONTINUE" << std::endl; break;
+	case STMT_TYPE::ST_RETURN: std::cout << Tab(depth) << "stmtType: ST_RETURN" << std::endl; break;
+	case STMT_TYPE::ST_BREAK: std::cout << Tab(depth) << "stmtType: ST_BREAK" << std::endl; break;
+	case STMT_TYPE::ST_CONTINUE: std::cout << Tab(depth) << "stmtType: ST_CONTINUE" << std::endl; break;
 	case STMT_TYPE::ST_BLOCK: 
 	{
-		std::cout << "stmtType: ST_BLOCK" << std::endl; 
+		std::cout << Tab(depth) << "stmtType: ST_BLOCK" << std::endl;
+		depth++;
 		printAssignStmt(currentStmt);
+		depth--;
 		break;
 	}
 	default:break;
@@ -534,24 +613,32 @@ void dealWithStmtType(sgs::AST *s)
 void dealWithFuncDefType(sgs::AST *s)
 {
 	sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
-	std::cout << "proto:" << std::endl;
+	std::cout << Tab(depth) << "proto:" << std::endl;
+	depth++;
 	dealWithFuncProtoType(currentStmt->getProto());
-	std::cout << "body:" << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "body:" << std::endl;
+	depth++;
 	printBlockStmt(currentStmt->getBody());
+	depth--;
 }
 void dealWithFuncProtoType(sgs::AST *s)
 {
 	sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
-	std::cout << "name:" << std::endl;
-	std::cout << currentStmt->getName() << std::endl;
-	std::cout << "parameters:" << std::endl;
+	std::cout << Tab(depth) << "name:" << std::endl;
+	depth++;
+	std::cout << Tab(depth) << currentStmt->getName() << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "parameters:" << std::endl;
+	depth++;
 	int count = currentStmt->getParam().size();
 	vector <std::pair<VarType *, string>> paramList = currentStmt->getParam();
 	for (int i = 0; i < count; ++i)
 	{
 		sgs::VarType *currentParameter = paramList[i].first;
-		std::cout << "No." << (i + 1) << " parameter:" << std::endl;
-		std::cout << "parameterName:" + paramList[i].second << std::endl;
+		std::cout << Tab(depth) << "No." << (i + 1) << " parameter:" << std::endl;
+		std::cout << Tab(depth) << "parameterName:" + paramList[i].second << std::endl;
+		depth++;
 		switch (currentParameter->getVarType())
 		{
 		case VAR_TYPE::VT_BASIC: printBasicType(currentParameter); break;
@@ -559,65 +646,73 @@ void dealWithFuncProtoType(sgs::AST *s)
 		case VAR_TYPE::VT_CLASS: printClassType(currentParameter); break;
 		default:break;
 		}
+		depth--;
 	}
-	std::cout << "return value type:" << std::endl;
+	depth--;
+	std::cout << Tab(depth) << "return value type:" << std::endl;
+	depth++;
 	dealWithVarType(currentStmt, conditionUseVarType::PROTO);
+	depth--;
 }
 void testTool(vector<sgs::AST *> stmts)
 {
 	unsigned int loopNum;
 	for (loopNum = 0; loopNum < stmts.size(); ++loopNum)
 	{
-		std::cout << "No." << loopNum << " statement is parsed" << std::endl;
-		std::cout << "--------------result---------------" << std::endl;
+		std::cout << Tab(depth) << "No." << loopNum << " statement is parsed" << std::endl;
+		std::cout << Tab(depth) << "--------------result---------------" << std::endl;
 		switch (stmts[loopNum]->astType)
 		{
 		case AT_TYPEDEF:
 		{
 			sgs::TypeDef *currentStmt = (sgs::TypeDef *)stmts[loopNum];
-			std::cout << "astType: AT_TYPEDEF" << std::endl;
-			dealWithVarType(currentStmt, TYPEDEF);
+			std::cout << Tab(depth) << "astType: AT_TYPEDEF" << std::endl;
+			depth++; dealWithVarType(currentStmt, TYPEDEF); depth--;
 			std::cout << std::endl;
 			break;
 		}
 		case AT_CLASS:
 		{
 			sgs::ClassDef *currentStmt = (sgs::ClassDef *)stmts[loopNum];
-			std::cout << "astType: AT_CLASS" << std::endl;
-			dealWithVarType(currentStmt, CLASS);
+			std::cout << Tab(depth) << "astType: AT_CLASS" << std::endl;
+			depth++; dealWithVarType(currentStmt, CLASS); depth--;
 			std::cout << std::endl;
 			break;
 		}
 		case AT_EXP:
 		{
 			sgs::Expression *currentStmt = (sgs::Expression *)stmts[loopNum];
-			std::cout << "astType: AT_EXP" << std::endl;
+			std::cout << Tab(depth) << "astType: AT_EXP" << std::endl;
+			depth++;
 			dealWithExpType(currentStmt);
 			dealWithVarType(currentStmt, EXP);
+			depth--;
 			std::cout << std::endl;
 			break;
 		}
 		case AT_STMT:
 		{
 			sgs::Statement *currentStmt = (sgs::Statement *)stmts[loopNum];
-			std::cout << "astType: AT_STMT" << std::endl;
+			std::cout << Tab(depth) << "astType: AT_STMT" << std::endl;
+			depth++;
 			dealWithStmtType(currentStmt);
+			depth--;
 			std::cout << std::endl;
 			break;
 		}
 		case AT_FUNC:
 		{
 			sgs::FuncDef *currentStmt = (sgs::FuncDef *)stmts[loopNum];
-			std::cout << "astType: AT_FUNC" << std::endl;
-			dealWithFuncDefType(currentStmt);
+			std::cout << Tab(depth) << "astType: AT_FUNC" << std::endl;
+			depth++; dealWithFuncDefType(currentStmt); depth--;
 			std::cout << std::endl;
 			break;
 		}
 		case AT_PROTO:
 		{
 			sgs::FuncProto *currentStmt = (sgs::FuncProto *)stmts[loopNum];
-			std::cout << "astType: AT_PROTO" << std::endl; 
-			dealWithFuncProtoType(currentStmt);
+			std::cout << Tab(depth) << "astType: AT_PROTO" << std::endl;
+			depth++;  dealWithFuncProtoType(currentStmt); depth--;
 			std::cout << std::endl;
 			break;
 		}
@@ -653,8 +748,5 @@ void main() {
 #else
 	testTool(s.stmts);
 #endif
-	//(sgs::IdExp *)(((sgs::AssignStmt*)s.stmts[5])->getLeft());
-	//dealWithExpType(((sgs::AssignStmt*)s.stmts[11])->getRight());
-	//dealWithExpType(((sgs::AssignStmt*)s.stmts[6])->getLeft());
 	system("pause");
 }
