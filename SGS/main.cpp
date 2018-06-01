@@ -22,7 +22,7 @@ public:
 	Tab(int n) : num(n) {}
 	friend std::ostream& operator<< (std::ostream& os, Tab t) {
 		for (int i = 0; i < t.num; ++i)
-			os << "   |";
+			os << "  |";
 		return os;
 	}
 };
