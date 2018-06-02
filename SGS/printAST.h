@@ -4,12 +4,12 @@
 
 using namespace sgs;
 
-class Tab {
+class ASTTab {
 private:
 	int num;
 public:
-	Tab(int n) : num(n) {}
-	friend std::ostream& operator<< (std::ostream& os, Tab t) {
+	ASTTab(int n) : num(n) {}
+	friend std::ostream& operator<< (std::ostream& os, ASTTab t) {
 		for (int i = 0; i < t.num; ++i)
 			os << "  |";
 		return os;

@@ -17,6 +17,18 @@ using namespace sgs;
 SgsLex l = SgsLex();
 SgsSyntax s = SgsSyntax();
 SgsMachine m = SgsMachine();
+int cppDepth = 0;
+class cppTab {
+private:
+	int num;
+public:
+	cppTab(int n) : num(n) {}
+	friend std::ostream& operator<< (std::ostream& os, cppTab t) {
+		for (int i = 0; i < t.num; ++i)
+			os << "    ";
+		return os;
+	}
+};
 string removeSpace(string input);
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout);
 VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout);
@@ -57,11 +69,11 @@ void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout)
 	sgs::BasicType *basicVar = (sgs::BasicType *)stmtVar;
 	switch (basicVar->getBasicType())
 	{
-	case BASIC_TYPE::BT_INT:    fout << "int " ; break;
-	case BASIC_TYPE::BT_FLOAT:  fout << "float "; break;
-	case BASIC_TYPE::BT_BOOL:   fout << "bool "; break;
-	case BASIC_TYPE::BT_CHAR:   fout << "char "; break;
-	case BASIC_TYPE::BT_STRING: fout << "string "; break;
+	case BASIC_TYPE::BT_INT:    fout << cppTab(cppDepth) <<  "int " ; break;
+	case BASIC_TYPE::BT_FLOAT:  fout << cppTab(cppDepth) <<  "float "; break;
+	case BASIC_TYPE::BT_BOOL:   fout << cppTab(cppDepth) <<  "bool "; break;
+	case BASIC_TYPE::BT_CHAR:   fout << cppTab(cppDepth) <<  "char "; break;
+	case BASIC_TYPE::BT_STRING: fout << cppTab(cppDepth) <<  "string "; break;
 	default:
 		break;
 	}
@@ -92,7 +104,8 @@ VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout)
 }
 void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
 	sgs::ClassType *classVar = (sgs::ClassType *)stmtVar;
-	fout << "class " << classVar->getName() << "{" << std::endl;
+	fout << "class " << classVar->getName() << "{" << std::endl; 
+	cppDepth++;
 	fout << "public:" << std::endl;
 	int count = classVar->getEle().size();
 	vector <std::pair<VarType *, string>> classElements = classVar->getEle();
@@ -114,7 +127,7 @@ void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
 			}
 			else if (VAR_TYPE::VT_CLASS == type)
 			{
-				fout << ((sgs::ClassType *)currentMember)->getName() << ' ';
+				fout << cppTab(cppDepth) << ((sgs::ClassType *)currentMember)->getName() << ' ';
 				fout << currentName << "[]";
 			}
 			break;
@@ -124,7 +137,8 @@ void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
 		}
 		fout << classElements[i].second << ";" << std::endl;
 	}
-	fout << "}" << std::endl;
+	fout << "};" << std::endl;
+	cppDepth--;
 	return;
 }
 void translateOpSwitchCase(SGSOPERATOR OP, std::ofstream &fout) {
@@ -312,12 +326,12 @@ void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout) {
 	case VAR_TYPE::VT_ARRAY:
 	{
 		/*sgs::ArrayLiteral *arrayLiteralExp = (sgs::ArrayLiteral *)literalExp;
-		std::cout << Tab(depth) << "Array value:" << std::endl;
+		std::cout << ASTTab(depth) << "Array value:" << std::endl;
 		depth++;
 		vector<Expression *>arrayConent = arrayLiteralExp->getValue();
 		int count = arrayConent.size();
 		for (int i = 0; i < count; ++i) {
-			std::cout << Tab(depth) << "No. " << i << " content" << std::endl;
+			std::cout << ASTTab(depth) << "No. " << i << " content" << std::endl;
 			depth++; dealWithExpType(arrayConent[i]); depth--;
 		}
 		depth--;
@@ -386,6 +400,7 @@ void translateAccessExp(sgs::Expression *stmtExp, std::ofstream &fout) {
 }
 void translateAssignStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 	sgs::AssignStmt *AssignStmt = (sgs::AssignStmt *)stmtStmt;
+	fout << cppTab(cppDepth);
 	translateExpType(AssignStmt->getLeft(), fout);
 	fout << " = ";
 	translateExpType(AssignStmt->getRight(), fout);
@@ -393,7 +408,7 @@ void translateAssignStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 }
 void translateCallStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 	sgs::CallStmt *callStmt = (sgs::CallStmt *)stmtStmt;
-	fout << removeSpace(callStmt->getFunction()->getName()) << "(";
+	fout << cppTab(cppDepth) <<  removeSpace(callStmt->getFunction()->getName()) << "(";
 	int count = callStmt->getParam().size();
 	vector <Expression *> paramList = callStmt->getParam();
 	for (int i = 0; i < count; ++i) {
@@ -411,22 +426,30 @@ void translateBlockStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 }
 void translateIfStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 	sgs::IfStmt *IfStmt = (sgs::IfStmt *)stmtStmt;
-	fout << "if(";
+	fout << cppTab(cppDepth) <<  "if(";
 	translateExpType(IfStmt->getCond(), fout);
-	fout << "){" << std::endl;
+	fout <<  "){" << std::endl;
+	cppDepth++;
 	translateBlockStmt(IfStmt->getTaken(), fout);
-	fout << "}" << std::endl;
-	fout << "else{" << std::endl;
+	cppDepth--;
+	fout << cppTab(cppDepth) <<  "}" << std::endl;
+	
+	fout << cppTab(cppDepth) <<  "else{" << std::endl;
+	cppDepth++;
 	translateBlockStmt(IfStmt->getUntaken(), fout);
-	fout << "}" << std::endl;
+	cppDepth--;
+	fout << cppTab(cppDepth) <<  "}" << std::endl;
+
 }
 void translateWhileStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 	sgs::WhileStmt *whileStmt = (sgs::WhileStmt *)stmtStmt;
-	fout << "while(";
+	fout << cppTab(cppDepth) <<  "while(";
 	translateExpType(whileStmt->getCondition(), fout);
-	fout << "){" << std::endl;
+	fout <<  "){" << std::endl;
+	cppDepth++;
 	translateBlockStmt(whileStmt->getBody(), fout);
-	fout << "}" << std::endl;
+	cppDepth--;
+	fout << cppTab(cppDepth) <<  "}" << std::endl;
 }
 void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstream &fout)
 {
@@ -464,14 +487,14 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
 		}
 		case VAR_TYPE::VT_CLASS: 
 		{
-			fout << removeSpace(((sgs::ClassType *)currentStmt->getDecType())->getName()) << ' ' << currentName;
+			fout << cppTab(cppDepth) << removeSpace(((sgs::ClassType *)currentStmt->getDecType())->getName()) << ' ' << currentName;
 			break;
 		}
 		default:break;
 		}
 		fout  << ";" << std::endl;
 		break;
-		}
+	}
 	case conditionUseVarType::CLASS:
 	{
 		sgs::ClassDef *currentStmt = (sgs::ClassDef *)s;
@@ -592,9 +615,9 @@ void translateStmtType(sgs::AST *s, std::ofstream &fout)
 		translateWhileStmt(currentStmt, fout);
 		break;
 	}
-	case STMT_TYPE::ST_RETURN: fout << "return result;" << std::endl; break;
+	case STMT_TYPE::ST_RETURN: fout << cppTab(cppDepth) <<  "return result;" << std::endl; break;
 	case STMT_TYPE::ST_BREAK: fout  << "break;" << std::endl; break;
-	case STMT_TYPE::ST_CONTINUE: fout << "continue;" << std::endl; break;
+	case STMT_TYPE::ST_CONTINUE: fout << cppTab(cppDepth) <<  "continue;" << std::endl; break;
 	case STMT_TYPE::ST_BLOCK:
 	{
 		translateAssignStmt(currentStmt, fout);
@@ -608,10 +631,12 @@ void translateFuncDefType(sgs::AST *s, std::ofstream &fout)
 	sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
 	translateFuncProtoType(currentStmt->getProto(), fout);
 	fout << "{" << std::endl;
+	cppDepth++;
 	translateVarType(s, FUNC, fout);
-	fout << "result;" << std::endl;
+	fout <<  "result;" << std::endl;
 	translateBlockStmt(currentStmt->getBody(), fout);
 	fout << "}" << std::endl;
+	cppDepth--;
 }
 void translateFuncProtoType(sgs::AST *s, std::ofstream &fout)
 {
@@ -753,6 +778,7 @@ void translateToCPP(vector<sgs::AST *> stmts)
 		}
 	}
 	fout << "int main(){" << std::endl;
+	cppDepth++;
 	for (loopNum = 0; loopNum < stmts.size(); ++loopNum)
 	{
 		switch (stmts[loopNum]->astType)
@@ -780,8 +806,9 @@ void translateToCPP(vector<sgs::AST *> stmts)
 			break;
 		}
 	}
-	fout << "return 0;" << std::endl;
+	fout << cppTab(cppDepth) <<  "return 0;" << std::endl;
 	fout << "}";
+	cppDepth--;
 	fout.close();
 }
 
