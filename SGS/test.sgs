@@ -1,12 +1,1 @@
-new class point with integer x, integer y.
-let point test point be point{x 1, y 1}.
-print a number with value 2 * 2 + (7 & 3 > 2 + test point's x * test point's y) / 2.
-let string array 10 str list.
-let str list[0] be "abc".
-let str list[1] be "def".
-let str list[2] be "ghi".
-let integer iterator be 0.
-loop when iterator < 3.
-	print a str with value str list[iterator].
-	let iterator be iterator + 1.
-end loop.
+new function add with integer a, integer b return integer.

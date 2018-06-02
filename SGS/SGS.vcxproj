@@ -117,6 +117,7 @@
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="output.cpp" />
     <ClCompile Include="printAST.cpp" />
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
