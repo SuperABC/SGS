@@ -197,7 +197,7 @@ void printOpExp(sgs::Expression *stmtExp) {
     sgs::OpExp *opExp = (sgs::OpExp *)stmtExp;
     std::cout << Tab(depth) << "opExpOperator:" << std::endl;
     depth++; opSwitchCase(opExp->getOp()); depth--;
-    std::cout << Tab(depth) << "leftExp:" << std::endl;
+    std::cout << Tab(depth) << "LeftExp:" << std::endl;
     depth++; dealWithExpType(opExp->getLeft()); depth--;
     std::cout << Tab(depth) << "RightExp:" << std::endl;
     depth++; dealWithExpType(opExp->getRight()); depth--;
@@ -520,7 +520,7 @@ void dealWithStmtType(sgs::AST *s) {
     {
         std::cout << Tab(depth) << "stmtType: ST_BLOCK" << std::endl;
         depth++;
-        printAssignStmt(currentStmt);
+        printBlockStmt(currentStmt);
         depth--;
         break;
     }

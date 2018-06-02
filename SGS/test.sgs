@@ -1,1 +1,54 @@
+#hello world
+let integer a be 10.
+print an int with value a.
+
+#typedef and assign
+let integer test i be 10.
+print an int with value test i.
+let float test f be 0.0.
+print a number with value test f.
+let bool test b be true.
+print a boolean with value test b.
+let string test s be "hello world".
+print a str with value test s.
+
+#if and while
+let integer rounds be 10.
+loop when rounds > 0
+	if rounds > 5 then let rounds be rounds - 2.
+	else let rounds be rounds - 1.
+	end if.
+	print an int with value rounds.
+end loop.
+
+#user function
 new function add with integer a, integer b return integer.
+start add.
+	let result be a+b.
+	return.
+end add.
+print an int with value add with a 1, b 2.
+
+#array
+let string array 10 str list.
+let str list[0] be "abc".
+let str list[1] be "def".
+let str list[2] be "ghi".
+let integer iterator be 0.
+loop when iterator < 3.
+	print a str with value str list[iterator].
+	let iterator be iterator + 1.
+end loop.
+
+#class
+new class point with integer x, integer y.
+let point left top be point{x 0, y 0}.
+let point right bottom be point{10, 10}.
+print a number with value left top's x.
+print a number with value right bottom's y.
+
+#complex exp 
+new class point with integer x, integer y.
+let point test point be point{x 1, y 1}.
+print a number with value 2 * 2 + (7 & 3 > 2 + test point's x * test point's y) / 2.
+print a boolean with value true && (false || true + false)
