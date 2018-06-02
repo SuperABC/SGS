@@ -3,23 +3,23 @@
 #include "printAST.h"
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <cstdlib>
-
 
 #define SGS_INTERPRETER_OFF
 
 using std::cin;
 using std::cout;
 using std::endl;
+using std::string;
 using namespace sgs;
 
 SgsLex l = SgsLex();
 SgsSyntax s = SgsSyntax();
 SgsMachine m = SgsMachine();
 
-
-void main() {
-	std::ifstream fin("test.sgs");
+int main() {
+	std::ifstream fin(string("test.sgs"));
 
 	string input, tmp;
 	while (!fin.eof()) {
@@ -44,5 +44,7 @@ void main() {
 #else
 	printAST(s.stmts);
 #endif
-	system((char *)"pause");
+	// system((char *)"pause");
+    string temp; cin >> temp;
+    return 0;
 }

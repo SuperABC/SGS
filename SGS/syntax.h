@@ -43,6 +43,7 @@ namespace sgs {
 	private:
 		VAR_TYPE varType;
 	public:
+        virtual ~VarType() = default;
 		VarType(VAR_TYPE t) : varType(t) {}
 		VAR_TYPE getVarType() const { return varType; }
 	};
