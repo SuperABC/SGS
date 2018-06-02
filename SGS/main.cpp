@@ -3,14 +3,15 @@
 #include "printAST.h"
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <cstdlib>
-
 
 #define SGS_INTERPRETER_OFF
 
 using std::cin;
 using std::cout;
 using std::endl;
+using std::string;
 using namespace sgs;
 
 SgsLex l = SgsLex();
@@ -374,9 +375,10 @@ void translateToCPP(vector<sgs::AST *> stmts)
 	translateAST(stmts, fout);
 	fout.close();
 }
-void main() {
-	std::ifstream fin("test.sgs");
 
+int main() 
+{
+	std::ifstream fin(string("test.sgs"));
 	string input, tmp;
 	while (!fin.eof()) {
 		getline(fin, tmp);
@@ -401,5 +403,8 @@ void main() {
 	printAST(s.stmts);
 	translateToCPP(s.stmts);
 #endif
-	system((char *)"pause");
+	// system((char *)"pause");
+    string temp; 
+	cin >> temp;
+    return 0;
 }
