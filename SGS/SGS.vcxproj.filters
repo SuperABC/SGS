@@ -36,18 +36,6 @@
     <ClCompile Include="output.cpp">
       <Filter>资源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\main_.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexeme.h">
@@ -66,18 +54,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="printAST.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\transform.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

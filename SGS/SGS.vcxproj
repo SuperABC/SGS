@@ -119,10 +119,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.cpp" />
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.cpp" />
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\main_.cpp" />
-    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.cpp" />
     <ClCompile Include="lexeme.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
@@ -132,10 +128,6 @@
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.h" />
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.h" />
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\transform.h" />
-    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.h" />
     <ClInclude Include="lexeme.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="memory.h" />
