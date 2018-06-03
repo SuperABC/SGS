@@ -30,6 +30,9 @@
     <ClCompile Include="machine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="generator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="printAST.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -53,9 +56,15 @@
     <ClInclude Include="machine.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="generator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+<<<<<<< HEAD
+=======
     <ClInclude Include="printAST.h">
       <Filter>头文件</Filter>
     </ClInclude>
+>>>>>>> parent of dd0fa55... Add code gen.
   </ItemGroup>
   <ItemGroup>
     <None Include="test.sgs">
