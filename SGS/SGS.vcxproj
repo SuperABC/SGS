@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7F373AA6-97F8-4B82-AE70-367831C31C07}</ProjectGuid>
     <RootNamespace>SGS</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>SGS(Compile)</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,7 +70,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Program Files (x86)\LLVM\include;</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;D:\Program Files (x86)\LLVM\lib;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Program Files (x86)\LLVM\include;</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;D:\Program Files (x86)\LLVM\lib;</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -112,7 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="generator.cpp" />
+    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.cpp" />
+    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.cpp" />
+    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\main_.cpp" />
+    <ClCompile Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.cpp" />
     <ClCompile Include="lexeme.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
@@ -122,7 +132,10 @@
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="generator.h" />
+    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\ast.h" />
+    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\codegen.h" />
+    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\transform.h" />
+    <ClInclude Include="..\..\..\Visual Studio 2017\Projects\SGS(Compile)\SGS\TypeSys.h" />
     <ClInclude Include="lexeme.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="memory.h" />
