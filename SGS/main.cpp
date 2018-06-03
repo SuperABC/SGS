@@ -812,7 +812,7 @@ void translateToCPP(vector<sgs::AST *> stmts)
 	fout.close();
 }
 
-int main() 
+/*int main() 
 {
 	std::ifstream fin(string("test.sgs"));
 	string input, tmp;
@@ -839,8 +839,7 @@ int main()
 	printAST(s.stmts);
 	translateToCPP(s.stmts);
 #endif
-	// system((char *)"pause");
     string temp; 
 	cin >> temp;
     return 0;
-}
+}*/

@@ -30,14 +30,23 @@
     <ClCompile Include="machine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="generator.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="printAST.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="output.cpp">
       <Filter>资源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="codegen.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main_.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeSys.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ast.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -56,15 +65,21 @@
     <ClInclude Include="machine.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="generator.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-<<<<<<< HEAD
-=======
     <ClInclude Include="printAST.h">
       <Filter>头文件</Filter>
     </ClInclude>
->>>>>>> parent of dd0fa55... Add code gen.
+    <ClInclude Include="ast.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="codegen.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeSys.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="test.sgs">
