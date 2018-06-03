@@ -9,7 +9,9 @@
 *.pdb
 *.idb
 *.lastbuildstate
-.vs/SGS/v15/Solution.VC.db-shm
-.vs/SGS/v15/Solution.VC.db-wal
 *.db-shm
 *.db-wal
+.vs/
+*.vcxproj
+*.filter
+*.user
