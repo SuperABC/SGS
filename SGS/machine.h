@@ -2,7 +2,6 @@
 #define MACHINE_H
 #include <windows.h>
 #include "syntax.h"
-#include <cstdio>
 
 namespace sgs {
 	class VarNode;

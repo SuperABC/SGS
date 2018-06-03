@@ -12,8 +12,6 @@ using namespace llvm;
 
 namespace sgs_backend {
 
-    using std::size_t;
-
 	using std::vector;
 	using std::string;
 	using std::map;
