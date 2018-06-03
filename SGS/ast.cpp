@@ -309,8 +309,8 @@ sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, 
 	case SUB:
 	case MUL:
 	case DIV: {
-		assert(lhs->getLevel() == Types::BASIC_TYPE);
-		assert(rhs->getLevel() == Types::BASIC_TYPE);
+		// assert(lhs->getLevel() == Types::BASIC_TYPE);
+		// assert(rhs->getLevel() == Types::BASIC_TYPE);
 		const auto ls = dynamic_cast<SBasicType*>(lhs);
 		const auto rs = dynamic_cast<SBasicType*>(rhs);
 		if (ls->getBasicType() == BasicType::FLOAT) {

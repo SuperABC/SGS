@@ -30,6 +30,7 @@ namespace sgs {
 	};
 	class AST {
 	public:
+        virtual ~AST() = default;
 		AST_TYPE astType;
 		AST(AST_TYPE t) :astType(t) {}
 	};

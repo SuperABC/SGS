@@ -16,6 +16,7 @@ namespace sgs_backend {
 	using std::pair;
 	using llvm::Type;
 	using std::map;
+    using std::size_t;
 
 	enum class Types {
 		BASIC_TYPE,
