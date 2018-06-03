@@ -72,8 +72,7 @@ void SgsSyntax::parse() {
                 skipLine();
             }
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_NEW) {
+        } else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_NEW) {
             proc++;
             if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_CLASS) {
                 proc++;
@@ -88,8 +87,7 @@ void SgsSyntax::parse() {
             } else
                 error("New", SGS_SE_UNIQUE);
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LET) {
+        } else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LET) {
             proc++;
 
             Expression *left;
@@ -181,8 +179,7 @@ void SgsSyntax::parse() {
                 stmts.push_back(new AssignStmt(left, parseExp()));
             }
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_START) {
+        } else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_START) {
             proc++;
             int funcIdx;
             if ((funcIdx = findFunc()) >= 0) {
@@ -194,8 +191,7 @@ void SgsSyntax::parse() {
                 skipLine();
             }
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
+        } else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF) {
             proc++;
 
             Expression *branch = parseExp();
@@ -222,8 +218,7 @@ void SgsSyntax::parse() {
             } else error("If(end)", SGS_SE_INCOMPLETE);
 
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP) {
+        } else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP) {
             proc++;
 
             Expression *cond;
@@ -245,8 +240,7 @@ void SgsSyntax::parse() {
             } else error("Loop(end)", SGS_SE_INCOMPLETE);
 
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_USER) {
+        } else if (content[proc].type == SGS_TT_USER) {
             int funcIdx;
             string newVar;
             if ((funcIdx = findFunc()) != -1) {
@@ -258,12 +252,10 @@ void SgsSyntax::parse() {
                 }
             } else error("Function", SGS_SE_NOID);
             continue;
-        } 
-		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_DOT) {
+        } else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_DOT) {
             proc++;
             continue;
-        } 
-		else {
+        } else {
             error("", SGS_SE_UNKNOWN);
             skipLine();
             continue;
@@ -313,8 +305,7 @@ Expression *SgsSyntax::parseExp() {
             } else {
                 value.push(parseVar());
             }
-        } 
-		else if (content[proc].type == SGS_TT_DATA) {
+        } else if (content[proc].type == SGS_TT_DATA) {
             if (content[proc].s != nullptr) {
                 value.push(new StrLiteral(content[proc].s));
             } else {
@@ -330,8 +321,7 @@ Expression *SgsSyntax::parseExp() {
             }
 
             proc++;
-        } 
-		else if (content[proc].type == SGS_TT_SYS &&
+        } else if (content[proc].type == SGS_TT_SYS &&
             (content[proc].id == SGS_ID_FALSE || content[proc].id == SGS_ID_TRUE)) {
             if (content[proc].id == SGS_ID_FALSE)
                 value.push(new BoolLiteral(false));
@@ -339,12 +329,10 @@ Expression *SgsSyntax::parseExp() {
                 value.push(new BoolLiteral(true));
 
             proc++;
-        }
-		else if (content[proc].type == SGS_TT_OP) {
+        } else if (content[proc].type == SGS_TT_OP) {
             if (content[proc].id == SGS_OP_LBRACE) {
                 op.push(SGS_OP_LBRACE);
-            } 
-			else if (content[proc].id == SGS_OP_RBRACE) {
+            } else if (content[proc].id == SGS_OP_RBRACE) {
                 while (op.top() != SGS_OP_LBRACE) {
                     int o = op.top();
                     op.pop();
@@ -356,17 +344,15 @@ Expression *SgsSyntax::parseExp() {
                     value.pop();
 
                     OpExp *tmp = new OpExp((SGSOPERATOR)o);
-                    tmp->setLeft(b);
-                    tmp->setRight(a);
+                    tmp->setLeft(a);
+                    tmp->setRight(b);
                     value.push(tmp);
                 }
                 op.pop();
-            } 
-			else {
+            } else {
                 if (op.empty()) {
                     op.push(content[proc].id);
-                } 
-				else {
+                } else {
                     while (!op.empty() && compare(content[proc].id, op.top())) {
                         int o = op.top();
                         op.pop();
@@ -378,16 +364,15 @@ Expression *SgsSyntax::parseExp() {
                         value.pop();
 
                         OpExp *tmp = new OpExp((SGSOPERATOR)o);
-                        tmp->setLeft(b);
-                        tmp->setRight(a);
+                        tmp->setLeft(a);
+                        tmp->setRight(b);
                         value.push(tmp);
                     }
                     op.push(content[proc].id);
                 }
             }
             proc++;
-        } 
-		else break;
+        } else break;
     }
 
     while (!op.empty()) {
@@ -401,15 +386,14 @@ Expression *SgsSyntax::parseExp() {
         value.pop();
 
         OpExp *tmp = new OpExp((SGSOPERATOR)o);
-        tmp->setLeft(b);
-        tmp->setRight(a);
+        tmp->setLeft(a);
+        tmp->setRight(b);
         value.push(tmp);
     }
 
     if (value.size() == 1) {
         return value.top();
-    } 
-	else {
+    } else {
         VarType *t = value.top()->getResType();
         vector<Expression *> cont;
 
@@ -517,39 +501,25 @@ FuncProto *SgsSyntax::parseFuncDec() {
             if (content[proc].type == SGS_TT_USER) {
                 if ((classIdx = findClass()) >= 0) {
                     params.emplace_back(classList[classIdx], parseUser());
-                } 
-				else 
-					error(parseUser().data(), SGS_SE_NOID);
-            } 
-			else if (content[proc].type == SGS_TT_SYS) {
+                } else error(parseUser().data(), SGS_SE_NOID);
+            } else if (content[proc].type == SGS_TT_SYS) {
                 if (content[proc].id == SGS_ID_INTEGER) {
                     proc++;
                     params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
-                } 
-				else if (content[proc].id == SGS_ID_FLOAT) {
+                } else if (content[proc].id == SGS_ID_FLOAT) {
                     proc++;
                     params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
-                } 
-				else if (content[proc].id == SGS_ID_BOOL) {
+                } else if (content[proc].id == SGS_ID_BOOL) {
                     proc++;
                     params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
-                } 
-				else if (content[proc].id == SGS_ID_CHAR) {
+                } else if (content[proc].id == SGS_ID_CHAR) {
                     proc++;
                     params.push_back(std::pair<VarType *, string>(new BasicType(BT_CHAR), parseUser()));
-                } 
-				else if (content[proc].id == SGS_ID_STRING) {
+                } else if (content[proc].id == SGS_ID_STRING) {
                     proc++;
                     params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
-                } 
-				else break;
-            } 
-			else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
-				proc++;
-				continue;
-			}
-			else 
-				break;
+                } else break;
+            } else break;
         }
     }
     if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
@@ -557,39 +527,30 @@ FuncProto *SgsSyntax::parseFuncDec() {
         if (content[proc].type == SGS_TT_USER) {
             if ((classIdx = findClass()) >= 0) {
                 return new FuncProto(classList[classIdx], name, params);
-            } 
-			else {
+            } else {
                 error(parseUser().data(), SGS_SE_NOID);
                 return new FuncProto(nullptr, name, params);
             }
-        } 
-		else if (content[proc].type == SGS_TT_SYS) {
+        } else if (content[proc].type == SGS_TT_SYS) {
             if (content[proc].id == SGS_ID_INTEGER) {
                 return new FuncProto(new BasicType(BT_INT), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_FLOAT) {
+            } else if (content[proc].id == SGS_ID_FLOAT) {
                 return new FuncProto(new BasicType(BT_FLOAT), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_BOOL) {
+            } else if (content[proc].id == SGS_ID_BOOL) {
                 return new FuncProto(new BasicType(BT_BOOL), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_CHAR) {
+            } else if (content[proc].id == SGS_ID_CHAR) {
                 return new FuncProto(new BasicType(BT_CHAR), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_STRING) {
+            } else if (content[proc].id == SGS_ID_STRING) {
                 return new FuncProto(new BasicType(BT_STRING), name, params);
-            } 
-			else {
+            } else {
                 error(parseUser().data(), SGS_SE_NOID);
                 return new FuncProto(nullptr, name, params);
             }
-        } 
-		else {
+        } else {
             error("", SGS_SE_UNKNOWN);
             return new FuncProto(nullptr, name, params);
         }
-    } 
-	else {
+    } else {
         error(name.data(), SGS_SE_INCOMPLETE);
         return new FuncProto(nullptr, name, params);
     }
@@ -614,15 +575,9 @@ vector<Expression *> SgsSyntax::parseParam(int funcid) {
         }
         if (hide) {
             para[i] = parseExp();
-			if (proc >= content.size())break;
-			if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)
-				proc++;
             break;
         } else {
             para[idx] = parseExp();
-			if (proc >= content.size())break;
-			if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)
-				proc++;
         }
     }
 
