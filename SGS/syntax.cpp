@@ -204,7 +204,7 @@ void SgsSyntax::parse() {
             if ((funcIdx = findFunc()) >= 0) {
                 stmts.push_back(parseFuncDef(funcIdx));
                 if (funcIdx != findFunc())
-                    error(((FuncProto *)stmts[funcIdx])->getName().data(), SGS_SE_DISACCORD);
+                    error(((FuncProto *)funcList[funcIdx])->getName().data(), SGS_SE_DISACCORD);
             } else {
                 error(parseUser().data(), SGS_SE_NOID);
                 skipLine();
@@ -682,7 +682,6 @@ vector<Expression *> SgsSyntax::parseParam(int funcid) {
 			if (proc >= content.size())break;
 			if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA)
 				proc++;
-            break;
         } else {
             para[idx] = parseExp();
 			if (proc >= content.size())break;

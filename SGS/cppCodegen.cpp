@@ -584,6 +584,7 @@ void translateFuncProtoType(sgs::AST *s, std::ofstream &fout) {
                 fout << dynamic_cast<sgs::ClassType *>(currentParameter)->getName() << ' ';
                 fout << currentName << "[]";
             }
+			break;
         }
         case VAR_TYPE::VT_CLASS:
         {
