@@ -5,7 +5,7 @@
 struct Block {
 	void *cont[256];
 	unsigned char offset;
-	Block *next = NULL;
+	Block *next = nullptr;
 };
 
 class SgsMemory {

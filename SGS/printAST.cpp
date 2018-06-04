@@ -2,11 +2,12 @@
 
 int depth = 0;
 void printTab(const string& output, int depth) {
-    for (int i = 0; i < depth; ++depth)
+    for (int i = 0; i < depth; ++i)
         std::cout << "    ";
     std::cout << "|-";
     std::cout << output << std::endl;
 }
+
 void printBasicType(sgs::VarType *stmtVar) {
     sgs::BasicType *basicVar = dynamic_cast<sgs::BasicType *>(stmtVar);
     switch (basicVar->getBasicType()) {
@@ -18,10 +19,10 @@ void printBasicType(sgs::VarType *stmtVar) {
     default:
         break;
     }
-    return;
 }
+
 void printArrayType(sgs::VarType *stmtVar) {
-    sgs::ArrayType *arrayVar = (sgs::ArrayType *)stmtVar;
+    sgs::ArrayType *arrayVar = dynamic_cast<sgs::ArrayType *>(stmtVar);
     std::cout << ASTTab(depth) << "decType: VT_ARRAY" << std::endl;
     std::cout << ASTTab(depth) << "length:  " << arrayVar->getLength() << std::endl;
     depth++;
@@ -35,7 +36,7 @@ void printArrayType(sgs::VarType *stmtVar) {
     return;
 }
 void printClassType(sgs::VarType *stmtVar) {
-    sgs::ClassType *classVar = (sgs::ClassType *)stmtVar;
+    sgs::ClassType *classVar = dynamic_cast<sgs::ClassType *>(stmtVar);
     std::cout << ASTTab(depth) << "decType: VT_CLASS" << std::endl;
     std::cout << ASTTab(depth) << "className:  " << classVar->getName() << std::endl;
     std::cout << ASTTab(depth) << "classMember: " << std::endl;
@@ -203,33 +204,33 @@ void printOpExp(sgs::Expression *stmtExp) {
     depth++; dealWithExpType(opExp->getRight()); depth--;
 }
 void printLiteralExp(sgs::Expression *stmtExp) {
-    sgs::LiteralExp *literalExp = (sgs::LiteralExp *)stmtExp;
+    sgs::LiteralExp *literalExp = dynamic_cast<sgs::LiteralExp *>(stmtExp);
     switch (literalExp->getType()->getVarType()) {
     case VAR_TYPE::VT_BASIC:
     {
-        sgs::BasicType *basicLiteralExp = (sgs::BasicType *)literalExp->getType();
+        sgs::BasicType *basicLiteralExp = dynamic_cast<sgs::BasicType *>(literalExp->getType());
         switch (basicLiteralExp->getBasicType()) {
         case BASIC_TYPE::BT_INT:
         {
-            sgs::IntLiteral *intLiteralExp = (sgs::IntLiteral *)literalExp;
+            sgs::IntLiteral *intLiteralExp = dynamic_cast<sgs::IntLiteral *>(literalExp);
             std::cout << ASTTab(depth) << "int value:" << intLiteralExp->getValue() << std::endl;
             break;
         }
         case BASIC_TYPE::BT_FLOAT:
         {
-            sgs::FloatLiteral *floatLiteralExp = (sgs::FloatLiteral *)literalExp;
+            sgs::FloatLiteral *floatLiteralExp = dynamic_cast<sgs::FloatLiteral *>(literalExp);
             std::cout << ASTTab(depth) << "float value:" << floatLiteralExp->getValue() << std::endl;
             break;
         }
         case BASIC_TYPE::BT_BOOL:
         {
-            sgs::BoolLiteral *boolLiteralExp = (sgs::BoolLiteral *)literalExp;
+            sgs::BoolLiteral *boolLiteralExp = dynamic_cast<sgs::BoolLiteral *>(literalExp);
             std::cout << ASTTab(depth) << "Bool value:" << boolLiteralExp->getValue() << std::endl;
             break;
         }
         case BASIC_TYPE::BT_STRING:
         {
-            sgs::StrLiteral *strLiteralExp = (sgs::StrLiteral *)literalExp;
+            sgs::StrLiteral *strLiteralExp = dynamic_cast<sgs::StrLiteral *>(literalExp);
             std::cout << ASTTab(depth) << "String value:" << strLiteralExp->getValue() << std::endl;
             break;
         }
@@ -240,7 +241,7 @@ void printLiteralExp(sgs::Expression *stmtExp) {
     }
     case VAR_TYPE::VT_ARRAY:
     {
-        sgs::ArrayLiteral *arrayLiteralExp = (sgs::ArrayLiteral *)literalExp;
+        sgs::ArrayLiteral *arrayLiteralExp = dynamic_cast<sgs::ArrayLiteral *>(literalExp);
         std::cout << ASTTab(depth) << "Array value:" << std::endl;
         depth++;
         vector<Expression *>arrayConent = arrayLiteralExp->getValue();
@@ -254,7 +255,7 @@ void printLiteralExp(sgs::Expression *stmtExp) {
     }
     case VAR_TYPE::VT_CLASS:
     {
-        sgs::ClassLiteral *classLiteralExp = (sgs::ClassLiteral *)literalExp;
+        sgs::ClassLiteral *classLiteralExp = dynamic_cast<sgs::ClassLiteral *>(literalExp);
         std::cout << ASTTab(depth) << "Class value:" << std::endl;
         depth++;
         vector<Expression *>classConent = classLiteralExp->getValue();
@@ -271,12 +272,12 @@ void printLiteralExp(sgs::Expression *stmtExp) {
     }
 }
 void printIdExp(sgs::Expression *stmtExp) {
-    sgs::IdExp *idExp = (sgs::IdExp *)stmtExp;
+    sgs::IdExp *idExp = dynamic_cast<sgs::IdExp *>(stmtExp);
     std::cout << ASTTab(depth) << "name:" << idExp->getName() << std::endl;
     return;
 }
 void printVisitExp(sgs::Expression *stmtExp) {
-    sgs::VisitExp *visitExp = (sgs::VisitExp *)stmtExp;
+    sgs::VisitExp *visitExp = dynamic_cast<sgs::VisitExp *>(stmtExp);
     std::cout << ASTTab(depth) << "array name: " << std::endl;
     depth++; dealWithExpType(visitExp->getArray()); depth--;
     std::cout << ASTTab(depth) << "index: " << std::endl;
@@ -284,7 +285,7 @@ void printVisitExp(sgs::Expression *stmtExp) {
     return;
 }
 void printCallExp(sgs::Expression *stmtExp) {
-    sgs::CallExp *callExp = (sgs::CallExp *)stmtExp;
+    sgs::CallExp *callExp = dynamic_cast<sgs::CallExp *>(stmtExp);
     std::cout << ASTTab(depth) << "function" << std::endl;
     depth++; dealWithFuncProtoType(callExp->getFunction()); depth--;
     depth++;
@@ -298,21 +299,21 @@ void printCallExp(sgs::Expression *stmtExp) {
     depth--;
 }
 void printAccessExp(sgs::Expression *stmtExp) {
-    sgs::AccessExp *accessExp = (sgs::AccessExp *)stmtExp;
+    sgs::AccessExp *accessExp = dynamic_cast<sgs::AccessExp *>(stmtExp);
     std::cout << ASTTab(depth) << "object:" << std::endl;
     depth++; dealWithExpType(accessExp->getObject()); depth--;
     std::cout << ASTTab(depth) << "member" << std::endl;
     depth++; std::cout << ASTTab(depth) << accessExp->getMember() << std::endl; depth--;
 }
 void printAssignStmt(sgs::Statement *stmtStmt) {
-    sgs::AssignStmt *AssignStmt = (sgs::AssignStmt *)stmtStmt;
+    sgs::AssignStmt *AssignStmt = dynamic_cast<sgs::AssignStmt *>(stmtStmt);
     std::cout << ASTTab(depth) << "Left Expression:" << std::endl;
     depth++; dealWithExpType(AssignStmt->getLeft()); depth--;
     std::cout << ASTTab(depth) << "Right Expression:" << std::endl;
     depth++; dealWithExpType(AssignStmt->getRight()); depth--;
 }
 void printCallStmt(sgs::Statement *stmtStmt) {
-    sgs::CallStmt *callStmt = (sgs::CallStmt *)stmtStmt;
+    sgs::CallStmt *callStmt = dynamic_cast<sgs::CallStmt *>(stmtStmt);
     std::cout << ASTTab(depth) << "function" << std::endl;
     depth++;
     dealWithFuncProtoType(callStmt->getFunction());
@@ -328,14 +329,14 @@ void printCallStmt(sgs::Statement *stmtStmt) {
     }
 }
 void printBlockStmt(sgs::Statement *stmtStmt) {
-    sgs::BlockStmt *blockStmt = (sgs::BlockStmt *)stmtStmt;
+    sgs::BlockStmt *blockStmt = dynamic_cast<sgs::BlockStmt *>(stmtStmt);
     std::cout << ASTTab(depth) << "block content" << std::endl;
     depth++;
     printAST(blockStmt->getContent());
     depth--;
 }
 void printIfStmt(sgs::Statement *stmtStmt) {
-    sgs::IfStmt *IfStmt = (sgs::IfStmt *)stmtStmt;
+    sgs::IfStmt *IfStmt = dynamic_cast<sgs::IfStmt *>(stmtStmt);
     std::cout << ASTTab(depth) << "If condition:" << std::endl;
     depth++;
     dealWithExpType(IfStmt->getCond());
@@ -350,7 +351,7 @@ void printIfStmt(sgs::Statement *stmtStmt) {
     depth--;
 }
 void printWhileStmt(sgs::Statement *stmtStmt) {
-    sgs::WhileStmt *whileStmt = (sgs::WhileStmt *)stmtStmt;
+    sgs::WhileStmt *whileStmt = dynamic_cast<sgs::WhileStmt *>(stmtStmt);
     std::cout << ASTTab(depth) << "condition:" << std::endl;
     depth++;
     dealWithExpType(whileStmt->getCondition());
@@ -364,7 +365,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     switch (choice) {
     case conditionUseVarType::TYPEDEF: //TYPEDEF
     {
-        sgs::TypeDef *currentStmt = (sgs::TypeDef *)s;
+        sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(s);
         std::cout << ASTTab(depth) << "newVarName: " + currentStmt->getName() << std::endl;
         depth++;
         switch (currentStmt->getDecType()->getVarType()) {
@@ -378,7 +379,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     }
     case conditionUseVarType::CLASS:
     {
-        sgs::ClassDef *currentStmt = (sgs::ClassDef *)s;
+        sgs::ClassDef *currentStmt = dynamic_cast<sgs::ClassDef *>(s);
         std::cout << ASTTab(depth) << "className: " + currentStmt->getDecType()->getName() << std::endl;
         depth++;
         printClassType(currentStmt->getDecType());
@@ -387,7 +388,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     }
     case conditionUseVarType::EXP:
     {
-        sgs::Expression *currentStmt = (sgs::Expression *)s;
+        sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(s);
         //std::cout << "	expRes:" << std::endl;
         depth++;
         switch (currentStmt->getResType()->getVarType()) {
@@ -401,12 +402,12 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     }
     case conditionUseVarType::FUNC:
     {
-        sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
+        // sgs::FuncDef *currentStmt = dynamic_cast<sgs::FuncDef *>(s);
         break;
     }
     case conditionUseVarType::PROTO:
     {
-        sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
+        sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(s);
         if (nullptr == currentStmt->getReturnType()) {
             std::cout << ASTTab(depth) << "return type is void" << std::endl;
             break;
@@ -425,7 +426,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
 
 }
 void dealWithExpType(sgs::AST *s) {
-    sgs::Expression *currentStmt = (sgs::Expression *)s;
+    sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(s);
     switch (currentStmt->getExpType()) {
     case EXP_TYPE::ET_OP:
     {
@@ -479,7 +480,7 @@ void dealWithExpType(sgs::AST *s) {
     }
 }
 void dealWithStmtType(sgs::AST *s) {
-    sgs::Statement *currentStmt = (sgs::Statement *)s;
+    sgs::Statement *currentStmt = dynamic_cast<sgs::Statement *>(s);
     switch (currentStmt->getStmtType()) {
     case STMT_TYPE::ST_ASSIGN:
     {
@@ -528,7 +529,7 @@ void dealWithStmtType(sgs::AST *s) {
     }
 }
 void dealWithFuncDefType(sgs::AST *s) {
-    sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
+    sgs::FuncDef *currentStmt = dynamic_cast<sgs::FuncDef *>(s);
     std::cout << ASTTab(depth) << "proto:" << std::endl;
     depth++;
     dealWithFuncProtoType(currentStmt->getProto());
@@ -539,7 +540,7 @@ void dealWithFuncDefType(sgs::AST *s) {
     depth--;
 }
 void dealWithFuncProtoType(sgs::AST *s) {
-    sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
+    sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(s);
     std::cout << ASTTab(depth) << "name:" << std::endl;
     depth++;
     std::cout << ASTTab(depth) << currentStmt->getName() << std::endl;
@@ -574,7 +575,7 @@ void printAST(vector<sgs::AST *> stmts) {
         switch (stmts[loopNum]->astType) {
         case AT_TYPEDEF:
         {
-            sgs::TypeDef *currentStmt = (sgs::TypeDef *)stmts[loopNum];
+            sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_TYPEDEF" << std::endl;
             depth++; dealWithVarType(currentStmt, TYPEDEF); depth--;
             std::cout << std::endl;
@@ -582,7 +583,7 @@ void printAST(vector<sgs::AST *> stmts) {
         }
         case AT_CLASS:
         {
-            sgs::ClassDef *currentStmt = (sgs::ClassDef *)stmts[loopNum];
+            sgs::ClassDef *currentStmt = dynamic_cast<sgs::ClassDef *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_CLASS" << std::endl;
             depth++; dealWithVarType(currentStmt, CLASS); depth--;
             std::cout << std::endl;
@@ -590,7 +591,7 @@ void printAST(vector<sgs::AST *> stmts) {
         }
         case AT_EXP:
         {
-            sgs::Expression *currentStmt = (sgs::Expression *)stmts[loopNum];
+            sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_EXP" << std::endl;
             depth++;
             dealWithExpType(currentStmt);
@@ -601,7 +602,7 @@ void printAST(vector<sgs::AST *> stmts) {
         }
         case AT_STMT:
         {
-            sgs::Statement *currentStmt = (sgs::Statement *)stmts[loopNum];
+            sgs::Statement *currentStmt = dynamic_cast<sgs::Statement *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_STMT" << std::endl;
             depth++;
             dealWithStmtType(currentStmt);
@@ -611,7 +612,7 @@ void printAST(vector<sgs::AST *> stmts) {
         }
         case AT_FUNC:
         {
-            sgs::FuncDef *currentStmt = (sgs::FuncDef *)stmts[loopNum];
+            sgs::FuncDef *currentStmt = dynamic_cast<sgs::FuncDef *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_FUNC" << std::endl;
             depth++; dealWithFuncDefType(currentStmt); depth--;
             std::cout << std::endl;
@@ -619,7 +620,7 @@ void printAST(vector<sgs::AST *> stmts) {
         }
         case AT_PROTO:
         {
-            sgs::FuncProto *currentStmt = (sgs::FuncProto *)stmts[loopNum];
+            sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_PROTO" << std::endl;
             depth++;  dealWithFuncProtoType(currentStmt); depth--;
             std::cout << std::endl;

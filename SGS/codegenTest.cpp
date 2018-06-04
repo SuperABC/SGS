@@ -29,53 +29,52 @@ namespace sgs_backend {
 
     void temp() {
         std::unique_ptr<Module> TheModule = std::make_unique<Module>("main module", TheContext);
-        // FunctionType* fun_type =
-        // 	FunctionType::get(Type::getInt32Ty(TheContext), std::vector<Type*>(2, Type::getInt32Ty(TheContext)), false);
-        // //
-        // Function* fun = Function::Create(fun_type, GlobalValue::InternalLinkage, "function", TheModule.get());
-        // // // fun->print(outs(), nullptr);
-        // // // TheModule.print(outs(), nullptr);
-        // std::vector<Value*> args;
-        // int cnt = 0;
-        // std::string xx[] = { "a", "b" };
-        // for (auto& arg : fun->args()) { arg.setName(xx[cnt++]); args.push_back(&arg); }
-        //
-        // BasicBlock* bb = BasicBlock::Create(TheContext, "entry", fun);
-        // Builder.SetInsertPoint(bb);
-        // Value* constant2 = Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 2));
-        // Value* constant48 = Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 48));
-        // Value* a = Builder.CreateAdd(constant2, constant48, "w");
-        // FunctionType* putchar_type =
-        // 	FunctionType::get(Type::getInt32Ty(TheContext), std::vector<Type*>(1, Type::getInt32Ty(TheContext)), false);
-        //
-        // Function* fputchar = Function::Create(putchar_type, GlobalValue::ExternalLinkage, "putchar", TheModule.get());
-        // Value* b = Builder.CreateAdd(a, args[0], "x");
-        // Value* c = Builder.CreateAdd(b, args[1], "y");
-        // Value* z = Builder.CreateCall(fputchar, std::vector<Value*>(1, c), "z");
-        // Builder.CreateRet(z);
-        // // fun->print(outs(), nullptr);
+         FunctionType* fun_type =
+         	FunctionType::get(Type::getInt32Ty(TheContext), std::vector<Type*>(2, Type::getInt32Ty(TheContext)), false);
+         //
+         Function* fun = Function::Create(fun_type, GlobalValue::InternalLinkage, "function", TheModule.get());
+         // // fun->print(outs(), nullptr);
+         // // TheModule.print(outs(), nullptr);
+         std::vector<Value*> args;
+         int cnt = 0;
+         std::string xx[] = { "a", "b" };
+         for (auto& arg : fun->args()) { arg.setName(xx[cnt++]); args.push_back(&arg); }
+        
+         BasicBlock* bb = BasicBlock::Create(TheContext, "entry", fun);
+         Builder.SetInsertPoint(bb);
+         Value* constant2 = Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 2));
+         Value* constant48 = Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 48));
+         Value* a = Builder.CreateAdd(constant2, constant48, "w");
+         FunctionType* putchar_type =
+         	FunctionType::get(Type::getInt32Ty(TheContext), std::vector<Type*>(1, Type::getInt32Ty(TheContext)), false);
+        
+         Function* fputchar = Function::Create(putchar_type, GlobalValue::ExternalLinkage, "putchar", TheModule.get());
+         Value* b = Builder.CreateAdd(a, args[0], "x");
+         Value* c = Builder.CreateAdd(b, args[1], "y");
+         Value* z = Builder.CreateCall(fputchar, std::vector<Value*>(1, c), "z");
+         Builder.CreateRet(z);
+         // fun->print(outs(), nullptr);
 
         Type* aryType = ArrayType::get(Type::getInt32Ty(TheContext), 10);
 
         ConstantAggregateZero* const_array_2 = ConstantAggregateZero::get(aryType);
-        // GlobalVariable* ga = new GlobalVariable(
-        // 	*TheModule, 
-        // 	Type::getInt32Ty(TheContext), 
-        // 	false, 
-        // 	GlobalValue::CommonLinkage,
-        // 	Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 0)),
-        // 	// nullptr,
-        // 	"a");
-        // theModule->getGlobalList();/
-        // TheModule->getGlobalList().push_back(ga);
+        GlobalVariable* ga = new GlobalVariable(
+        	*TheModule, 
+        	Type::getInt32Ty(TheContext), 
+        	false, 
+        	GlobalValue::CommonLinkage,
+        	Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 0)),
+        	// nullptr,
+        	"a");
+        theModule->getGlobalList();
+        TheModule->getGlobalList().push_back(ga);
 
         Type* strType = ArrayType::get(Type::getInt8Ty(TheContext), 4);
 
-        // Constant* constStr = ConstantDataArray::getString(TheContext, "123", true);
+        Constant* constStr = ConstantDataArray::getString(TheContext, "123", true);
 
-        // GlobalVariable* strb = new GlobalVariable(*TheModule, strType, true, GlobalValue::PrivateLinkage, constStr, "fucker");
-        // theModule.getstr
-        // Value* glbary = Builder.CreateGlobalString("fucker");
+        GlobalVariable* strb = new GlobalVariable(*TheModule, strType, true, GlobalValue::PrivateLinkage, constStr, "fucker");
+        Value* glbary = Builder.CreateGlobalString("fucker");
         GlobalVariable* gb = new GlobalVariable(*TheModule, aryType, false, GlobalValue::CommonLinkage,
             const_array_2
             , "motherfucker");
@@ -95,27 +94,27 @@ namespace sgs_backend {
             gx,
             "momfucker");
 
-        // Constant* gx = ConstantExpr::getInBoundsGetElementPtr()
-        // StructType* newType = StructType::create(TheContext, vector<Type*>(2, Type::getInt32Ty(TheContext)), "fucker", false);
-        //
-        // Type* stPtr = PointerType::get(newType, 0);
-        //
-        // FunctionType* fuckType =
-        // 	FunctionType::get(Type::getInt32PtrTy(TheContext), std::vector<Type*>(1, stPtr), false);
-        //
-        // Function* fuck = Function::Create(fuckType, GlobalValue::InternalLinkage, "fuck", TheModule.get());
-        // BasicBlock* bb2 = BasicBlock::Create(TheContext, "entry", fuck);
-        // Value* fuckerA = (fuck->args().begin());
-        // fuckerA->setName("a");
-        // Builder.SetInsertPoint(bb2);
-        // Value* first = Builder.CreateStructGEP(newType, fuckerA, 0, "first");
-        // Value* valueOfFirst = Builder.CreateLoad(first, "first.value");
-        // Builder.CreateCall(fputchar, vector<Value*>(1, valueOfFirst));
-        // // Value* getStructPtr = Builder.create
-        // Value* getary = Builder.CreateGEP(gb, vector<Value*>(2, Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 0))), "aryelm");
-        // Value* getaryvalue = Builder.CreateLoad(getary, "ary.value");
-        // // Builder.CreateCall(fputchar, vector<Value*>(1, getaryvalue));
-        // Builder.CreateRet(getary);
+        // Constant* gx = ConstantExpr::getInBoundsGetElementPtr();
+         StructType* newType = StructType::create(TheContext, vector<Type*>(2, Type::getInt32Ty(TheContext)), "fucker", false);
+        
+         Type* stPtr = PointerType::get(newType, 0);
+        
+         FunctionType* fuckType =
+         	FunctionType::get(Type::getInt32PtrTy(TheContext), std::vector<Type*>(1, stPtr), false);
+        
+         Function* fuck = Function::Create(fuckType, GlobalValue::InternalLinkage, "fuck", TheModule.get());
+         BasicBlock* bb2 = BasicBlock::Create(TheContext, "entry", fuck);
+         Value* fuckerA = (fuck->args().begin());
+         fuckerA->setName("a");
+         Builder.SetInsertPoint(bb2);
+         Value* first = Builder.CreateStructGEP(newType, fuckerA, 0, "first");
+         Value* valueOfFirst = Builder.CreateLoad(first, "first.value");
+         Builder.CreateCall(fputchar, vector<Value*>(1, valueOfFirst));
+         // Value* getStructPtr = Builder.create
+         Value* getary = Builder.CreateGEP(gb, vector<Value*>(2, Constant::getIntegerValue(Type::getInt32Ty(TheContext), APInt(32, 0))), "aryelm");
+         Value* getaryvalue = Builder.CreateLoad(getary, "ary.value");
+         // Builder.CreateCall(fputchar, vector<Value*>(1, getaryvalue));
+         Builder.CreateRet(getary);
 
 
 

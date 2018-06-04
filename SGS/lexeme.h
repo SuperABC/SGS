@@ -117,21 +117,22 @@ enum SGSOPERATOR {
 	SGS_OP_CROSS
 };
 
-typedef struct _sgsHn {
+struct SgsHashNode {
 	enum SGSTOKENTYPE type;
 	std::string name;
 	int id;
-	struct _sgsHn *next;
-}sgsHashNode;
-typedef struct {
+    SgsHashNode *next;
+};
+
+struct SgsTokenPrim {
 	enum SGSTOKENTYPE type;
 	int id;
 	float value;
-	char *s = NULL;
+	char *s = nullptr;
 
 	int line;
 	int start, end;
-}sgsTokenPrim;
+};
 
 enum SGSLEXEMEERROR {
 	SGS_LE_ILLEGAL,
@@ -139,31 +140,32 @@ enum SGSLEXEMEERROR {
 	SGS_LE_INCOMPLETE,
 	SGS_LE_EXPOP
 };
+
 class SgsLex {
 private:
 	string content;
 	int idNum;
 
-	sgsHashNode *list[256];
+	SgsHashNode *list[256];
 
 	int tmpLine = 1;
 public:
-	vector<sgsTokenPrim> output;
+	vector<SgsTokenPrim> output;
 	vector<string> strId;
 
 	vector<sgsMsg> msgList;
 
-	SgsLex(const char *input = NULL);
+	SgsLex(const char *input = nullptr);
 	virtual ~SgsLex();
 
 	int preserve(const char *str);
 	void prepare();
-	int hash(string s);
+	int hash(string str);
 
 	SgsLex *input(const char *str);
-	std::vector<sgsTokenPrim>parse();
+	std::vector<SgsTokenPrim>parse();
 
-	const char *get();
+	const char *get() const;
 
 	void error(const char *word, SGSLEXEMEERROR type);
 };

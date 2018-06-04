@@ -1,7 +1,6 @@
 #include "cppCodegen.h"
 
-string removeSpace(string input) {
-    int pos = 0;
+string removeSpace(const string& input) {
     string output = input;
     for (auto& x : output) {
         if (x == ' ') x = '_';
@@ -10,7 +9,7 @@ string removeSpace(string input) {
 }
 
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout) {
-    sgs::BasicType *basicVar = (sgs::BasicType *)stmtVar;
+    auto* basicVar = dynamic_cast<sgs::BasicType *>(stmtVar);
     switch (basicVar->getBasicType()) {
     case BASIC_TYPE::BT_INT:    fout << cppTab(cppDepth) << "int "; break;
     case BASIC_TYPE::BT_FLOAT:  fout << cppTab(cppDepth) << "float "; break;
@@ -20,10 +19,10 @@ void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout) {
     default:
         break;
     }
-    return;
 }
+
 VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout) {
-    sgs::ArrayType *arrayVar = (sgs::ArrayType *)stmtVar;
+    auto* arrayVar = dynamic_cast<sgs::ArrayType *>(stmtVar);
     switch (arrayVar->getEleType()->getVarType()) {
     case VAR_TYPE::VT_BASIC:
     {
@@ -44,7 +43,7 @@ VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout) {
     return VAR_TYPE::VT_BASIC;
 }
 void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
-    sgs::ClassType *classVar = (sgs::ClassType *)stmtVar;
+    auto* classVar = dynamic_cast<sgs::ClassType *>(stmtVar);
     fout << "class " << classVar->getName() << "{" << std::endl;
     cppDepth++;
     fout << "public:" << std::endl;
@@ -63,7 +62,7 @@ void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
             } else if (VAR_TYPE::VT_ARRAY == type) {
                 fout << currentName << "[][]";
             } else if (VAR_TYPE::VT_CLASS == type) {
-                fout << cppTab(cppDepth) << ((sgs::ClassType *)currentMember)->getName() << ' ';
+                fout << cppTab(cppDepth) << dynamic_cast<sgs::ClassType *>(currentMember)->getName() << ' ';
                 fout << currentName << "[]";
             }
             break;
@@ -213,7 +212,7 @@ void translateOpSwitchCase(SGSOPERATOR OP, std::ofstream &fout) {
     }
 }
 void translateOpExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::OpExp *opExp = (sgs::OpExp *)stmtExp;
+    sgs::OpExp *opExp = dynamic_cast<sgs::OpExp *>(stmtExp);
     fout << "(";
     translateExpType(opExp->getLeft(), fout);
     translateOpSwitchCase(opExp->getOp(), fout);
@@ -221,28 +220,28 @@ void translateOpExp(sgs::Expression *stmtExp, std::ofstream &fout) {
     fout << ")";
 }
 void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::LiteralExp *literalExp = (sgs::LiteralExp *)stmtExp;
+    sgs::LiteralExp *literalExp = dynamic_cast<sgs::LiteralExp *>(stmtExp);
     switch (literalExp->getType()->getVarType()) {
     case VAR_TYPE::VT_BASIC:
     {
-        sgs::BasicType *basicLiteralExp = (sgs::BasicType *)literalExp->getType();
+        auto*basicLiteralExp = dynamic_cast<sgs::BasicType *>(literalExp->getType());
         switch (basicLiteralExp->getBasicType()) {
         case BASIC_TYPE::BT_INT:
         {
-            sgs::IntLiteral *intLiteralExp = (sgs::IntLiteral *)literalExp;
+            auto*intLiteralExp = dynamic_cast<sgs::IntLiteral *>(literalExp);
             fout << intLiteralExp->getValue();
             break;
         }
         case BASIC_TYPE::BT_FLOAT:
         {
-            sgs::FloatLiteral *floatLiteralExp = (sgs::FloatLiteral *)literalExp;
+            sgs::FloatLiteral *floatLiteralExp = dynamic_cast<sgs::FloatLiteral *>(literalExp);
             fout << floatLiteralExp->getValue();
             break;
         }
         case BASIC_TYPE::BT_BOOL:
         {
-            sgs::BoolLiteral *boolLiteralExp = (sgs::BoolLiteral *)literalExp;
-            if (boolLiteralExp->getValue() == true)
+            auto* boolLiteralExp = dynamic_cast<sgs::BoolLiteral *>(literalExp);
+            if (boolLiteralExp->getValue())
                 fout << "true";
             else
                 fout << "false";
@@ -250,7 +249,7 @@ void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout) {
         }
         case BASIC_TYPE::BT_STRING:
         {
-            sgs::StrLiteral *strLiteralExp = (sgs::StrLiteral *)literalExp;
+            sgs::StrLiteral *strLiteralExp = dynamic_cast<sgs::StrLiteral *>(literalExp);
             fout << "\"" << strLiteralExp->getValue() << "\"";
             break;
         }
@@ -275,7 +274,7 @@ void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout) {
     }
     case VAR_TYPE::VT_CLASS:
     {
-        sgs::ClassLiteral *classLiteralExp = (sgs::ClassLiteral *)literalExp;
+        sgs::ClassLiteral *classLiteralExp = dynamic_cast<sgs::ClassLiteral *>(literalExp);
         vector<Expression *>classConent = classLiteralExp->getValue();
         int count = classConent.size();
         fout << "(";
@@ -293,12 +292,12 @@ void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout) {
     }
 }
 void translateIdExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::IdExp *idExp = (sgs::IdExp *)stmtExp;
+    sgs::IdExp *idExp = dynamic_cast<sgs::IdExp *>(stmtExp);
     fout << removeSpace(idExp->getName());
     return;
 }
 void translateVisitExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::VisitExp *visitExp = (sgs::VisitExp *)stmtExp;
+    auto* visitExp = dynamic_cast<sgs::VisitExp *>(stmtExp);
     translateExpType(visitExp->getArray(), fout);
     fout << "[";
     translateExpType(visitExp->getIndex(), fout);
@@ -306,7 +305,7 @@ void translateVisitExp(sgs::Expression *stmtExp, std::ofstream &fout) {
     return;
 }
 void translateCallExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::CallExp *callExp = (sgs::CallExp *)stmtExp;
+    auto* callExp = dynamic_cast<sgs::CallExp *>(stmtExp);
     fout << removeSpace(callExp->getFunction()->getName()) << "(";
     int count = callExp->getParam().size();
     vector <Expression *> paramList = callExp->getParam();
@@ -325,13 +324,13 @@ void translateCallExp(sgs::Expression *stmtExp, std::ofstream &fout) {
     }
 }
 void translateAccessExp(sgs::Expression *stmtExp, std::ofstream &fout) {
-    sgs::AccessExp *accessExp = (sgs::AccessExp *)stmtExp;
+    auto* accessExp = dynamic_cast<sgs::AccessExp *>(stmtExp);
     translateExpType(accessExp->getObject(), fout);
     fout << ".";
     fout << removeSpace(accessExp->getMember());
 }
 void translateAssignStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
-    sgs::AssignStmt *AssignStmt = (sgs::AssignStmt *)stmtStmt;
+    auto*AssignStmt = dynamic_cast<sgs::AssignStmt *>(stmtStmt);
     fout << cppTab(cppDepth);
     translateExpType(AssignStmt->getLeft(), fout);
     fout << " = ";
@@ -339,7 +338,7 @@ void translateAssignStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
     fout << ";" << std::endl;
 }
 void translateCallStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
-    sgs::CallStmt *callStmt = (sgs::CallStmt *)stmtStmt;
+    sgs::CallStmt *callStmt = dynamic_cast<sgs::CallStmt *>(stmtStmt);
     fout << cppTab(cppDepth) << removeSpace(callStmt->getFunction()->getName()) << "(";
     int count = callStmt->getParam().size();
     vector <Expression *> paramList = callStmt->getParam();
@@ -353,11 +352,11 @@ void translateCallStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
     }
 }
 void translateBlockStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
-    sgs::BlockStmt *blockStmt = (sgs::BlockStmt *)stmtStmt;
+    sgs::BlockStmt *blockStmt = dynamic_cast<sgs::BlockStmt *>(stmtStmt);
     translateAST(blockStmt->getContent(), fout);
 }
 void translateIfStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
-    sgs::IfStmt *IfStmt = (sgs::IfStmt *)stmtStmt;
+    sgs::IfStmt *IfStmt = dynamic_cast<sgs::IfStmt *>(stmtStmt);
     fout << cppTab(cppDepth) << "if(";
     translateExpType(IfStmt->getCond(), fout);
     fout << "){" << std::endl;
@@ -374,7 +373,7 @@ void translateIfStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 
 }
 void translateWhileStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
-    sgs::WhileStmt *whileStmt = (sgs::WhileStmt *)stmtStmt;
+    auto*whileStmt = dynamic_cast<sgs::WhileStmt *>(stmtStmt);
     fout << cppTab(cppDepth) << "while(";
     translateExpType(whileStmt->getCondition(), fout);
     fout << "){" << std::endl;
@@ -387,7 +386,7 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
     switch (choice) {
     case conditionUseVarType::TYPEDEF: //TYPEDEF
     {
-        sgs::TypeDef *currentStmt = (sgs::TypeDef *)s;
+        auto* currentStmt = dynamic_cast<sgs::TypeDef *>(s);
         string currentName = removeSpace(currentStmt->getName());
         switch (currentStmt->getDecType()->getVarType()) {
         case VAR_TYPE::VT_BASIC:
@@ -400,18 +399,18 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
         {
             VAR_TYPE type = translateArrayType(currentStmt->getDecType(), fout);
             if (VAR_TYPE::VT_BASIC == type) {
-                fout << currentName << "[" << ((sgs::ArrayType *)currentStmt->getDecType())->getLength() << "]";
+                fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
             } else if (VAR_TYPE::VT_ARRAY == type) {
                 fout << currentName << "[][]";
             } else if (VAR_TYPE::VT_CLASS == type) {
-                fout << ((sgs::ClassType *)currentStmt->getDecType())->getName() << ' ';
-                fout << currentName << "[" << ((sgs::ArrayType *)currentStmt->getDecType())->getLength() << "]";
+                fout << dynamic_cast<sgs::ClassType *>(currentStmt->getDecType())->getName() << ' ';
+                fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
             }
             break;
         }
         case VAR_TYPE::VT_CLASS:
         {
-            fout << cppTab(cppDepth) << removeSpace(((sgs::ClassType *)currentStmt->getDecType())->getName()) << ' ' << currentName;
+            fout << cppTab(cppDepth) << removeSpace(dynamic_cast<sgs::ClassType *>(currentStmt->getDecType())->getName()) << ' ' << currentName;
             break;
         }
         default:break;
@@ -421,13 +420,13 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
     }
     case conditionUseVarType::CLASS:
     {
-        sgs::ClassDef *currentStmt = (sgs::ClassDef *)s;
+        auto*currentStmt = dynamic_cast<sgs::ClassDef *>(s);
         translateClassType(currentStmt->getDecType(), fout);
         break;
     }
     case conditionUseVarType::EXP:
     {
-        sgs::Expression *currentStmt = (sgs::Expression *)s;
+        auto*currentStmt = dynamic_cast<sgs::Expression *>(s);
         switch (currentStmt->getResType()->getVarType()) {
         case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
         case VAR_TYPE::VT_ARRAY: printArrayType(currentStmt->getResType()); break;
@@ -438,30 +437,30 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
     }
     case conditionUseVarType::FUNC:
     {
-        sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
-        if (NULL == currentStmt->getProto()->getReturnType()) {
+        auto* currentStmt = dynamic_cast<sgs::FuncDef *>(s);
+        if (nullptr == currentStmt->getProto()->getReturnType()) {
             fout << "void ";
             break;
         }
         switch (currentStmt->getProto()->getReturnType()->getVarType()) {
         case VAR_TYPE::VT_BASIC: translateBasicType(currentStmt->getProto()->getReturnType(), fout); break;
         case VAR_TYPE::VT_ARRAY: translateArrayType(currentStmt->getProto()->getReturnType(), fout); break;
-        case VAR_TYPE::VT_CLASS: fout << (((sgs::ClassDef *)currentStmt)->getDecType())->getName(); break;
+        case VAR_TYPE::VT_CLASS: fout << (dynamic_cast<sgs::ClassDef *>(currentStmt)->getDecType())->getName(); break;
         default:break;
         }
         break;
     }
     case conditionUseVarType::PROTO:
     {
-        sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
-        if (NULL == currentStmt->getReturnType()) {
+        auto* currentStmt = dynamic_cast<sgs::FuncProto *>(s);
+        if (nullptr == currentStmt->getReturnType()) {
             fout << "void ";
             break;
         }
         switch (currentStmt->getReturnType()->getVarType()) {
         case VAR_TYPE::VT_BASIC: translateBasicType(currentStmt->getReturnType(), fout); break;
         case VAR_TYPE::VT_ARRAY: translateArrayType(currentStmt->getReturnType(), fout); break;
-        case VAR_TYPE::VT_CLASS: fout << (((sgs::ClassDef *)currentStmt)->getDecType())->getName(); break;
+        case VAR_TYPE::VT_CLASS: fout << (dynamic_cast<sgs::ClassDef *>(currentStmt)->getDecType())->getName(); break;
         default:break;
         }
         break;
@@ -472,7 +471,7 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
 
 }
 void translateExpType(sgs::AST *s, std::ofstream &fout) {
-    sgs::Expression *currentStmt = (sgs::Expression *)s;
+    auto*currentStmt = dynamic_cast<sgs::Expression *>(s);
     switch (currentStmt->getExpType()) {
     case EXP_TYPE::ET_OP:
     {
@@ -508,7 +507,7 @@ void translateExpType(sgs::AST *s, std::ofstream &fout) {
     }
 }
 void translateStmtType(sgs::AST *s, std::ofstream &fout) {
-    sgs::Statement *currentStmt = (sgs::Statement *)s;
+    auto*currentStmt = dynamic_cast<sgs::Statement *>(s);
     switch (currentStmt->getStmtType()) {
     case STMT_TYPE::ST_ASSIGN:
     {
@@ -542,7 +541,7 @@ void translateStmtType(sgs::AST *s, std::ofstream &fout) {
     }
 }
 void translateFuncDefType(sgs::AST *s, std::ofstream &fout) {
-    sgs::FuncDef *currentStmt = (sgs::FuncDef *)s;
+    auto*currentStmt = dynamic_cast<sgs::FuncDef *>(s);
     translateFuncProtoType(currentStmt->getProto(), fout);
     fout << "{" << std::endl;
     cppDepth++;
@@ -553,12 +552,12 @@ void translateFuncDefType(sgs::AST *s, std::ofstream &fout) {
     cppDepth--;
 }
 void translateFuncProtoType(sgs::AST *s, std::ofstream &fout) {
-    sgs::FuncProto *currentStmt = (sgs::FuncProto *)s;
+    auto*currentStmt = dynamic_cast<sgs::FuncProto *>(s);
     translateVarType(currentStmt, conditionUseVarType::PROTO, fout);
     fout << removeSpace(currentStmt->getName()) << '(';
     int count = currentStmt->getParam().size();
     vector <std::pair<VarType *, string>> paramList = currentStmt->getParam();
-    if (paramList.size() == 0) {
+    if (paramList.empty()) {
         fout << ")";
         return;
     }
@@ -580,13 +579,13 @@ void translateFuncProtoType(sgs::AST *s, std::ofstream &fout) {
             } else if (VAR_TYPE::VT_ARRAY == type) {
                 fout << currentName << "[][]";
             } else if (VAR_TYPE::VT_CLASS == type) {
-                fout << ((sgs::ClassType *)currentParameter)->getName() << ' ';
+                fout << dynamic_cast<sgs::ClassType *>(currentParameter)->getName() << ' ';
                 fout << currentName << "[]";
             }
         }
         case VAR_TYPE::VT_CLASS:
         {
-            fout << ((sgs::ClassType *)currentParameter)->getName() << ' ';
+            fout << dynamic_cast<sgs::ClassType *>(currentParameter)->getName() << ' ';
             break;
         }
         default:break;
@@ -598,43 +597,42 @@ void translateFuncProtoType(sgs::AST *s, std::ofstream &fout) {
     }
 }
 void translateAST(vector<sgs::AST *>stmts, std::ofstream &fout) {
-    unsigned int loopNum;
-    for (loopNum = 0; loopNum < stmts.size(); ++loopNum) {
-        switch (stmts[loopNum]->astType) {
+    for (auto& stmt : stmts) {
+        switch (stmt->astType) {
         case AT_TYPEDEF:
         {
-            sgs::TypeDef *currentStmt = (sgs::TypeDef *)stmts[loopNum];
+            auto* currentStmt = dynamic_cast<sgs::TypeDef *>(stmt);
             translateVarType(currentStmt, TYPEDEF, fout);
             break;
         }
         case AT_CLASS:
         {
-            sgs::ClassDef *currentStmt = (sgs::ClassDef *)stmts[loopNum];
+            auto* currentStmt = dynamic_cast<sgs::ClassDef *>(stmt);
             translateVarType(currentStmt, CLASS, fout);
             break;
         }
         case AT_EXP:
         {
-            sgs::Expression *currentStmt = (sgs::Expression *)stmts[loopNum];
+            sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(stmt);
             translateExpType(currentStmt, fout);
             //translateVarType(currentStmt, EXP, fout);
             break;
         }
         case AT_STMT:
         {
-            sgs::Statement *currentStmt = (sgs::Statement *)stmts[loopNum];
+            sgs::Statement *currentStmt = dynamic_cast<sgs::Statement *>(stmt);
             translateStmtType(currentStmt, fout);
             break;
         }
         case AT_FUNC:
         {
-            sgs::FuncDef *currentStmt = (sgs::FuncDef *)stmts[loopNum];
+            sgs::FuncDef *currentStmt = dynamic_cast<sgs::FuncDef *>(stmt);
             translateFuncDefType(currentStmt, fout);
             break;
         }
         case AT_PROTO:
         {
-            sgs::FuncProto *currentStmt = (sgs::FuncProto *)stmts[loopNum];
+            sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmt);
             translateFuncProtoType(currentStmt, fout);
             fout << ";" << std::endl;
             break;
@@ -655,19 +653,19 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
         switch (stmts[loopNum]->astType) {
         case AT_CLASS:
         {
-            sgs::ClassDef *currentStmt = (sgs::ClassDef *)stmts[loopNum];
+            sgs::ClassDef *currentStmt = dynamic_cast<sgs::ClassDef *>(stmts[loopNum]);
             translateVarType(currentStmt, CLASS, fout);
             break;
         }
         case AT_FUNC:
         {
-            sgs::FuncDef *currentStmt = (sgs::FuncDef *)stmts[loopNum];
+            sgs::FuncDef *currentStmt = dynamic_cast<sgs::FuncDef *>(stmts[loopNum]);
             translateFuncDefType(currentStmt, fout);
             break;
         }
         case AT_PROTO:
         {
-            sgs::FuncProto *currentStmt = (sgs::FuncProto *)stmts[loopNum];
+            sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
             translateFuncProtoType(currentStmt, fout);
             fout << ";" << std::endl;
             break;
@@ -682,20 +680,20 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
         switch (stmts[loopNum]->astType) {
         case AT_TYPEDEF:
         {
-            sgs::TypeDef *currentStmt = (sgs::TypeDef *)stmts[loopNum];
+            sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(stmts[loopNum]);
             translateVarType(currentStmt, TYPEDEF, fout);
             break;
         }
         case AT_EXP:
         {
-            sgs::Expression *currentStmt = (sgs::Expression *)stmts[loopNum];
+            sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(stmts[loopNum]);
             translateExpType(currentStmt, fout);
             //translateVarType(currentStmt, EXP, fout);
             break;
         }
         case AT_STMT:
         {
-            sgs::Statement *currentStmt = (sgs::Statement *)stmts[loopNum];
+            sgs::Statement *currentStmt = dynamic_cast<sgs::Statement *>(stmts[loopNum]);
             translateStmtType(currentStmt, fout);
             break;
         }
