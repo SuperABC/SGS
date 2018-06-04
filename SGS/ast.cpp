@@ -21,6 +21,20 @@ std::string sgs_backend::printExpression(Expression* expr) {
 #define ADDR(PTR) to_string(size_t(PTR))
 	const string addr = ADDR(expr);
 	switch (expr->getExpType()) {
+    case ET_UNIOP: {
+        const auto temp = dynamic_cast<UniopExp*>(expr);
+        string res;
+        string op;
+        // switch (temp->getOp()) {
+        // case NOT: op = "not";
+        // // case MINUS: op = "minus"
+        // default: ;
+        // }
+        res += addr + " [label=\"Not\"]\n";
+        res += addr + " -> " + ADDR(temp->getVal()) + " [label=\"val\"]\n";
+        res += printExpression(temp->getVal());
+        return res;
+    }
 	case ET_BINOP: {
 		const auto temp = dynamic_cast<BinopExp*>(expr);
 		string res;
@@ -34,6 +48,8 @@ std::string sgs_backend::printExpression(Expression* expr) {
 		case DIV: op = "div"; break;
 		case GT: op = "gt"; break;
 		case LT: op = "lt"; break;
+        case MOD: op = "mod"; break;
+        case EQ: op = "eq"; break;
 		default: op = "what the fuck?";
 		}
 		res += addr + " [label=\"BinaryOpExpression\"]\n";

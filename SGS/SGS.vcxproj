@@ -127,19 +127,22 @@
   <ItemGroup>
     <ClCompile Include="ast.cpp" />
     <ClCompile Include="codegen.cpp" />
+    <ClCompile Include="codegenTest.cpp" />
+    <ClCompile Include="cppCodegen.cpp" />
     <ClCompile Include="lexeme.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="main_.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="output.cpp" />
     <ClCompile Include="printAST.cpp" />
     <ClCompile Include="syntax.cpp" />
+    <ClCompile Include="transform.cpp" />
     <ClCompile Include="TypeSys.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.h" />
     <ClInclude Include="codegen.h" />
+    <ClInclude Include="cppCodegen.h" />
     <ClInclude Include="lexeme.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="memory.h" />

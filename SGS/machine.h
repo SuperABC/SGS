@@ -70,7 +70,7 @@ public:
 	sgs::VarNode *var;
 	Symbol *next;
 
-	Symbol(sgs::VarNode *var) : var(var) {}
+	Symbol(sgs::VarNode *var) : var(var), next(nullptr) {}
 };
 
 typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);

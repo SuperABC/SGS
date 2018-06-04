@@ -143,6 +143,19 @@ void sgs_backend::codegenInit() {
 
 Value* sgs_backend::exprCodegen(Expression* exp, Environment* env) {
 	switch (exp->getExpType()) {
+    case ET_UNIOP: {
+        const auto uexp = dynamic_cast<UniopExp*>(exp);
+        Value* val = exprCodegen(uexp->getVal(), env);
+        if (val->getType()->isIntegerTy()) {
+            IntegerType* it = dyn_cast<IntegerType>(val->getType());
+            val = builder.CreateICmp(CmpInst::ICMP_EQ, val, Constant::getIntegerValue(it, APInt(it->getBitMask(), 0)), "not.res");
+        } else if (val->getType()->isFloatTy()){ 
+            val = builder.CreateFCmp(CmpInst::FCMP_OEQ, val, ConstantFP::get(val->getType(), 0.0), "not.res");
+        } else {
+            return nullptr;
+        }
+        return val;
+    }
 	case ET_BINOP: {
 		const auto bexp = dynamic_cast<BinopExp*>(exp);
 		Value* lhs = exprCodegen(bexp->getLeft(), env);
@@ -216,6 +229,26 @@ Value* sgs_backend::exprCodegen(Expression* exp, Environment* env) {
                 return builder.CreateICmp(CmpInst::Predicate::ICMP_SLT, lhs, rhs, "lt.res");
 			}
 			return nullptr;
+        case MOD: { 
+            // a % b =>
+            // int a_ = eval(a);
+            // int b_ = eval(b);
+            // int c_ = a_ / b_;
+            // a_ - b_ * c_
+            Value* temp = builder.CreateExactSDiv(lhs, rhs, "mod.temp1");
+            rhs = builder.CreateMul(rhs, temp, "mod.temp2");
+            return builder.CreateSub(lhs, rhs, "mod.res");
+        }
+        case EQ: {
+            if (lhs->getType()->isFloatTy() && rhs->getType()->isFloatTy()) {
+                return builder.CreateFCmp(CmpInst::Predicate::FCMP_OEQ, lhs, rhs, "flt.res");
+            }
+            if (lhs->getType()->isIntegerTy()) {
+                integerTypeExtension(lhs, rhs);
+                return builder.CreateICmp(CmpInst::Predicate::ICMP_EQ, lhs, rhs, "lt.res");
+            }
+            return nullptr;
+        }
 		default:
 			std::cerr << "wtf ??" << std::endl;
 		}

@@ -82,15 +82,14 @@ namespace sgs_backend {
 
 	enum UNIOP {
 		NOT,
-		MINUS,
-		BIT_NOT
+		MINUS
 	};
 
-	class UniopExp : Expression {
+	class UniopExp : public Expression {
 		UNIOP op;
 		Expression* val;
 	public:
-		UniopExp(UNIOP op,Expression* val): Expression(ET_UNIOP, val->getResType()), op(op), val(val) {}
+		UniopExp(UNIOP op ,Expression* val, Context& context): Expression(ET_UNIOP, context.getBoolType()), op(op), val(val) {}
 		UNIOP getOp() const { return op; }
 		Expression* getVal() const { return val; }
 	};
@@ -104,6 +103,8 @@ namespace sgs_backend {
 		DIV,
 		GT,
 		LT,
+        MOD,
+        EQ,
 	};
 
 	SType* getBinopType(BINOP op, SType* lhs, SType* rhs, Context& context);
@@ -270,7 +271,7 @@ namespace sgs_backend {
 		vector<Statement *> content;
 	public:
 		BlockStmt(vector<Statement*> content) : Statement(ST_BLOCK), content(std::move(content)) {}
-		const vector<Statement *>& getContent() const { return content; }
+		vector<Statement *>& getContent() { return content; }
 	};
 
 	class GlobalVarDef : public AST {

@@ -39,13 +39,19 @@
     <ClCompile Include="codegen.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main_.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="TypeSys.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ast.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="codegenTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cppCodegen.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="transform.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -78,6 +84,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="TypeSys.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cppCodegen.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
