@@ -3,8 +3,8 @@
 #include <cstring>
 
 SgsLex::SgsLex(const char *input) {
-    for (int i = 0; i < 256; i++) {
-        list[i] = nullptr;
+    for (auto& i : list) {
+        i = nullptr;
     }
     idNum = 0;
     prepare();
@@ -15,7 +15,7 @@ SgsLex::SgsLex(const char *input) {
 SgsLex::~SgsLex() {
     int j = 0, ids = 256;
     while (ids--) {
-        sgsHashNode *tmp = list[j];
+        SgsHashNode *tmp = list[j];
         while (tmp) {
             list[j] = list[j]->next;
             delete tmp;
@@ -23,8 +23,8 @@ SgsLex::~SgsLex() {
         }
         j++;
     }
-    for (unsigned int i = 0; i < output.size(); i++) {
-        if (output[i].s)delete output[i].s;
+    for (auto& i : output) {
+        delete i.s;
     }
 }
 
@@ -35,12 +35,12 @@ int SgsLex::preserve(const char *str) {
         value += str[i];
     }
     value %= 256;
-    sgsHashNode *tmp = list[value];
+    SgsHashNode *tmp = list[value];
     while (tmp != nullptr && strcmp(tmp->name.data(), str) != 0) {
         tmp = tmp->next;
     }
     if (tmp == nullptr) {
-        tmp = new sgsHashNode();
+        tmp = new SgsHashNode();
         tmp->id = idNum++;
         tmp->type = SGS_TT_SYS;
         tmp->name = string(str);
@@ -101,12 +101,12 @@ int SgsLex::hash(string str) {
         value += str[i];
     }
     value %= 256;
-    sgsHashNode *tmp = list[value];
+    SgsHashNode *tmp = list[value];
     while (tmp != nullptr && str != tmp->name) {
         tmp = tmp->next;
     }
     if (tmp == nullptr) {
-        tmp = new sgsHashNode();
+        tmp = new SgsHashNode();
         tmp->id = idNum++;
         tmp->type = SGS_TT_USER;
         tmp->name = std::string(str);
@@ -121,16 +121,15 @@ SgsLex *SgsLex::input(const char *str) {
     content = std::string(str);
     return this;
 }
-vector<sgsTokenPrim> SgsLex::parse() {
+vector<SgsTokenPrim> SgsLex::parse() {
     output.clear();
 
     int len = content.length();
     for (int i = 0; i < len; i++) {
-        sgsTokenPrim node;
+        SgsTokenPrim node;
         if (content[i] == ' ' || content[i] == '\t')continue;
         else if (content[i] == '\n') {
             tmpLine++;
-            continue;
         } else if (content[i] >= '0' && content[i] <= '9') {
             node.type = SGS_TT_DATA;
             node.start = i;
@@ -497,12 +496,10 @@ vector<sgsTokenPrim> SgsLex::parse() {
                 } else {
                     error("\'s", SGS_LE_EXPOP);
                     while (content[i] != '\n')i++;
-                    continue;
                 }
                 continue;
             case '#':
                 while (content[++i] != '\n');
-                continue;
             default:;
             }
         }
@@ -510,7 +507,7 @@ vector<sgsTokenPrim> SgsLex::parse() {
     return output;
 }
 
-const char *SgsLex::get() {
+const char *SgsLex::get() const {
     return content.data();
 }
 

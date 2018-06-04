@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <stack>
 #include <memory>
+#include <utility>
 
 using std::unique_ptr;
 
@@ -71,17 +72,18 @@ namespace sgs {
 		VarType *getEleType() const { return eleType; }
 		int getLength() const { return length; }
 	};
+
 	class ClassType : public VarType {
 	private:
 		string className;
 		vector <std::pair<VarType *, string>> eleList;
 	public:
 		explicit ClassType(string n, vector<std::pair<VarType *, string>> list = vector <std::pair<VarType *, string>>()) :
-			VarType(VT_CLASS), className(std::move(n)), eleList(list) {}
+			VarType(VT_CLASS), className(std::move(n)), eleList(std::move(list)) {}
 		void pushEle(VarType *t, string n) {
 			eleList.emplace_back(t, n);
 		}
-		string getName() { return className; }
+		string getName() const { return className; }
 		vector <std::pair<VarType *, string>> getEle() const { return eleList; }
 	};
 	class TypeDef : public AST {
@@ -174,7 +176,7 @@ namespace sgs {
 	public:
 		explicit ClassLiteral(string n, vector<std::pair<VarType *, string>> dec,
 			vector<Expression *> cont) :
-			LiteralExp(new ClassType(n, dec)), cont(cont) {}
+			LiteralExp(new ClassType(n, dec)), cont(std::move(cont)) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
 	class IdExp : public Expression {
@@ -182,7 +184,7 @@ namespace sgs {
 		string name;
 	public:
 		explicit IdExp(string n) : Expression(ET_IDENT), name(std::move(n)) {}
-		string getName() { return name; }
+		string getName() const { return name; }
 	};
 	class AccessExp : public Expression {
 		Expression* object;
@@ -303,7 +305,7 @@ namespace sgs {
 		vector <std::pair<VarType *, string>> paramList;
 	public:
 		FuncProto(VarType *ret, string n, vector<std::pair<VarType *, string>> list = vector<std::pair<VarType *, string>>()) :
-			AST(AT_PROTO), returnType(ret), name(std::move(n)), paramList(list) {}
+			AST(AT_PROTO), returnType(ret), name(std::move(n)), paramList(std::move(list)) {}
 		void pushParam(VarType *t, string n) {
 			paramList.emplace_back(t, n);
 		}
@@ -353,7 +355,7 @@ enum SGSYNTAXERROR {
 };
 class SgsSyntax {
 private:
-	vector<sgsTokenPrim> content;
+	vector<SgsTokenPrim> content;
 	vector<string> strId;
 
 	SgsMemory synMem;
@@ -392,10 +394,10 @@ public:
 	vector<sgsMsg> msgList;
 
 	SgsSyntax();
-	SgsSyntax(vector<string> &ids, vector<sgsTokenPrim> &input);
+	SgsSyntax(vector<string> &ids, vector<SgsTokenPrim> &input);
 	~SgsSyntax();
 
-	SgsSyntax *input(vector<string> &ids, vector<sgsTokenPrim> &src);
+	SgsSyntax *input(vector<string> &ids, vector<SgsTokenPrim> &src);
 	void parse();
 
 	void error(const char *word, SGSYNTAXERROR type);

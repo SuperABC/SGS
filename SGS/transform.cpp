@@ -460,7 +460,6 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         return new sgs_backend::WhileStmt(cond, dynamic_cast<sgs_backend::BlockStmt*>(body));
     }
     case sgs::ST_RETURN: {
-        const auto ret = dynamic_cast<sgs::ReturnStmt*>(stmt);
         const auto val = env->find("ret");
         return new sgs_backend::ReturnStmt(new sgs_backend::IdExp("ret", val));
     }

@@ -4,6 +4,7 @@
 #include "machine.h"
 #include <fstream>
 #include "printAST.h"
+#include "syntax.h"
 
 // using namespace sgs;
 
@@ -21,7 +22,7 @@ public:
 
 static int cppDepth = 0;
 
-string removeSpace(string input);
+string removeSpace(const string& input);
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout);
 sgs::VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout);
 void opSwitchCase(SGSOPERATOR OP, std::ofstream &fout);
