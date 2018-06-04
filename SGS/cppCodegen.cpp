@@ -386,7 +386,7 @@ void translateWhileStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
 }
 void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstream &fout) {
     switch (choice) {
-    case conditionUseVarType::TYPEDEF: //TYPEDEF
+    case conditionUseVarType::VARDEF: //VARDEF
     {
         auto* currentStmt = dynamic_cast<sgs::VarDef *>(s);
         string currentName = removeSpace(currentStmt->getName());
@@ -604,7 +604,7 @@ void translateAST(vector<sgs::AST *>stmts, std::ofstream &fout) {
         case AT_VARDEF:
         {
             auto* currentStmt = dynamic_cast<sgs::VarDef *>(stmt);
-            translateVarType(currentStmt, TYPEDEF, fout);
+            translateVarType(currentStmt, VARDEF, fout);
             break;
         }
         case AT_CLASS:
@@ -683,7 +683,7 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
         case AT_VARDEF:
         {
             sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(stmts[loopNum]);
-            translateVarType(currentStmt, TYPEDEF, fout);
+            translateVarType(currentStmt, VARDEF, fout);
             break;
         }
         case AT_EXP:

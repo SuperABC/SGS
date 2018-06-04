@@ -365,7 +365,7 @@ void printWhileStmt(sgs::Statement *stmtStmt) {
 }
 void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     switch (choice) {
-    case conditionUseVarType::TYPEDEF: //TYPEDEF
+    case conditionUseVarType::VARDEF: //VARDEF
     {
         sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(s);
         std::cout << ASTTab(depth) << "newVarName: " + currentStmt->getName() << std::endl;
@@ -579,7 +579,7 @@ void printAST(vector<sgs::AST *> stmts) {
         {
             sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(stmts[loopNum]);
             std::cout << ASTTab(depth) << "astType: AT_VARDEF" << std::endl;
-            depth++; dealWithVarType(currentStmt, TYPEDEF); depth--;
+            depth++; dealWithVarType(currentStmt, VARDEF); depth--;
             std::cout << std::endl;
             break;
         }

@@ -74,36 +74,13 @@ define i32 @readStr(i8*)  {
 ; ModuleID = 'wtf'
 source_filename = "wtf"
 
-@a = common global i32 0
-@b = common global i32 0
-@c = common global i1 false
+@a = common global i32 <placeholder or erroneous Constant>
+@arr.array = common global [10 x i32] zeroinitializer
+@arr = internal global i32* getelementptr inbounds ([10 x i32], [10 x i32]* @arr.array, i32 <placeholder or erroneous Constant>, i32 <placeholder or erroneous Constant>)
+
+declare common i32 @visitGArray(i32)
 
 define i32 @main() {
 entry:
-  store i32 0, i32* @a
-  store i32 1, i32* @b
-  store i1 false, i1* @c
-  %load.val = load i32, i32* @b
-  %load.val1 = load i32, i32* @a
-  %add.res = add i32 %load.val, %load.val1
-  store i32 %add.res, i32* @b
-  %load.val2 = load i32, i32* @b
-  %load.val3 = load i32, i32* @a
-  %gt.res = icmp sgt i32 %load.val2, %load.val3
-  store i1 %gt.res, i1* @c
-  %if.cond.load = load i1, i1* @c
-  br i1 %if.cond.load, label %if.take, label %if.fail
-
-if.take:                                          ; preds = %entry
-  store i32 5, i32* @b
-  br label %if.merge
-
-if.fail:                                          ; preds = %entry
-  store i32 3, i32* @b
-  br label %if.merge
-
-if.merge:                                         ; preds = %if.fail, %if.take
-  %load = load i32, i32* @b
-  %call.res = call i32 @printNum(i32 %load)
-  ret i32 0
+  ret i32 <placeholder or erroneous Constant>
 }

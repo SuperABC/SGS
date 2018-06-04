@@ -17,7 +17,7 @@ public:
 };
 
 enum conditionUseVarType {
-	TYPEDEF,
+	VARDEF,
 	CLASS,
 	EXP,
 	FUNC,
