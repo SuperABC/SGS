@@ -8,25 +8,18 @@ namespace sgs_backend {
 		{
 			const auto bt = dynamic_cast<SBasicType*>(t1);
 			const auto bt2 = dynamic_cast<SBasicType*>(t2);
-			return bt->getBasicType() == bt2->getBasicType();
+            if (bt == bt2) return true;
+		    return !(bt->getBasicType() == BasicType::FLOAT || bt2->getBasicType() == BasicType::FLOAT);
 		}
 		case Types::ARRAY_TYPE:
 		{
 			const auto ap = dynamic_cast<SArrayType*>(t1);
 			const auto ap2 = dynamic_cast<SArrayType*>(t2);
-			return sameType(ap->getElementType(), ap2->getElementType());
+			return ap->getElementType() == ap2->getElementType();
 		}
 		case Types::TUPLE_TYPE:
 		{
-			const auto tp = dynamic_cast<STupleType*>(t1);
-			const auto tp2 = dynamic_cast<STupleType*>(t2);
-			if (tp->getTypes().size() != tp2->getTypes().size()) return false;
-			for (size_t i = 0; i < tp->getTypes().size(); i++) {
-				if (!sameType(tp->getTypes()[i].second, tp2->getTypes()[i].second) && tp->getTypes()[i].first == tp2->getTypes()[i].first) {
-					return false;
-				}
-			}
-			return true;
+            return t1 == t2;
 		}
 		default:
 			return false;
@@ -76,4 +69,6 @@ namespace sgs_backend {
 			return "";
 		}
 	}
+
+
 }

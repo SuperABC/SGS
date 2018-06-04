@@ -8,9 +8,9 @@
 #include <fstream>
 #include <llvm/IR/GlobalValue.h>
 
-using namespace llvm;
 
 namespace sgs_backend {
+    using namespace llvm;
 
 	using std::vector;
 	using std::string;

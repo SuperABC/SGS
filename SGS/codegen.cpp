@@ -1,6 +1,8 @@
 #include "codegen.h"
 #include <iostream>
 
+using namespace llvm;
+
 void sgs_backend::builtinFuncInit() {
 	// intToChar :: Int => Char
 	FunctionType* intToChar = FunctionType::get(Type::getInt8Ty(theContext), {Type::getInt32Ty(theContext)}, false);

@@ -42,7 +42,7 @@ std::string sgs_backend::printExpression(Expression* expr) {
 		switch (temp->getOp()) {
 		case AND: op = "and"; break;
 		case OR: op = "or"; break;
-		case ADD: op = "and"; break;
+		case ADD: op = "add"; break;
 		case SUB: op = "sub"; break;
 		case MUL: op = "mul"; break;
 		case DIV: op = "div"; break;

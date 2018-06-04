@@ -21,12 +21,12 @@
 using std::vector;
 using namespace llvm;
 
-static LLVMContext TheContext;
-static IRBuilder<> Builder(TheContext);
-static Module TheModule("main", TheContext);
+
 
 namespace sgs_backend {
-
+    static LLVMContext TheContext;
+    static IRBuilder<> Builder(TheContext);
+    static Module TheModule("main", TheContext);
     void temp() {
         std::unique_ptr<Module> TheModule = std::make_unique<Module>("main module", TheContext);
          FunctionType* fun_type =
@@ -529,7 +529,7 @@ namespace sgs_backend {
     }
 }
 
-int main__(int argc, char** argv) {
+int main___(int argc, char** argv) {
     using namespace sgs_backend;
     test();
     // temp();

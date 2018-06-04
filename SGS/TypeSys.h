@@ -7,9 +7,9 @@
 #include <cstddef>
 #include <map>
 
-using namespace llvm;
 
 namespace sgs_backend {
+    using namespace llvm;
 
 	using std::vector;
 	using std::string;
@@ -79,7 +79,7 @@ namespace sgs_backend {
 		}
 		SType* getElementType() const { return type; }
 		Type* toLLVMType(LLVMContext& context, const map<string, Type*>& typeReference) const override {
-			return ArrayType::get(type->toLLVMType(context, typeReference), count);
+			return llvm::ArrayType::get(type->toLLVMType(context, typeReference), count);
 		}
 	};
 
@@ -147,6 +147,7 @@ namespace sgs_backend {
 	};
  //
 	string typeToString(SType* tp);
+
 
 	class Context {
 		map<string, SType*> typeRef;

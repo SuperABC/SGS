@@ -1,54 +1,46 @@
-#hello world
-let integer a be 10.
-print an int with value a.
+#simpleTest
+let integer a be 0.
+let integer b be 1.
+let bool c be false.
+let b be b+a.
+let c be b>a.
+if c then let b be 5.
+else let b be 3.
+end if.
 
-#typedef and assign
-let integer test i be 10.
-print an int with value test i.
-let float test f be 0.0.
-print a number with value test f.
-let bool test b be true.
-print a boolean with value test b.
-let string test s be "hello world".
-print a str with value test s.
-
-#if and while
-let integer rounds be 10.
-loop when rounds > 0
-	if rounds > 5 then let rounds be rounds - 2.
-	else let rounds be rounds - 1.
-	end if.
-	print an int with value rounds.
+#floatIntTest
+let integer i be 1.
+let float fact be 1.0.
+let float res be 1.0.
+loop when i < 11
+let res be res + 1.0 / fact.
+let fact be fact * intToFloat with value i.
+let i be i + 1.
 end loop.
+print a number with value res.
 
-#user function
-new function add with integer a, integer b return integer.
-start add.
-	let result be a+b.
-	return.
-end add.
-print an int with value add with a 1, b 2.
+#localArrayTest
+let integer array 10 a.
+let a[0] be 0.
+let a[1] be a[0] + 5.
+print a number with value a.
 
-#array
-let string array 10 str list.
-let str list[0] be "abc".
-let str list[1] be "def".
-let str list[2] be "ghi".
-let integer iterator be 0.
-loop when iterator < 3.
-	print a str with value str list[iterator].
-	let iterator be iterator + 1.
-end loop.
+#glbVarDefTest
+let integer a.
+let integer array 10 arr.
+new function visitGArray with integer i return integer.
+start visitGArray.
+let result be b[i].
+end visitGArray.
+new function writeGArray with integer array 10 b, integer i, integer v return integer.
+start writeGArray.
+let b[i] be v.
+end writeGArray.
+writeGArray with arr, 1, 2.
+print a number with visitGArray with 1.
 
-#class
-new class point with integer x, integer y.
-let point left top be point{x 0, y 0}.
-let point right bottom be point{10, 10}.
-print a number with value left top's x.
-print a number with value right bottom's y.
-
-#complex exp 
-new class point with integer x, integer y.
-let point test point be point{x 1, y 1}.
-print a number with value 2 * 2 + (7 & 3 > 2 + test point's x * test point's y) / 2.
-print a boolean with value true && (false || true + false)
+#stringSimpleTest
+let char array 4 x.
+let x be "123".
+let x[0] be x[0] + 1.
+print a str with value x.

@@ -127,7 +127,7 @@ void SgsMachine::execute() {
 }
 void SgsMachine::step(AST *s) {
     switch (s->astType) {
-    case AT_TYPEDEF:
+    case AT_VARDEF:
         declare(s);
         break;
     case AT_CLASS:
@@ -147,7 +147,7 @@ void SgsMachine::step(AST *s) {
     }
 }
 void SgsMachine::declare(AST *s) {
-    TypeDef *dec = (TypeDef *)s;
+    VarDef *dec = (VarDef *)s;
     VarNode *tmp = nullptr;
     switch (dec->getDecType()->getVarType()) {
     case sgs::VT_BASIC:

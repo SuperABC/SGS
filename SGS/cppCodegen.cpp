@@ -1,5 +1,7 @@
 #include "cppCodegen.h"
 
+using namespace sgs;
+
 string removeSpace(const string& input) {
     string output = input;
     for (auto& x : output) {
@@ -386,7 +388,7 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
     switch (choice) {
     case conditionUseVarType::TYPEDEF: //TYPEDEF
     {
-        auto* currentStmt = dynamic_cast<sgs::TypeDef *>(s);
+        auto* currentStmt = dynamic_cast<sgs::VarDef *>(s);
         string currentName = removeSpace(currentStmt->getName());
         switch (currentStmt->getDecType()->getVarType()) {
         case VAR_TYPE::VT_BASIC:
@@ -427,12 +429,12 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
     case conditionUseVarType::EXP:
     {
         auto*currentStmt = dynamic_cast<sgs::Expression *>(s);
-        switch (currentStmt->getResType()->getVarType()) {
-        case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
-        case VAR_TYPE::VT_ARRAY: printArrayType(currentStmt->getResType()); break;
-        case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getResType()); break;
-        default:break;
-        }
+        // switch (currentStmt->getResType()->getVarType()) {
+        // case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
+        // case VAR_TYPE::VT_ARRAY: printArrayType(currentStmt->getResType()); break;
+        // case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getResType()); break;
+        // default:break;
+        // }
         break;
     }
     case conditionUseVarType::FUNC:
@@ -599,9 +601,9 @@ void translateFuncProtoType(sgs::AST *s, std::ofstream &fout) {
 void translateAST(vector<sgs::AST *>stmts, std::ofstream &fout) {
     for (auto& stmt : stmts) {
         switch (stmt->astType) {
-        case AT_TYPEDEF:
+        case AT_VARDEF:
         {
-            auto* currentStmt = dynamic_cast<sgs::TypeDef *>(stmt);
+            auto* currentStmt = dynamic_cast<sgs::VarDef *>(stmt);
             translateVarType(currentStmt, TYPEDEF, fout);
             break;
         }
@@ -644,7 +646,7 @@ void translateAST(vector<sgs::AST *>stmts, std::ofstream &fout) {
     return;
 }
 void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
-    std::ofstream fout("output.cpp");
+    std::ofstream fout(filename);
     fout << "#include <iostream>" << std::endl;
     fout << "#include <string>" << std::endl;
     fout << "using std::string;" << std::endl;
@@ -674,13 +676,13 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
             break;
         }
     }
-    fout << "int main(){" << std::endl;
+    fout << "int main() {" << std::endl;
     cppDepth++;
     for (loopNum = 0; loopNum < stmts.size(); ++loopNum) {
         switch (stmts[loopNum]->astType) {
-        case AT_TYPEDEF:
+        case AT_VARDEF:
         {
-            sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(stmts[loopNum]);
+            sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(stmts[loopNum]);
             translateVarType(currentStmt, TYPEDEF, fout);
             break;
         }

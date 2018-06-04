@@ -2,7 +2,7 @@
 #include "syntax.h"
 #include <iostream>
 
-using namespace sgs;
+// using namespace sgs;
 
 class ASTTab {
 private:

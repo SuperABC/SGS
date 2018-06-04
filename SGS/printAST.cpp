@@ -1,6 +1,8 @@
 #include "printAST.h"
 
-int depth = 0;
+using namespace sgs;
+
+static int depth = 0;
 void printTab(const string& output, int depth) {
     for (int i = 0; i < depth; ++i)
         std::cout << "    ";
@@ -365,7 +367,7 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
     switch (choice) {
     case conditionUseVarType::TYPEDEF: //TYPEDEF
     {
-        sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(s);
+        sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(s);
         std::cout << ASTTab(depth) << "newVarName: " + currentStmt->getName() << std::endl;
         depth++;
         switch (currentStmt->getDecType()->getVarType()) {
@@ -391,12 +393,12 @@ void dealWithVarType(sgs::AST *s, enum conditionUseVarType choice) {
         sgs::Expression *currentStmt = dynamic_cast<sgs::Expression *>(s);
         //std::cout << "	expRes:" << std::endl;
         depth++;
-        switch (currentStmt->getResType()->getVarType()) {
-        case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
-        case VAR_TYPE::VT_ARRAY: printArrayType(currentStmt->getResType()); break;
-        case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getResType()); break;
-        default:break;
-        }
+        // switch (currentStmt->getResType()->getVarType()) {
+        // case VAR_TYPE::VT_BASIC: printBasicType(currentStmt->getResType()); break;
+        // case VAR_TYPE::VT_ARRAY: printArrayType(currentStmt->getResType()); break;
+        // case VAR_TYPE::VT_CLASS: printClassType(currentStmt->getResType()); break;
+        // default:break;
+        // }
         depth--;
         break;
     }
@@ -573,10 +575,10 @@ void printAST(vector<sgs::AST *> stmts) {
         std::cout << ASTTab(depth) << "No." << loopNum << " statement is parsed" << std::endl;
         std::cout << ASTTab(depth) << "--------------result---------------" << std::endl;
         switch (stmts[loopNum]->astType) {
-        case AT_TYPEDEF:
+        case AT_VARDEF:
         {
-            sgs::TypeDef *currentStmt = dynamic_cast<sgs::TypeDef *>(stmts[loopNum]);
-            std::cout << ASTTab(depth) << "astType: AT_TYPEDEF" << std::endl;
+            sgs::VarDef *currentStmt = dynamic_cast<sgs::VarDef *>(stmts[loopNum]);
+            std::cout << ASTTab(depth) << "astType: AT_VARDEF" << std::endl;
             depth++; dealWithVarType(currentStmt, TYPEDEF); depth--;
             std::cout << std::endl;
             break;

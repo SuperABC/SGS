@@ -1,0 +1,10 @@
+#floatIntTest
+let integer i be 1.
+let float fact be 1.0.
+let float res be 1.0.
+loop when i < 11
+let res be res + 1.0 / fact.
+let fact be fact * intToFloat with value i.
+let i be i + 1.
+end loop.
+print a number with value res.

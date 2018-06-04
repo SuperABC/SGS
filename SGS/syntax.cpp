@@ -21,36 +21,36 @@ SgsSyntax::~SgsSyntax() = default;
 void SgsSyntax::prepare() {
     vector<std::pair<VarType *, string>> piParam;
     piParam.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), "value"));
-    stmts.push_back(new FuncProto(nullptr, "print an int", piParam));
+    // stmts.push_back(new FuncProto(nullptr, "print an int", piParam));
     funcList.push_back(new FuncProto(nullptr, "print an int", piParam));
 
     vector<std::pair<VarType *, string>> pnParam;
     pnParam.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), "value"));
-    stmts.push_back(new FuncProto(nullptr, "print a number", pnParam));
+    // stmts.push_back(new FuncProto(nullptr, "print a number", pnParam));
     funcList.push_back(new FuncProto(nullptr, "print a number", pnParam));
 
     vector<std::pair<VarType *, string>> pbParam;
     pbParam.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), "value"));
-    stmts.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
+    // stmts.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
     funcList.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
 
     vector<std::pair<VarType *, string>> psParam;
     psParam.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), "value"));
-    stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
+    // stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
     funcList.push_back(new FuncProto(nullptr, "print a str", psParam));
 
     vector<std::pair<VarType *, string>> ctParam;
-    stmts.push_back(new FuncProto(new BasicType(BT_INT), "current time", ctParam));
+    // stmts.push_back(new FuncProto(new BasicType(BT_INT), "current time", ctParam));
     funcList.push_back(new FuncProto(new BasicType(BT_INT), "current time", ctParam));
 
 	vector<std::pair<VarType *, string>> itfParam;
 	itfParam.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), "value"));
-	stmts.push_back(new FuncProto(new BasicType(BT_FLOAT), "intToFloat", itfParam));
+	// stmts.push_back(new FuncProto(new BasicType(BT_FLOAT), "intToFloat", itfParam));
 	funcList.push_back(new FuncProto(new BasicType(BT_FLOAT), "intToFloat", itfParam));
 
 	vector<std::pair<VarType *, string>> ftiParam;
 	ftiParam.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), "value"));
-	stmts.push_back(new FuncProto(new BasicType(BT_INT), "floatToInt", ftiParam));
+	// stmts.push_back(new FuncProto(new BasicType(BT_INT), "floatToInt", ftiParam));
 	funcList.push_back(new FuncProto(new BasicType(BT_INT), "floatToInt", ftiParam));
 }
 
@@ -109,9 +109,9 @@ void SgsSyntax::parse() {
                         proc++;
                         int length = int(content[proc].value);
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(classList[classIdx], length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(classList[classIdx], length), newVar = parseUser()));
                     } else {
-                        stmts.push_back(new TypeDef(classList[classIdx], newVar = parseUser()));
+                        stmts.push_back(new VarDef(classList[classIdx], newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else {
@@ -123,10 +123,10 @@ void SgsSyntax::parse() {
                         proc += 2;
                         int length = int(content[proc].value);
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        stmts.push_back(new TypeDef(new BasicType(BT_INT), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new BasicType(BT_INT), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_FLOAT) {
@@ -134,10 +134,10 @@ void SgsSyntax::parse() {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        stmts.push_back(new TypeDef(new BasicType(BT_FLOAT), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new BasicType(BT_FLOAT), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_BOOL) {
@@ -145,10 +145,10 @@ void SgsSyntax::parse() {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        stmts.push_back(new TypeDef(new BasicType(BT_BOOL), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new BasicType(BT_BOOL), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_CHAR) {
@@ -156,10 +156,10 @@ void SgsSyntax::parse() {
                         proc += 2;
                         int length = (int)content[proc].value;
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        stmts.push_back(new TypeDef(new BasicType(BT_CHAR), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new BasicType(BT_CHAR), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_STRING) {
@@ -167,10 +167,10 @@ void SgsSyntax::parse() {
                         proc += 2;
                         int length = (int)content[proc].value;
                         proc++;
-                        stmts.push_back(new TypeDef(new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        stmts.push_back(new TypeDef(new BasicType(BT_STRING), newVar = parseUser()));
+                        stmts.push_back(new VarDef(new BasicType(BT_STRING), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else {
@@ -417,18 +417,19 @@ Expression *SgsSyntax::parseExp() {
     if (value.size() == 1) {
         return value.top();
     } 
-	else {
-        VarType *t = value.top()->getResType();
-        vector<Expression *> cont;
-
-        while (!value.empty()) {
-            if (value.top()->getResType() != t)
-                error("array", SGS_SE_INVALIDTYPE);
-            cont.push_back(value.top());
-            value.pop();
-        }
-        return new ArrayLiteral(t, cont);
-    }
+	// else {
+ //        VarType *t = value.top()->getResType();
+ //        vector<Expression *> cont;
+ //
+ //        while (!value.empty()) {
+ //            if (value.top()->getResType() != t)
+ //                error("array", SGS_SE_INVALIDTYPE);
+ //            cont.push_back(value.top());
+ //            value.pop();
+ //        }
+ //        return new ArrayLiteral(t, cont);
+ //    }
+    return nullptr;
 }
 Expression *SgsSyntax::parseVar() {
     Expression *ret = nullptr;
@@ -696,7 +697,7 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
             if (content[proc].type == SGS_TT_USER ||
                 (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RESULT)) {
                 if ((classIdx = findClass()) >= 0) {
-                    block->pushAST(new TypeDef(classList[classIdx], newVar = parseUser()));
+                    block->pushAST(new VarDef(classList[classIdx], newVar = parseUser()));
                     left = new IdExp(newVar);
                 } else {
                     left = parseExp();
@@ -707,10 +708,10 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        block->pushAST(new TypeDef(new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
+                        block->pushAST(new VarDef(new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        block->pushAST(new TypeDef(new BasicType(BT_INT), newVar = parseUser()));
+                        block->pushAST(new VarDef(new BasicType(BT_INT), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_FLOAT) {
@@ -718,10 +719,10 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        block->pushAST(new TypeDef(new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
+                        block->pushAST(new VarDef(new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        block->pushAST(new TypeDef(new BasicType(BT_FLOAT), newVar = parseUser()));
+                        block->pushAST(new VarDef(new BasicType(BT_FLOAT), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_BOOL) {
@@ -729,10 +730,10 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        block->pushAST(new TypeDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+                        block->pushAST(new VarDef(new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        block->pushAST(new TypeDef(new BasicType(BT_BOOL), newVar = parseUser()));
+                        block->pushAST(new VarDef(new BasicType(BT_BOOL), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_CHAR) {
@@ -740,10 +741,10 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        block->pushAST(new TypeDef(new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
+                        block->pushAST(new VarDef(new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        block->pushAST(new TypeDef(new BasicType(BT_CHAR), newVar = parseUser()));
+                        block->pushAST(new VarDef(new BasicType(BT_CHAR), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else if (content[proc].id == SGS_ID_STRING) {
@@ -751,10 +752,10 @@ BlockStmt *SgsSyntax::parseBlock(bool untaken) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].value);
                         proc++;
-                        block->pushAST(new TypeDef(new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
+                        block->pushAST(new VarDef(new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
                     } else {
                         proc++;
-                        block->pushAST(new TypeDef(new BasicType(BT_STRING), newVar = parseUser()));
+                        block->pushAST(new VarDef(new BasicType(BT_STRING), newVar = parseUser()));
                     }
                     left = new IdExp(newVar);
                 } else {

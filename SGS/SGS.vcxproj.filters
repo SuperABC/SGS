@@ -33,9 +33,6 @@
     <ClCompile Include="printAST.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="output.cpp">
-      <Filter>资源文件</Filter>
-    </ClCompile>
     <ClCompile Include="codegen.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

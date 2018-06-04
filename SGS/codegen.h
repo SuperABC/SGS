@@ -9,10 +9,10 @@
 #include <iostream>
 #include <llvm/Support/raw_ostream.h>
 
-using namespace llvm;
 
 namespace sgs_backend {
-	static map<string, Type*> typeReference;
+    using namespace llvm;
+    static map<string, Type*> typeReference;
 	static map<string, Function*> funcReference;
 	static LLVMContext theContext;
 	static Module* theModule;

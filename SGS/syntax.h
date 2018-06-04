@@ -11,7 +11,7 @@ using std::unique_ptr;
 
 namespace sgs {
 	class AST;
-	class VarType; class BasicType; class ArrayType; class ClassType; class TypeDef;
+	class VarType; class BasicType; class ArrayType; class ClassType; class VarDef;
 	class ClassDef;
 	class Expression; class OpExp; class LiteralExp;
 	class IntLiteral; class FloatLiteral; class BoolLiteral; class StrLiteral; class ArrayLiteral; class ClassLiteral;
@@ -22,7 +22,7 @@ namespace sgs {
 	class FuncDef;
 
 	enum AST_TYPE {
-		AT_TYPEDEF,
+		AT_VARDEF,
 		AT_CLASS,
 		AT_EXP,
 		AT_STMT,
@@ -41,6 +41,7 @@ namespace sgs {
 		VT_ARRAY,
 		VT_CLASS
 	};
+
 	class VarType {
 	private:
 		VAR_TYPE varType;
@@ -86,12 +87,12 @@ namespace sgs {
 		string getName() const { return className; }
 		vector <std::pair<VarType *, string>> getEle() const { return eleList; }
 	};
-	class TypeDef : public AST {
+	class VarDef : public AST {
 	private:
 		VarType * decType;
 		string name;
 	public:
-		TypeDef(VarType* t, string n) : AST(AT_TYPEDEF), decType(t), name(std::move(n)) {}
+		VarDef(VarType* t, string n) : AST(AT_VARDEF), decType(t), name(std::move(n)) {}
 		VarType *getDecType() const { return decType; }
 		string getName() const { return name; }
 	};
@@ -115,12 +116,9 @@ namespace sgs {
 	class Expression : public AST {
 	private:
 		EXP_TYPE expType;
-		VarType * resType;
 	public:
-		Expression(EXP_TYPE t, VarType * v = nullptr) : AST(AT_EXP), expType(t), resType(v) {}
+		Expression(EXP_TYPE t) : AST(AT_EXP), expType(t) {}
 		EXP_TYPE getExpType() const { return expType; }
-		VarType *getResType() const { return resType; }
-		void setResType(VarType *t) { resType = t; }
 	};
 	class OpExp : public Expression {
 	private:
@@ -226,6 +224,7 @@ namespace sgs {
 		ST_CONTINUE,
 		ST_BLOCK
 	};
+
 	class Statement : public AST {
 	private:
 		STMT_TYPE stmtType;
@@ -243,7 +242,7 @@ namespace sgs {
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
 	};
-	class BlockStmt : public Statement {
+	class BlockStmt : public Statement {    
 	private:
 		vector<AST *>content;
 	public:
