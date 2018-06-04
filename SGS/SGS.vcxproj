@@ -159,7 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="debug.sgs" />
-    <None Include="test.sgs" />
+    <None Include="test0.sgs" />
     <None Include="test1.sgs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

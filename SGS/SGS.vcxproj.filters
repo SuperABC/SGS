@@ -88,13 +88,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="test.sgs">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="debug.sgs">
       <Filter>资源文件</Filter>
     </None>
     <None Include="test1.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="test0.sgs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
