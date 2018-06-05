@@ -289,7 +289,7 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
         if (name == "print a str") name = "printStr";
         if (name == "read an int") name = "readNum";
         if (name == "read a number") name = "readFloat";
-        return new sgs_backend::CallExp(name, {}, transformType(proto->getReturnType(), context));
+        return new sgs_backend::CallExp(name, exp, transformType(proto->getReturnType(), context));
     }
     case sgs::ET_ACCESS: {
         const auto access = dynamic_cast<sgs::AccessExp*>(expr);
@@ -442,10 +442,13 @@ sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env
         const auto proto = dynamic_cast<sgs_backend::FuncProto*>(transformAST(func->getProto(), context, env));
         const auto retTy = dynamic_cast<sgs_backend::FuncProto*>(proto)->getReturnType();
         Env* new_env = new Env(env);
-        new_env->getBindings()["ret"] = retTy;
+        new_env->getBindings()["result"] = retTy;
+        for (auto&& x : proto->getParam()) {
+            new_env->getBindings()[x.second] = x.first;
+        }
         const auto block = dynamic_cast<sgs_backend::BlockStmt*>(transformAST(func->getBody(), context, new_env));
-        block->getContent().insert(block->getContent().begin(), new sgs_backend::VarDefStmt(retTy, nullptr, "ret"));
-        block->getContent().push_back(new sgs_backend::ReturnStmt(new sgs_backend::IdExp("ret", retTy)));
+        block->getContent().insert(block->getContent().begin(), new sgs_backend::VarDefStmt(retTy, nullptr, "result"));
+        block->getContent().push_back(new sgs_backend::ReturnStmt(new sgs_backend::IdExp("result", retTy)));
         return new sgs_backend::FuncDef(proto, block);
     }
     default:

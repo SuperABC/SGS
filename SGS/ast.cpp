@@ -73,7 +73,7 @@ std::string sgs_backend::printExpression(Expression* expr) {
 		}
 		case BasicType::FLOAT:	{
 			const auto floatlit = dynamic_cast<FloatLiteral*>(temp);
-			res += addr + " [label=\"FloatLiteral:\"]" + to_string(floatlit->getValue()) + "\"]\n";
+			res += addr + " [label=\"FloatLiteral:" + to_string(floatlit->getValue()) + "\"]\n";
 			break;
 		}
 		case BasicType::BOOLEAN: {
@@ -83,7 +83,7 @@ std::string sgs_backend::printExpression(Expression* expr) {
 		}
 		case BasicType::CHAR: {
 			const auto charlit = dynamic_cast<CharLiteral*>(temp);
-			res += addr + " [label=\"CharLiteral:\"]" + to_string(charlit->getValue()) + "\"]\n";
+			res += addr + " [label=\"CharLiteral:" + to_string(charlit->getValue()) + "\"]\n";
 			break;
 		}
 		default: ;

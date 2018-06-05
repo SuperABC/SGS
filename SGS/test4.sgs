@@ -1,0 +1,13 @@
+#glbVarDefTest
+let integer a.
+let integer array 10 arr.
+new function visitGArray with integer i return integer.
+start visitGArray.
+	let result be arr[i].
+end visitGArray.
+new function writeGArray with integer array 10 b, integer i, integer v return integer.
+start writeGArray.
+	let b[i] be v.
+end writeGArray.
+writeGArray with arr, 1, 2.
+print an int with visitGArray with 1.
