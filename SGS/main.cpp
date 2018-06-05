@@ -13,9 +13,6 @@
 
 #define SGS_INTERPRETER_OFF
 
-using std::cin;
-using std::cout;
-using std::endl;
 using std::string;
 
 static SgsLex l = SgsLex();
@@ -57,6 +54,6 @@ void compile(const string& filename) {
 
 int main() 
 {
-    compile("test1");
+    compile("test4");
     return 0;
 }

@@ -589,7 +589,7 @@ Value* sgs_backend::stmtCodegen(Statement* stmt, Environment* env, BasicBlock* c
 	{
 		const auto funProto = dynamic_cast<FuncProto*>(ast);
 		FunctionType* funTy = funProto->getLLVMType(theContext, typeReference);
-		return Function::Create(funTy, GlobalValue::CommonLinkage, funProto->getName(), theModule);
+		return Function::Create(funTy, GlobalValue::ExternalLinkage, funProto->getName(), theModule);
 	}
 	case AT_GLBVARDEF: {
 		const auto glbVarDef = dynamic_cast<GlobalVarDef*>(ast);
