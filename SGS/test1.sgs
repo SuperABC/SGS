@@ -23,7 +23,7 @@ print a number with value res.
 let integer array 10 a.
 let a[0] be 0.
 let a[1] be a[0] + 5.
-print a number with value a.
+print a number with value a[1].
 
 #glbVarDefTest
 let integer a.
