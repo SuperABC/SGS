@@ -668,9 +668,9 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
         }
         case AT_PROTO:
         {
-            sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
-            translateFuncProtoType(currentStmt, fout);
-            fout << ";" << std::endl;
+            // sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
+            // translateFuncProtoType(currentStmt, fout);
+            // fout << ";" << std::endl;
             break;
         }
         default:

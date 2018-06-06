@@ -78,9 +78,7 @@ source_filename = "wtf"
 @arr.array = common global [10 x i32] zeroinitializer
 @arr = internal global i32* getelementptr inbounds ([10 x i32], [10 x i32]* @arr.array, i32 0, i32 0)
 
-declare i32 @visitGArray(i32)
-
-define i32 @visitGArray.1(i32) {
+define i32 @visitGArray(i32) {
 entry:
   %result = alloca i32
   %i = alloca i32
@@ -94,9 +92,7 @@ entry:
   ret i32 %ret.load
 }
 
-declare i32 @writeGArray(i32*, i32, i32)
-
-define i32 @writeGArray.2(i32*, i32, i32) {
+define i32 @writeGArray(i32*, i32, i32) {
 entry:
   %result = alloca i32
   %b = alloca i32*
@@ -117,8 +113,8 @@ entry:
 define i32 @main() {
 entry:
   %load = load i32*, i32** @arr
-  %call.res = call i32 @writeGArray.2(i32* %load, i32 1, i32 2)
-  %call.res1 = call i32 @visitGArray.1(i32 1)
+  %call.res = call i32 @writeGArray(i32* %load, i32 1, i32 2)
+  %call.res1 = call i32 @visitGArray(i32 1)
   %call.res2 = call i32 @printNum(i32 %call.res1)
   ret i32 0
 }

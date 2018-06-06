@@ -54,6 +54,6 @@ void compile(const string& filename) {
 
 int main() 
 {
-    compile("test5");
+    compile("test4");
     return 0;
 }
