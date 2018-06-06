@@ -23,6 +23,7 @@ public:
 static int cppDepth = 0;
 
 string removeSpace(const string& input);
+void insertBuiltinFunction(std::ofstream &fout);
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout);
 sgs::VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout);
 void opSwitchCase(SGSOPERATOR OP, std::ofstream &fout);
