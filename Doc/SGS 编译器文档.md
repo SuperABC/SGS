@@ -4,6 +4,9 @@
 
 ---
 ## 前言
+
+​	
+
 ### 项目概览
 
 ```mermaid
@@ -19,7 +22,7 @@ graph TD
 	D ==>|CodeGenerator| E[LLVM IR]
 	D -->|DotGenerator| F[DOT File]
 	end
-	subgraph LLVM Backend
+	subgraph LLVM
 	E ==>|llc| G[Executable File] 
 	E -->|lli| H[Interpreter]
 	end
@@ -32,6 +35,10 @@ graph TD
 ## SGS 语言手册
 
 ### SGS 语言简介
+
+​	SGS语言为一款轻量级程序设计语言，具有很强的可移植性和可扩展性。
+
+​	在编译器前端，SGS侧重编程语言与自然语言的相似度，使得SGS代码更接近于英语，从而可以让绝大多数人们可以理解其内部含义。在编译器后端，SGS侧重对象的处理与类型系统的维护。在SGS中，非基本类型的变量全部作为对象处理。这样的好处是避免了指针的使用，从而让SGS代码更加安全。
 
 ### SGS 语言语法
 
