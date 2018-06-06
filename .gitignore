@@ -12,3 +12,5 @@
 .vs/
 *.db-shm
 *.db-wal
+SGS/*.png
+*.TMP
