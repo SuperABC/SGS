@@ -297,6 +297,129 @@ std::string sgs_backend::printAST(AST* ast) {
 #undef ADDR
 }
 
+void sgs_backend::recursiveDeleteExpression(Expression* exp) {
+    if (!exp) return;
+    switch (exp->getExpType()) {
+    case ET_BINOP: {
+        const auto binop = dynamic_cast<BinopExp*>(exp);
+        recursiveDeleteExpression(binop->getLeft());
+        recursiveDeleteExpression(binop->getRigth());
+        break;
+    }
+    case ET_LITERAL: {
+        break;
+    }
+    case ET_IDENT: break;
+    case ET_VISIT: {
+        const auto visit = dynamic_cast<VisitExp*>(exp);
+        recursiveDeleteExpression(visit->getArray());
+        recursiveDeleteExpression(visit->getIndex());
+        break;
+    }
+    case ET_CALL: {
+        const auto call = dynamic_cast<CallExp*>(exp);
+        for (auto&& x : call->getParam()) {
+            recursiveDeleteExpression(x);
+        }
+        break;
+    }
+    case ET_ACCESS: {
+        const auto acc = dynamic_cast<AccessExp*>(exp);
+        recursiveDeleteExpression(acc->getObject());
+        break;
+    }
+    case ET_UNIOP: {
+        const auto uni = dynamic_cast<UniopExp*>(exp);
+        recursiveDeleteExpression(uni->getVal());
+        break;
+    }
+    case ET_CONSTR: break;
+    default: ;
+    }
+    delete exp;
+}
+
+void sgs_backend::recursiveDeleteStatement(Statement* stmt) {
+    if (!stmt) return;
+    switch (stmt->getStmtType()) {
+    case ST_ASSIGN: {
+        const auto ass = dynamic_cast<AssignStmt*>(stmt);
+        recursiveDeleteExpression(ass->getLeft());
+        recursiveDeleteExpression(ass->getRigth());
+        break;
+    }
+    case ST_IF: {
+        const auto ifs = dynamic_cast<IfStmt*>(stmt);
+        recursiveDeleteExpression(ifs->getCond());
+        recursiveDeleteStatement(ifs->getPass());
+        recursiveDeleteStatement(ifs->getFail());
+        break;
+    }
+    case ST_WHILE: {
+        const auto whs = dynamic_cast<WhileStmt*>(stmt);
+        recursiveDeleteExpression(whs->getCond());
+        recursiveDeleteStatement(whs->getBody());
+        break;
+    }
+    case ST_RETURN: {
+        const auto ret = dynamic_cast<ReturnStmt*>(stmt);
+        recursiveDeleteExpression(ret->getRetVal());
+        break;
+    }
+    case ST_BREAK: break;
+    case ST_CONTINUE: break;
+    case ST_BLOCK: {
+        const auto block = dynamic_cast<BlockStmt*>(stmt);
+        for (const auto& x : block->getContent()) {
+            recursiveDeleteStatement(x);
+        }
+        break;
+    }
+    case ST_EXP: {
+        const auto exp = dynamic_cast<ExpStmt*>(stmt);
+        recursiveDeleteExpression(exp->getExp());
+        break;
+    }
+    case ST_VARDEF: {
+        const auto varDef = dynamic_cast<VarDefStmt*>(stmt);
+        if (varDef->getInitValue()) {
+            recursiveDeleteExpression(varDef->getInitValue());
+        }
+        break;
+    }
+    default: ;
+    }
+    delete stmt;
+}
+
+void sgs_backend::recursiveDeleteAST(AST* ast) {
+    switch (ast->astType) {
+    case AT_TYPEDEF:
+    case AT_GLBVARDEF:
+    case AT_PROTO:
+        delete ast;
+        break;
+    case AT_STMT:
+        recursiveDeleteStatement(dynamic_cast<Statement*>(ast));
+        break;
+    case AT_FUNC: {
+        const auto func = dynamic_cast<FuncDef*>(ast);
+        recursiveDeleteAST(func->getProto());
+        recursiveDeleteStatement(func->getBody());
+        delete ast;
+        break;
+    }
+    default:
+        delete ast;
+    }
+}
+
+void sgs_backend::recursiveDelete(const Content& content) {
+    for (auto&& x : content) {
+        recursiveDeleteAST(x);
+    }
+}
+
 void sgs_backend::printContentInDot(const Content& content, const string& filename) {
 	printCounter = 0;
     string res = "\
