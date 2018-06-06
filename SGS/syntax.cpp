@@ -35,7 +35,7 @@ void SgsSyntax::prepare() {
     funcList.push_back(new FuncProto(nullptr, "print a boolean", pbParam));
 
     vector<std::pair<VarType *, string>> psParam;
-    psParam.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), "value"));
+    psParam.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_CHAR), 0), "value"));
     // stmts.push_back(new FuncProto(nullptr, "print a str", psParam));
     funcList.push_back(new FuncProto(nullptr, "print a str", psParam));
 
@@ -1051,7 +1051,7 @@ void SgsSyntax::error(const char *inst, SGSYNTAXERROR type) {
         msgList.emplace_back(inst + string(" is disaccord.\n"), MT_WARNING);
         break;
     case SGS_SE_NOID:
-        msgList.emplace_back(inst + string(" is undefined¡£\n"), MT_ERROR);
+        msgList.emplace_back(inst + string(" is undefined.\n"), MT_ERROR);
         break;
     case SGS_SE_INCOMPLETE:
         msgList.emplace_back(inst + string(" uncomplete statement.\n"), MT_WARNING);
