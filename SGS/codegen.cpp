@@ -74,11 +74,8 @@ define i8 @intToChar(i32) {
 }
 
 define i32 @charToInt(i8) {
-	%2 = alloca i8, align 1
-	store i8 %0, i8* %2, align 1
-	%3 = load i8, i8* %2, align 1
-	%4 = sext i8 %3 to i32
-	ret i32 %4
+	%2 = sext i8 %0 to i32
+	ret i32 %2
 }
 
 define i1 @intToBool(i32) {
