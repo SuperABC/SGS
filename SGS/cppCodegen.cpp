@@ -9,26 +9,38 @@ string removeSpace(const string& input) {
     }
     return output;
 }
+
 void insertBuiltinFunction(std::ofstream &fout)
 {
-	fout << "void print_an_int(int a){" << std::endl;
-	fout << "    printf(\"%d\\n\", a);" << std::endl;
-	fout << "}" << std::endl;
+    const string res = R"(
+void print_an_int(int a){
+    printf("%d\n", a);
+}
 
-	fout << "void print_a_number(double a){" << std::endl;
-	fout << "    printf(\"%lf\\n\", a);" << std::endl;
-	fout << "}" << std::endl;
+void print_a_number(double a){
+    printf("%lf\n", a);
+}
 
-	fout << "void print_a_bool(bool a){" << std::endl;
-	fout << "    if(a == true)" << std::endl;
-	fout << "        std::cout << \"true\" << std::endl;" << std::endl;
-	fout << "    else" << std::endl;
-	fout << "        std::cout << \"false\" << std::endl;" << std::endl;
-	fout << "}" << std::endl;
+void print_a_bool(bool a){
+    if(a == true)
+        std::cout << "true" << std::endl;
+    else
+        std::cout << "false" << std::endl;
+}
 
-	fout << "void print_a_string(std::string a){" << std::endl;
-	fout << "    std::cout << a << std::endl;" << std::endl;
-	fout << "}" << std::endl;
+void print_a_string(std::string a){
+    std::cout << a << std::endl;
+}
+
+float intToFloat(int a) {
+    return a;
+}
+
+int floatToInt(float a) {
+    return a;
+}
+)";
+    fout << res << std::endl;
 }
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout) {
     auto* basicVar = dynamic_cast<sgs::BasicType *>(stmtVar);

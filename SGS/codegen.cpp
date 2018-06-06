@@ -37,16 +37,16 @@ void sgs_backend::builtinFuncInit() {
 	funcReference["printFloat"] = Function::Create(printFloat, GlobalValue::ExternalLinkage, "printFloat");
 
 	// readNum :: () => Int
-	FunctionType* readNum = FunctionType::get(Type::getInt32Ty(theContext), false);
-	funcReference["readNum"] = Function::Create(readNum, GlobalValue::ExternalLinkage, "readNum");
+	// FunctionType* readNum = FunctionType::get(Type::getInt32Ty(theContext), false);
+	// funcReference["readNum"] = Function::Create(readNum, GlobalValue::ExternalLinkage, "readNum");
 
 	// printStr :: String => ()
 	FunctionType* printStr = FunctionType::get(Type::getInt32Ty(theContext), {Type::getInt8PtrTy(theContext)}, false);
 	funcReference["printStr"] = Function::Create(printStr, GlobalValue::ExternalLinkage, "printStr");
 
 	// readStr :: String => ()
-	FunctionType* readStr = FunctionType::get(Type::getInt32Ty(theContext), {Type::getInt8PtrTy(theContext)}, false);
-	funcReference["readStr"] = Function::Create(readStr, GlobalValue::ExternalLinkage, "readStr");
+	// FunctionType* readStr = FunctionType::get(Type::getInt32Ty(theContext), {Type::getInt8PtrTy(theContext)}, false);
+	// funcReference["readStr"] = Function::Create(readStr, GlobalValue::ExternalLinkage, "readStr");
 
 	FunctionType* newline = FunctionType::get(Type::getInt32Ty(theContext), {}, false);
 	funcReference["newline"] = Function::Create(newline, GlobalValue::ExternalLinkage, "newline");
@@ -60,79 +60,67 @@ void sgs_backend::builtinFuncInit() {
 	FunctionType* putchar = FunctionType::get(Type::getInt32Ty(theContext), { Type::getInt32Ty(theContext) }, false);
 	funcReference["putchar"] = Function::Create(putchar, GlobalValue::ExternalLinkage, "putchar");
 
-	builtInFuncs = "\n\
-@printNum.constStr = constant [3 x i8] c\"%d\\00\", align 1\n\
-@printStr.constStr = constant[3 x i8] c\"%s\\00\", align 1\n\
-@printFloat.constStr = constant[3 x i8] c\"%f\\00\", align 1\n\
-declare i32 @printf(i8*, ...)\n\
-declare i32 @scanf(i8*, ...)\n\
-declare i32 @putchar(i32)\n\
-declare i32 @getchar()\n\
-declare i8* @strcpy(i8*, i8*)\n\
-\n\
-define i8 @intToChar(i32) {\n\
-	%2 = trunc i32 %0 to i8\n\
-	ret i8 %2\n\
-}\n\
-\n\
-define i32 @charToInt(i8) {\n\
-	%2 = alloca i8, align 1\n\
-	store i8 %0, i8* %2, align 1\n\
-	%3 = load i8, i8* %2, align 1\n\
-	%4 = sext i8 %3 to i32\n\
-	ret i32 %4\n\
-}\n\
-\n\
-define i1 @intToBool(i32) {\n\
-	%2 = icmp eq i32 %0, 0\n\
-	ret i1 %2\n\
-}\n\
-\n\
-define i32 @boolToInt(i1) {\n\
-	%2 = sext i1 %0 to i32\n\
-	ret i32 %2\n\
-}\n\
-\n\
-define float @intToFloat(i32) {\n\
-	%2 = sitofp i32 %0 to float\n\
-	ret float %2\n\
-}\n\
-\n\
-define i32 @floatToInt(float) {\n\
-	%2 = fptosi float %0 to i32\n\
-	ret i32 %2\n\
-}\n\
-\n\
-define i32 @printNum(i32) {\n\
-	%2 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printNum.constStr, i32 0, i32 0), i32 %0)\n\
-	ret i32 0\n\
-}\n\
-define i32 @printFloat(float) {\n\
-	%2 = fpext float %0 to double\n\
-	%3 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printFloat.constStr, i32 0, i32 0), double %2)\n\
-	ret i32 0\n\
-}\n\
-\n\
-define i32 @printStr(i8*) {\n\
-	%2 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printStr.constStr, i32 0, i32 0), i8* %0)\n\
-	ret i32 0\n\
-}\n\
-\n\
-define i32 @readNum() {\n\
-	%1 = alloca i32, align 4\n\
-	%2 = call i32(i8*, ...) @scanf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printNum.constStr, i32 0, i32 0), i32* %1)\n\
-	%3 = load i32, i32* %1, align 4\n\
-	ret i32 %3\n\
-}\n\
-define i32 @newline() {\n\
-	call i32 @putchar(i32 10)\n\
-	ret i32 0\n\
-}\n\
-\n\
-define i32 @readStr(i8*)  {\n\
-	%2 = call i32(i8*, ...) @scanf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printStr.constStr, i32 0, i32 0), i8* %0)\n\
-	ret i32 0\n\
-}\n";
+    builtInFuncs = R"(@printNum.constStr = constant [3 x i8] c"%d\00", align 1
+@printStr.constStr = constant[3 x i8] c"%s\00", align 1
+@printFloat.constStr = constant[3 x i8] c"%f\00", align 1
+declare i32 @printf(i8*, ...)
+declare i32 @putchar(i32)
+declare i32 @getchar()
+declare i8* @strcpy(i8*, i8*)
+
+define i8 @intToChar(i32) {
+	%2 = trunc i32 %0 to i8
+	ret i8 %2
+}
+
+define i32 @charToInt(i8) {
+	%2 = alloca i8, align 1
+	store i8 %0, i8* %2, align 1
+	%3 = load i8, i8* %2, align 1
+	%4 = sext i8 %3 to i32
+	ret i32 %4
+}
+
+define i1 @intToBool(i32) {
+	%2 = icmp eq i32 %0, 0
+	ret i1 %2
+}
+
+define i32 @boolToInt(i1) {
+	%2 = sext i1 %0 to i32
+	ret i32 %2
+}
+
+define float @intToFloat(i32) {
+	%2 = sitofp i32 %0 to float
+	ret float %2
+}
+
+define i32 @floatToInt(float) {
+	%2 = fptosi float %0 to i32
+	ret i32 %2
+}
+
+define i32 @printNum(i32) {
+	%2 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printNum.constStr, i32 0, i32 0), i32 %0)
+	ret i32 0
+}
+define i32 @printFloat(float) {
+	%2 = fpext float %0 to double
+	%3 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printFloat.constStr, i32 0, i32 0), double %2)
+	ret i32 0
+}
+
+define i32 @printStr(i8*) {
+	%2 = call i32(i8*, ...) @printf(i8* getelementptr inbounds([3 x i8], [3 x i8] * @printStr.constStr, i32 0, i32 0), i8* %0)
+	ret i32 0
+}
+
+define i32 @newline() {
+	call i32 @putchar(i32 10)
+	ret i32 0
+}
+)";
 }
 
 void sgs_backend::codegenInit() {
