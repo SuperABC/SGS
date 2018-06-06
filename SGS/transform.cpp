@@ -11,6 +11,7 @@ sgs_backend::SType* transformType(sgs::VarType* type, sgs_backend::Context& cont
         case sgs::BT_BOOL: return context.getBoolType();
         case sgs::BT_CHAR: return context.getCharType();
         default:
+            std::cerr << "STRING TYPE IS DEPRECATED" << std::endl;
             assert(false);
         }
     }

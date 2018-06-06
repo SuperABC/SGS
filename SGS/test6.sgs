@@ -1,5 +1,5 @@
 #complex type
-new class list with string name, integer array 10 list.
+new class list with integer name, integer array 10 list.
 let list one.
 let one's list[0] be 1.
 print an int with value one's list[0].

@@ -170,9 +170,12 @@ int main(int argc, char* argv[])
 
     if (GeneratePng) { 
         std::cout << "Generated PNG file : " + inputFilenameWithoutExt + ".png" << std::endl;
-        generatePng(inputFilenameWithoutExt);
         if (!GenerateDot) {
+            sgs_backend::printContentInDot(content, inputFilenameWithoutExt + ".gv");
+            generatePng(inputFilenameWithoutExt);
             cleanUpDot(inputFilenameWithoutExt);
+        } else {
+            generatePng(inputFilenameWithoutExt);
         }
     }
 
@@ -190,7 +193,7 @@ int main(int argc, char* argv[])
 
     if (!GenerateIR) {
         cleanUpIR(inputFilenameWithoutExt);
-    } else {
+    } else if(!Execute) {
         std::cout << "Generated LLVM IR : " + inputFilenameWithoutExt + ".ll" << std::endl;
     }
 

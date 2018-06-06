@@ -28,7 +28,7 @@ void print_a_bool(bool a){
         std::cout << "false" << std::endl;
 }
 
-void print_a_string(std::string a){
+void print_a_str(std::string a){
     std::cout << a << std::endl;
 }
 
@@ -60,8 +60,14 @@ VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout) {
     switch (arrayVar->getEleType()->getVarType()) {
     case VAR_TYPE::VT_BASIC:
     {
-        translateBasicType(arrayVar->getEleType(), fout);
-        break;
+        auto* basicVar = dynamic_cast<sgs::BasicType *>(arrayVar->getEleType());
+        if (basicVar->getBasicType() == BT_CHAR) {
+            fout << cppTab(cppDepth) << "string "; 
+            break;
+        } else {
+            translateBasicType(arrayVar->getEleType(), fout);
+            break;
+        }
     }
     case VAR_TYPE::VT_ARRAY:
     {
@@ -433,7 +439,12 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
         {
             VAR_TYPE type = translateArrayType(currentStmt->getDecType(), fout);
             if (VAR_TYPE::VT_BASIC == type) {
-                fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
+                const auto ty = dynamic_cast<BasicType*>(dynamic_cast<ArrayType*>(currentStmt->getDecType())->getEleType());
+                if (ty->getBasicType() == BT_CHAR) {
+                    fout << currentName;
+                } else {
+                    fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
+                }
             } else if (VAR_TYPE::VT_ARRAY == type) {
                 fout << currentName << "[][]";
             } else if (VAR_TYPE::VT_CLASS == type) {
