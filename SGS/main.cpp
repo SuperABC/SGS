@@ -49,6 +49,7 @@ void compile(const string& filename) {
     const auto res = transform(s.stmts, context);
     sgs_backend::printContentInDot(res, filename + ".gv");
     sgs_backend::totalTranslation(res, filename + ".ll");
+    sgs_backend::recursiveDelete(res);
 #endif
 }
 

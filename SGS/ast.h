@@ -419,5 +419,13 @@ namespace sgs_backend {
 	string printAST(AST* ast);
 	static int printCounter;
 
+    void recursiveDeleteExpression(Expression* exp);
+
+    void recursiveDeleteStatement(Statement* stmt);
+
+    void recursiveDeleteAST(AST* ast);
+
+    void recursiveDelete(const Content& content);
+
 	void printContentInDot(const Content& content, const string& filename);
 }
