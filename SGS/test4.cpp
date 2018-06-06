@@ -10,9 +10,9 @@ void print_a_number(double a){
 }
 void print_a_bool(bool a){
     if(a == true)
-        std::cout << "true" << std:endl;
+        std::cout << "true" << std::endl;
     else
-        std::cout << "false" << std:endl;
+        std::cout << "false" << std::endl;
 }
 void print_a_string(std::string a){
     std::cout << a << std::endl;
@@ -20,12 +20,12 @@ void print_a_string(std::string a){
 int a;
 int arr[10];
 int visitGArray(int i){
-    int result;
+    int result = 0;
     result = arr[i];
     return result;
 }
 int writeGArray(int b[], int i, int v){
-    int result;
+    int result = 0;
     b[i] = v;
     return result;
 }

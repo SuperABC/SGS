@@ -21,9 +21,9 @@ void insertBuiltinFunction(std::ofstream &fout)
 
 	fout << "void print_a_bool(bool a){" << std::endl;
 	fout << "    if(a == true)" << std::endl;
-	fout << "        std::cout << \"true\" << std:endl;" << std::endl;
+	fout << "        std::cout << \"true\" << std::endl;" << std::endl;
 	fout << "    else" << std::endl;
-	fout << "        std::cout << \"false\" << std:endl;" << std::endl;
+	fout << "        std::cout << \"false\" << std::endl;" << std::endl;
 	fout << "}" << std::endl;
 
 	fout << "void print_a_string(std::string a){" << std::endl;
@@ -568,7 +568,25 @@ void translateFuncDefType(sgs::AST *s, std::ofstream &fout) {
     fout << "{" << std::endl;
     cppDepth++;
     translateVarType(s, FUNC, fout);
-    fout << "result;" << std::endl;
+	if (currentStmt->getProto()->getReturnType() != NULL)
+	{
+		fout << "result";
+		if (currentStmt->getProto()->getReturnType()->getVarType() == VAR_TYPE::VT_BASIC)
+			switch (((sgs::BasicType *)(currentStmt->getProto()->getReturnType()))->getBasicType())
+			{
+			case BT_INT: fout << " = 0;" << std::endl; break;
+			case BT_FLOAT: fout << " = 0.0;" << std::endl; break;
+			case BT_BOOL: fout << " = false;" << std::endl; break;
+			case BT_CHAR: fout << " = \'\\0\'\";" << std::endl; break;
+			case BT_STRING: fout << " = \"\";" << std::endl; break;
+			default:
+				break;
+			}
+		else if (currentStmt->getProto()->getReturnType()->getVarType() == VAR_TYPE::VT_ARRAY)
+			fout << "\'\\0\'\";" << std::endl;
+		else
+			fout << ";" << std::endl;
+	}
     translateBlockStmt(currentStmt->getBody(), fout);
 	if(currentStmt->getProto()->getReturnType() != NULL)
 		fout << cppTab(cppDepth) << "return result;" << std::endl;
