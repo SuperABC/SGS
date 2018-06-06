@@ -9,7 +9,7 @@
 #include "TypeSys.h"
 #include "transform.h"
 #include "codegen.h"
-// #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/CommandLine.h>
 
 #define SGS_INTERPRETER_OFF
 
