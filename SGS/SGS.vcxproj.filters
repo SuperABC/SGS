@@ -97,5 +97,20 @@
     <None Include="test0.sgs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="test2.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="test3.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="test4.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="test5.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="test6.sgs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
