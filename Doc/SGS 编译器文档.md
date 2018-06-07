@@ -146,7 +146,36 @@ AST2 的结构类似于 AST1， 但在 `Expression` 上标注了结果的类型�
 
 #### 语法分析
 
-​	SGS 语法分析使用 LL(1) 递归下降分析算法完成。
+​	SGS语法分析使用LL(1)递归下降分析算法完成。
+
+​	对于顶层语法分析，可用如下伪代码表示：
+
+```c++
+switch(token){
+    case new:
+        declare();
+        break;
+    case start:
+        function();
+        break;
+    case let:
+        exp();eat(be);exp();
+        break;
+    case id:
+        id();param();
+        break;
+    case if:
+        exp();eat(then);block();eat(else);block();eat(end if);
+        break;
+    case loop:
+        eat(when);exp();block();
+        break;
+}
+```
+
+​	语法分析输出抽象语法树，我们定义SGS语法树结构如下：
+
+
 
 
  ### 编译器后端
