@@ -10,16 +10,6 @@
 using std::unique_ptr;
 
 namespace sgs {
-	class AST;
-	class VarType; class BasicType; class ArrayType; class ClassType; class VarDef;
-	class ClassDef;
-	class Expression; class OpExp; class LiteralExp;
-	class IntLiteral; class FloatLiteral; class BoolLiteral; class StrLiteral; class ArrayLiteral; class ClassLiteral;
-	class IdExp; class CallExp; class AccessExp; class VisitExp;
-	class Statement; class AssignStmt; class BlockStmt; class CallStmt; class IfStmt; class WhileStmt;
-	class ReturnStmt; class BreakStmt; class ContinueStmt;
-	class FuncProto;
-	class FuncDef;
 
 	enum AST_TYPE {
 		AT_VARDEF,
@@ -202,6 +192,7 @@ namespace sgs {
 		Expression *getArray() const { return array; }
 		Expression *getIndex() const { return index; }
 	};
+    class FuncProto;
 	class CallExp : public Expression {
 	private:
 		FuncProto * function;
