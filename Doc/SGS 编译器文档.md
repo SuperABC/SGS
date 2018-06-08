@@ -5,30 +5,28 @@
 ---
 ## 前言
 
-​	
+​    
 
 ### 项目概览
 
 ```mermaid
 graph TD
-	subgraph FrontEnd
-	A[SGS Code] ==>|Tokenizer| B[TokenStream]
-	B ==>|Parser| C[AST1 : without type info]
+    subgraph FrontEnd
+    A[SGS Code] ==>|Tokenizer| B[TokenStream]
+    B ==>|Parser| C[AST1 : without type info]
     C -->|C-Codegen| C1[C code]
     C -->|AST-Printer| C2[text AST]
-	end
-	subgraph BackEnd
-	C ==>|Transformer| D[AST2 : with type info]
-	D ==>|CodeGenerator| E[LLVM IR]
-	D -->|DotGenerator| F[DOT File]
-	end
-	subgraph LLVM
-	E ==>|llc| G[Executable File] 
-	E -->|lli| H[Interpreter]
-	end
+    end
+    subgraph BackEnd
+    C ==>|Transformer| D[AST2 : with type info]
+    D ==>|CodeGenerator| E[LLVM IR]
+    D -->|DotGenerator| F[DOT File]
+    end
+    subgraph LLVM
+    E ==>|llc| G[Executable File] 
+    E -->|lli| H[Interpreter]
+    end
 ```
-
-
 
 
 
@@ -36,9 +34,9 @@ graph TD
 
 ### SGS 语言简介
 
-​	SGS语言为一款轻量级程序设计语言，具有很强的可移植性和可扩展性。目前开发团队已经完成 SGS 编译器及解释器，使其可以覆盖各类应用场景的需求。
+SGS语言为一款轻量级程序设计语言，具有很强的可移植性和可扩展性。目前开发团队已经完成 SGS 编译器及解释器，使其可以覆盖各类应用场景的需求。
 
-​	在编译器前端，SGS 侧重编程语言与自然语言的相似度，使得 SGS 代码更接近于英语，从而可以让绝大多数人们可以理解其内部含义。在编译器后端，SGS 侧重对象的处理与类型系统的维护。在 SGS 中，非基本类型的变量全部作为对象处理。这样的好处是避免了指针的使用，从而让 SGS 代码更加安全。
+在编译器前端，SGS 侧重编程语言与自然语言的相似度，使得 SGS 代码更接近于英语，从而可以让绝大多数人们可以理解其内部含义。在编译器后端，SGS 侧重对象的处理与类型系统的维护。在 SGS 中，非基本类型的变量全部作为对象处理。这样的好处是避免了指针的使用，从而让 SGS 代码更加安全。
 
 ### SGS 语言语法
 
@@ -92,16 +90,16 @@ SGS语法与英语有很大相似度。
 
 ```mermaid
 graph TD
-	A[Abstract Syntax Tree] --> B[Expression]
-	A --> D[Func Definition]
-	A --> E[Func Prototype]
-	A --> C[Statement]
-	B --> F[Binary Operator Expression]
-	B --> G[Identifier Expression]
-	B --> H[...]
-	C --> I[Block Statement]
-	C --> J[While Statement]
-	C --> K[...]
+    A[Abstract Syntax Tree] --> B[Expression]
+    A --> D[Func Definition]
+    A --> E[Func Prototype]
+    A --> C[Statement]
+    B --> F[Binary Operator Expression]
+    B --> G[Identifier Expression]
+    B --> H[...]
+    C --> I[Block Statement]
+    C --> J[While Statement]
+    C --> K[...]
 ```
 
 AST 的结构和语言的定义是一一对应的，语言中的所有结构都会对应于抽象语法树中的一部分。AST1 保存了代码中的大部分有意义的信息，但没有根据代码**分析**出其它的信息，它的作用仅仅是作为一个序列化的代码片段传递到编译器后端。生成的 AST 可能包含许多错误的信息，例如在循环体外的 `break` 或 `continue` 等等，这些错误将在后面的语义分析中找到 。
@@ -114,18 +112,18 @@ AST2 和 SGS 编译器后端使用的类型系统类图如下：
 
 ```mermaid
 graph TD
-	S[Context]
-	S -.-> A[SType]
-	subgraph Type System
-	A --> B[SBasicType]
-	A --> C[SArrayType]
-	A --> D[STupleType]
-	end
-	subgraph LLVM Type
-	B -.-> E[Type*]
-	C -.-> E
-	D -.-> E
-	end
+    S[Context]
+    S -.-> A[SType]
+    subgraph Type System
+    A --> B[SBasicType]
+    A --> C[SArrayType]
+    A --> D[STupleType]
+    end
+    subgraph LLVM Type
+    B -.-> E[Type*]
+    C -.-> E
+    D -.-> E
+    end
 ```
 
 类似于 `LLVMContext` 的设计思路，这里所有的类型都由 `Context` 统一进行资源管理，并隐藏 `SType` 的构造函数使用户无法通过使用 `Context` 以外的方法获取到 `SType` 的示例，这也同时能够使类型的比较只需要比较进行指针比较而不需要通过复杂的递归。同时，建立了此类型系统与 LLVM 类型系统之间的映射。
@@ -136,19 +134,19 @@ AST2 的结构类似于 AST1， 但在 `Expression` 上标注了结果的类型�
 
 #### 词法分析
 
-​	SGS 词法分析由确定有限状态机完成。根据 SGS 语言特征，将输出的 token 流分为四类：关键字、用户标识符、操作符以及字面常量。
+SGS 词法分析由确定有限状态机完成。根据 SGS 语言特征，将输出的 token 流分为四类：关键字、用户标识符、操作符以及字面常量。
 
-​	词法分析器读入 SGS 源代码，将输入流连接至词法分析器，然后输出语法分析器所需的 token 流。
+词法分析器读入 SGS 源代码，将输入流连接至词法分析器，然后输出语法分析器所需的 token 流。
 
-​	确定有限状态机一共分为起始状态（接受状态）、读入标识符状态、读入数字状态以及读入符号状态。起始状态与接受状态等价，所以合并为一个状态。当读入一个字符时，进入读入标识符状态，当读入一个数字时，进入读入数字状态，当读入一个符号时，进入读入符号状态。读入标识符状态可能输出关键字或者用户标识符，读入数字状态可能输出数字常量，读入符号装固态可能输出符号或者字符串常量。
+确定有限状态机一共分为起始状态（接受状态）、读入标识符状态、读入数字状态以及读入符号状态。起始状态与接受状态等价，所以合并为一个状态。当读入一个字符时，进入读入标识符状态，当读入一个数字时，进入读入数字状态，当读入一个符号时，进入读入符号状态。读入标识符状态可能输出关键字或者用户标识符，读入数字状态可能输出数字常量，读入符号装固态可能输出符号或者字符串常量。
 
-​	为了加速词法分析的过程，在字符串匹配的时候分析器使用了哈希算法进行插入与查找，提高了词法分析的效率。
+为了加速词法分析的过程，在字符串匹配的时候分析器使用了哈希算法进行插入与查找，提高了词法分析的效率。
 
 #### 语法分析
 
-​	SGS语法分析使用LL(1)递归下降分析算法完成。
+SGS语法分析使用LL(1)递归下降分析算法完成。
 
-​	对于顶层语法分析，可用如下伪代码表示：
+对于顶层语法分析，可用如下伪代码表示：
 
 ```c++
 switch(token){
@@ -173,12 +171,10 @@ switch(token){
 }
 ```
 
-​	语法分析输出抽象语法树，我们定义SGS语法树结构如下：
+语法分析输出抽象语法树，我们定义SGS语法树结构如下：
 
 
-
-
- ### 编译器后端
+### 编译器后端
 
 #### 语义分析
 
@@ -190,7 +186,7 @@ class Env {
     std::map<string, sgs_backend::SType*> bindings;
 public:
     Env(Env* parent) : parent(parent) {}
-	void insert(const string& str, sgs_bakend::SType*);
+    void insert(const string& str, sgs_bakend::SType*);
     sgs_backend::SType* find(const string& str);
 };
 ```
@@ -203,12 +199,12 @@ public:
 
 语义分析中的一个关键就是对于类型的检查，由于运算符与函数调用被显式地分开了，所以这里需要完成的类型检查包括：
 
--   运算符类型检查
--   数组下标访问表达式类型检查
--   结构体成员访问表达式类型检查
--   `IfStatement` 条件类型检查
--   `WhileStatement` 条件类型检查
--   函数调用参数类型检查
+- 运算符类型检查
+- 数组下标访问表达式类型检查
+- 结构体成员访问表达式类型检查
+- `IfStatement` 条件类型检查
+- `WhileStatement` 条件类型检查
+- 函数调用参数类型检查
 
 因为 SGS 支持了整数类型之间的隐式类型转换，而没有支持浮点数和整数类型之间的隐式转换，所以在对运算符表达式进行类型检查时需要对浮点数和整数的运算抛出异常； `VisitExp` 需要保证访问的主体的类型为数组，而下标的类型必须为 `Integer` ；`AccessExp` 则要在结构体的复合类型中寻找访问的成员名字，如果没有找到也需要抛出异常。而函数的调用中一个需要考量的点是数组参数的处理方法。在检查类型是否匹配时将只检查数组元素类型而不考虑数组长度。
 
@@ -216,34 +212,34 @@ public:
 
 ```c++
 sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, Context& context) {
-	switch (op) {
-	case AND:
-	case OR:
-	case GT:
-	case LT:
-		return context.getBoolType();
-	case ADD:
-	case SUB:
-	case MUL:
-	case DIV: {
-		assert(lhs->getLevel() == Types::BASIC_TYPE);
-		assert(rhs->getLevel() == Types::BASIC_TYPE);
-		const auto ls = dynamic_cast<SBasicType*>(lhs);
-		const auto rs = dynamic_cast<SBasicType*>(rhs);
-		if (ls->getBasicType() == BasicType::FLOAT) {
-			return lhs;
-		}
-		if (ls->getBasicType() == BasicType::INTEGER || rs->getBasicType() == BasicType::INTEGER) {
-			return context.getIntType();
-		}
-		if (ls->getBasicType() == BasicType::CHAR || rs->getBasicType() == BasicType::CHAR) {
-			return context.getCharType();
-		}
-		return lhs;
-	}
-	default:
-		return nullptr;
-	}
+    switch (op) {
+    case AND:
+    case OR:
+    case GT:
+    case LT:
+        return context.getBoolType();
+    case ADD:
+    case SUB:
+    case MUL:
+    case DIV: {
+        assert(lhs->getLevel() == Types::BASIC_TYPE);
+        assert(rhs->getLevel() == Types::BASIC_TYPE);
+        const auto ls = dynamic_cast<SBasicType*>(lhs);
+        const auto rs = dynamic_cast<SBasicType*>(rhs);
+        if (ls->getBasicType() == BasicType::FLOAT) {
+            return lhs;
+        }
+        if (ls->getBasicType() == BasicType::INTEGER || rs->getBasicType() == BasicType::INTEGER) {
+            return context.getIntType();
+        }
+        if (ls->getBasicType() == BasicType::CHAR || rs->getBasicType() == BasicType::CHAR) {
+            return context.getCharType();
+        }
+        return lhs;
+    }
+    default:
+        return nullptr;
+    }
 }
 ```
 
@@ -255,46 +251,38 @@ sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, 
 
 #### 命令行 AST 输出
 
-​	单纯借助IDE（我们使用的是Visual Studio 2017）调试AST1将会困难重重，因为AST树已经存放在内存中，监视某一个AST树的结点需要进行多次强制变量转换才能获取所有细节。这种调试方法既繁琐，又十分容易在调试过程本身犯错。
+单纯借助IDE（我们使用的是Visual Studio 2017）调试AST1将会困难重重，因为AST树已经存放在内存中，监视某一个AST树的结点需要进行多次强制变量转换才能获取所有细节。这种调试方法既繁琐，又十分容易在调试过程本身犯错。
 
-​	因此为了让调试AST1的过程更为顺利，同时调试过程本身不出现错误，我们编写了一个命令行输出AST1树的调试工具。具体效果如下：
+因此为了让调试AST1的过程更为顺利，同时调试过程本身不出现错误，我们编写了一个命令行输出AST1树的调试工具。具体效果如下：
 
-![Alt text](/printAST.png "AST调试工具")
+![AST 调试工具](./printAST.png)
 
-​				      本句SGS语言源码为：`print an int with value lists[0]'s list[0].`
+_本句SGS语言源码为：`print an int with value lists[0]'s list[0].`_
 
-​	该工具遵循以下逻辑工作（工作思想类似于递归下降法）：
+该工具遵循以下逻辑工作（工作思想类似于递归下降法）：
 
-​	1、将通过语法分析拿到的AST“ 森林” 传入工具主函数，该森林存储在`vector<sgs::AST *>`这一容器中；
+1.  将通过语法分析拿到的AST“ 森林” 传入工具主函数，该森林存储在`vector<sgs::AST *>`这一容器中；
+2.  主函数依次访问容器中的每颗AST树，并分析每颗AST树；
+3.  主函数在分析一颗AST树时，将先分析该树的根结点的类型`sgs::astType`，以判断当前AST树是什么类型，然后进入不同的处理分支作更进一步分析；
+4.  在不同的子处理分支中，当前被分析的根结点将会被`dynamic_cast`为对应分支的类型，并调用相应的子处理函数打印根结点信息。在这之后子处理函数将继续分析根结点的2个child节点，过程类似于步骤3与步骤4。
 
-​	2、主函数依次访问容器中的每颗AST树，并分析每颗AST树；
+上述过程将递归进行，直至分析到最底层的AST结点（例如`sgs::BasicType`的对象）为止。
 
-​	3、主函数在分析一颗AST树时，将先分析该树的根结点的类型`sgs::astType`，以判断当前AST树是什么类型，然后进入不同的处理分支作更进一步分析；
+举例说明：如上图，工作过程如下：
 
-​	4、在不同的子处理分支中，当前被分析的根结点将会被`dynamic_cast`为对应分支的类型，并调用相应的子处理函数打印根结点信息。在这之后子处理函数将继续分析根结点的2个child节点，过程类似于步骤3与步骤4。
+1.  本调试工具会首先分析当前AST树的根结点，发现AST种类是`sgs::AST_TYPE::AT_STMT`，调试工具就会进入相应的处理分支
+2.  调试工具调用`void dealWithStmtType(sgs::AST *s);`处理当前结点. 将当前结点转化为`sgs::Statement *`后，检查`sgs::Statement::stmtType`，发现当前结点具体种类为`sgs::STMT_TYPE::ST_CALL`。
+3.  调试工具于是打印`stmtType: ST_CALL`，并设置缩进增加一格，然后分析当前结点的左child结点与右child结点，重复类似于步骤1、2、3的工作；
+4.  当调试工具递归分析到最底层的AST结点后，将只打印最底层的AST结点的信息，而不是试图继续分析左右child结点（因为不存在）；
+5.  当调试工具遵循上述4个步骤遍历完一整颗AST树后，该AST树的具体结构也通过命令行的形式可视化的打印出来，此时调试工具将转向分析下一棵AST树，直至`vector<sgs::AST *>`中所有的AST树均被遍历完毕。
 
-​	上述过程将递归进行，直至分析到最底层的AST结点（例如`sgs::BasicType`的对象）为止。
+借助上述调试工具，我们可以很清晰的看出存放在内存中的AST的结构，当AST存在错误的时候，可以一眼看出错误所在点，进而排除对应bug。
 
-​	举例说明：如效果图那样，工作过程如下：
-
-​	1、本调试工具会首先分析当前AST树的根结点，发现AST种类是`sgs::AST_TYPE::AT_STMT`，调试工具就会进入相应的处理分支；
-
-​	2、调试工具调用`void dealWithStmtType(sgs::AST *s);`处理当前结点. 将当前结点转化为`sgs::Statement *`后，检查`sgs::Statement::stmtType`，发现当前结点具体种类为`sgs::STMT_TYPE::ST_CALL`。
-
-​	3、调试工具于是打印`stmtType: ST_CALL`，并设置缩进增加一格，然后分析当前结点的左child结点与右child结点，重复类似于步骤1、2、3的工作；
-
-​	4、当调试工具递归分析到最底层的AST结点后，将只打印最底层的AST结点的信息，而不是试图继续分析左右child结点（因为不存在）；
-
-​	5、当调试工具遵循上述4个步骤遍历完一整颗AST树后，该AST树的具体结构也通过命令行的形式可视化的打印出来，此时调试工具将转向分析下一棵AST树，直至`vector<sgs::AST *>`中所有的AST树均被遍历完毕。
-
-​	借助上述调试工具，我们可以很清晰的看出存放在内存中的AST的结构，当AST存在错误的时候，可以一眼看出错误所在点，进而排除对应bug。
-
-​	
+​    
 
 #### 生成可执行 C 代码
 
 #### 生成 DOT 文件得到 AST2 图形显示
-
 
 
 ## 测试
