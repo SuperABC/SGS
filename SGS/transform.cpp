@@ -235,10 +235,8 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
             }
         }
         case sgs::VT_ARRAY: {
-            // TODO ?
         }
         case sgs::VT_CLASS: {
-            // TODO ?
         }
         default: 
             throw std::exception("unsupported literal type");
@@ -315,7 +313,7 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
     }
 }
 
-sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context& context, Env* env) {
+sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context& context, Env* env, bool inWhile) {
     switch (stmt->getStmtType()) {
     case sgs::ST_ASSIGN: {
         const auto ass = dynamic_cast<sgs::AssignStmt*>(stmt);
@@ -358,8 +356,8 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         const auto ct = dynamic_cast<sgs_backend::SBasicType*>(cond->getResType());
         if (ct->getBasicType() != sgs_backend::BasicType::BOOLEAN) {
             cond = new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::UniopExp(sgs_backend::NOT, cond, context), context);}
-        const auto pass = transformStmt(ifs->getTaken(), context, env);
-        const auto fail = transformStmt(ifs->getUntaken(), context, env);
+        const auto pass = transformStmt(ifs->getTaken(), context, env, inWhile);
+        const auto fail = transformStmt(ifs->getUntaken(), context, env, inWhile);
         return new sgs_backend::IfStmt(cond, pass, fail);
     }
     case sgs::ST_WHILE: {
@@ -372,7 +370,7 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         if (ct->getBasicType() != sgs_backend::BasicType::BOOLEAN) {
             cond = new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::UniopExp(sgs_backend::NOT, cond, context), context);
         }
-        const auto body = transformStmt(whs->getBody(), context, env);
+        const auto body = transformStmt(whs->getBody(), context, env, true);
         return new sgs_backend::WhileStmt(cond, dynamic_cast<sgs_backend::BlockStmt*>(body));
     }
     case sgs::ST_RETURN: {
@@ -380,9 +378,15 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         return new sgs_backend::ReturnStmt(new sgs_backend::IdExp("ret", val));
     }
     case sgs::ST_BREAK: {
+        if (!inWhile) {
+            throw std::exception("Break statement outside while statement");
+        }
         return new sgs_backend::BreakStmt();
     }
     case sgs::ST_CONTINUE: {
+        if (!inWhile) {
+            throw std::exception("Continue statement outside while statement");
+        }
         return new sgs_backend::ContinueStmt();
     }
     case sgs::ST_BLOCK: {
@@ -391,9 +395,9 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         Env* new_env = new Env(env);
         for (auto i : block->getContent()) {
             if (i->astType == sgs::AT_VARDEF) {
-                res.emplace_back(dynamic_cast<sgs_backend::Statement*>(transformAST(i, context, new_env)));
+                res.emplace_back(dynamic_cast<sgs_backend::Statement*>(transformAST(i, context, new_env, inWhile)));
             } else {
-                res.emplace_back(transformStmt(dynamic_cast<sgs::Statement*>(i), context, new_env));
+                res.emplace_back(transformStmt(dynamic_cast<sgs::Statement*>(i), context, new_env, inWhile));
             }
         }
         return new sgs_backend::BlockStmt(res);
@@ -403,7 +407,7 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
     }
 }
 
-sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env* env) {
+sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env* env, bool inWhile) {
     switch (ast->astType) {
     case sgs::AT_VARDEF: {
         const auto varDef = dynamic_cast<sgs::VarDef*>(ast);
@@ -424,7 +428,7 @@ sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env
     }
     case sgs::AT_STMT: {
         const auto stmt = dynamic_cast<sgs::Statement*>(ast);
-        return transformStmt(stmt, context, env);
+        return transformStmt(stmt, context, env, inWhile);
     }
     case sgs::AT_PROTO: {
         const auto proto = dynamic_cast<sgs::FuncProto*>(ast);
@@ -440,14 +444,14 @@ sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env
     }
     case sgs::AT_FUNC: {
         const auto func = dynamic_cast<sgs::FuncDef*>(ast);
-        const auto proto = dynamic_cast<sgs_backend::FuncProto*>(transformAST(func->getProto(), context, env));
+        const auto proto = dynamic_cast<sgs_backend::FuncProto*>(transformAST(func->getProto(), context, env, inWhile));
         const auto retTy = dynamic_cast<sgs_backend::FuncProto*>(proto)->getReturnType();
         Env* new_env = new Env(env);
         new_env->getBindings()["result"] = retTy;
         for (auto&& x : proto->getParam()) {
             new_env->getBindings()[x.second] = x.first;
         }
-        const auto block = dynamic_cast<sgs_backend::BlockStmt*>(transformAST(func->getBody(), context, new_env));
+        const auto block = dynamic_cast<sgs_backend::BlockStmt*>(transformAST(func->getBody(), context, new_env, inWhile));
         sgs_backend::LiteralExp* initValue = nullptr;
         if (retTy->getLevel() == sgs_backend::Types::BASIC_TYPE) {
             const auto bt = dynamic_cast<sgs_backend::SBasicType* const>(retTy);
@@ -487,11 +491,11 @@ sgs_backend::Content transform(vector<sgs::AST*>& cont1, sgs_backend::Context& c
         case sgs::AT_CLASS:
         case sgs::AT_VARDEF:
         case sgs::AT_FUNC:
-            content.push_back(transformAST(x, context, globalEnv));
+            content.push_back(transformAST(x, context, globalEnv, false));
             break;
         case sgs::AT_STMT:
         case sgs::AT_EXP:
-            mainStmt.push_back(dynamic_cast<sgs_backend::Statement*>(transformAST(x, context, mainEnv)));
+            mainStmt.push_back(dynamic_cast<sgs_backend::Statement*>(transformAST(x, context, mainEnv, false)));
             break;
         case sgs::AT_PROTO:
             break;

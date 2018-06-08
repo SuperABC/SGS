@@ -35,8 +35,8 @@ sgs_backend::SType* transformType(sgs::VarType* type, sgs_backend::Context& cont
 sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Context& context,
                                        Env* env);
 
-sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context& context, Env* env);
+sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context& context, Env* env, bool inWhile);
 
-sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env* env);
+sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env* env, bool inWhile);
 
 sgs_backend::Content transform(vector<sgs::AST*>& cont1, sgs_backend::Context& context);
