@@ -369,6 +369,94 @@ _本句SGS语言源码为：`print an int with value lists[0]'s list[0].`_
 
 #### 生成可执行 C 代码
 
+作为一个附加功能，我们还编写了一个附加工具：将SGS语言转化为C语言的工具`C-Codegen`。
+
+该工具转化出来的代码虽然是C++，但是转化完成代码仅使用了C++的部分语法糖，实质上仍然是个C代码。
+
+考虑到SGS语言在表面上更接近于python，转化成C代码时必须遵循下列规则转化：
+
+        1. 转化最开始，需要插入引用的头文件。为了方便起见，我们选择了一次性插入所有可能会用到的头文件；
+    2. 插入可能要用到的所有`using`；
+    3. 插入所有SGS内置的库函数对应的C语言翻译；
+    4. 所有的变量都是全局变量；
+    5. `int main()`函数外放置`class`的声明、`function`的声明和定义；
+    6. `int main()`函数内只能有表达式、语句；
+
+
+
+如果要进行语言转化，必定需要了解所给定AST树的所有结点的信息，而在命令行输出工具`printAST`正好拥有遍历AST树所有结点的功能。因此我们编写的该工具是以`printAST`的代码框架为基础，进行一定程度的改动编写而成的。
+
+与`printAST`不同，我们不需要打印AST树各结点信息，而是需要通过一定顺序访问AST树所有结点，并且每访问一个结点，我们就要将当前结点的信息以适当的方式插入到输出的`.cpp`文件中。
+
+该转化工具以如下逻辑工作：
+
+    1. 由于需要遵循规则转化（见规则5与规则6），所以本工具需要循环遍历两次AST“ 森林” ，第一次循环转化应该放在`int main()`函数外的语句，第二次循环转化放在`int main()`函数内的语句。工具根据每棵AST树的根结点的类型`sgs::astType`决定其应该在第一个循环还是第二个循环转化；
+
+​    2. 对于每个AST树，遍历每个结点，获取信息，再以适当的C语法规定的顺序排列，输出到`.cpp`文件中。
+
+转化样例：
+
+```c++
+new class list with integer name, integer array 10 list.
+let list one.
+let one's list[0] be 1.
+print an int with value one's list[0].
+let list array 10 lists.
+let lists[0]'s list[0] be 2.
+print an int with value lists[0]'s list[0].
+```
+
+```c++
+#include <iostream>
+#include <string>
+#include <cstdio>
+using std::string;
+
+void print_an_int(int a){
+    printf("%d\n", a);
+}
+
+void print_a_number(double a){
+    printf("%lf\n", a);
+}
+
+void print_a_bool(bool a){
+    if(a == true)
+        std::cout << "true" << std::endl;
+    else
+        std::cout << "false" << std::endl;
+}
+
+void print_a_str(std::string a){
+    std::cout << a << std::endl;
+}
+
+float intToFloat(int a) {
+    return a;
+}
+
+int floatToInt(float a) {
+    return a;
+}
+
+class list{
+public:
+    int name;
+    int list[10];
+};
+list one;
+list lists[10];
+int main() {
+    one.list[0] = 1;
+    print_an_int(one.list[0]);
+    lists[0].list[0] = 2;
+    print_an_int(lists[0].list[0]);
+    return 0;
+}
+```
+
+
+
 #### 生成 DOT 文件得到 AST2 图形显示
 
 
