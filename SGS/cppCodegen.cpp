@@ -92,25 +92,41 @@ void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
     for (int i = 0; i < count; ++i) {
         sgs::VarType *currentMember = classElements[i].first;
         switch (currentMember->getVarType()) {
-        case VAR_TYPE::VT_BASIC: translateBasicType(currentMember, fout); break;
+        case VAR_TYPE::VT_BASIC: 
+		{
+			translateBasicType(currentMember, fout);
+			fout << classElements[i].second << ";" << std::endl;
+			break;
+		}
         case VAR_TYPE::VT_ARRAY:
         {
             VAR_TYPE type = translateArrayType(currentMember, fout);
             string currentName = classElements[i].second;
             if (VAR_TYPE::VT_BASIC == type) {
-                fout << currentName << "[]";
-            } else if (VAR_TYPE::VT_ARRAY == type) {
-                fout << currentName << "[][]";
-            } else if (VAR_TYPE::VT_CLASS == type) {
-                fout << cppTab(cppDepth) << dynamic_cast<sgs::ClassType *>(currentMember)->getName() << ' ';
-                fout << currentName << "[]";
+				int length;
+				length = dynamic_cast<sgs::ArrayType *>(currentMember)->getLength();
+                fout << currentName << "[" << length << "];" << std::endl;
+            } 
+			else if (VAR_TYPE::VT_ARRAY == type) {
+                fout << currentName << "[][];";
+            } 
+			else if (VAR_TYPE::VT_CLASS == type) {
+				int length;
+				length = dynamic_cast<sgs::ArrayType *>(currentMember)->getLength();
+				fout << cppTab(cppDepth) << dynamic_cast<sgs::ClassType *>(currentMember)->getName() << ' ';
+                fout << currentName << "[" << length << "];" << std::endl;
             }
             break;
         }
-        case VAR_TYPE::VT_CLASS: translateClassType(currentMember, fout); break;
+        case VAR_TYPE::VT_CLASS: 
+		{
+			translateClassType(currentMember, fout); 
+			fout << classElements[i].second << ";" << std::endl;
+			break;
+		}
         default:break;
         }
-        fout << classElements[i].second << ";" << std::endl;
+        
     }
     fout << "};" << std::endl;
     cppDepth--;
@@ -445,10 +461,12 @@ void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstrea
                 } else {
                     fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
                 }
-            } else if (VAR_TYPE::VT_ARRAY == type) {
+            } 
+			else if (VAR_TYPE::VT_ARRAY == type) {
                 fout << currentName << "[][]";
-            } else if (VAR_TYPE::VT_CLASS == type) {
-                fout << dynamic_cast<sgs::ClassType *>(currentStmt->getDecType())->getName() << ' ';
+            } 
+			else if (VAR_TYPE::VT_CLASS == type) {
+                fout << dynamic_cast<sgs::ClassType *>(dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getEleType())->getName() << ' ';
                 fout << currentName << "[" << dynamic_cast<sgs::ArrayType *>(currentStmt->getDecType())->getLength() << "]";
             }
             break;
