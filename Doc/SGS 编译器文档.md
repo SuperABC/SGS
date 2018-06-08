@@ -326,11 +326,238 @@ int sum(int a, int b) {
 
 可以看到，这里发生的变换是非常清晰、直接的，这对于我们生成从 AST2 生成 LLVM IR 也会带来很大的帮助。
 
-##### LLVM C++ API 
+##### 使用 LLVM C++ API 生成代码 
 
-LLVM 本身提供了一套完善的 API 用来创建/优化/维护 LLVM IR 。
+LLVM 本身提供了一套完善的 API 用来创建/优化/维护 LLVM IR 。这里我们不对其本身进行介绍，只会提到它的一些使用方法。
 
-// TODO
+首先需要一个支持嵌套的符号表：
+
+```c++
+class Environment {
+    Environment* parent;
+    map<string, Value*> bindings;
+    public:
+    explicit Environment(Environment* parent = nullptr) : parent(parent) {}
+    Value* operator [] (const string& str) {
+        auto temp = this;
+        while (temp) {
+            if (temp->bindings.find(str) != temp->bindings.end()) {
+                return temp->bindings[str];
+            }
+            temp = temp->parent;
+        }
+        return nullptr;
+    }
+    void insert(const string& str, Value* val) {
+        bindings[str] = val;
+    }
+    static Environment* derive(Environment* env) {
+        return new Environment(env);
+    }
+};
+```
+
+全局空间的 `Environment` 的 `parent` 是 `nullptr` ，我们可以通过这个特征来判断变量定义的局部性。
+
+然后是一些在代码生成过程中全程需要使用到的东西：
+
+```c++
+namespace sgs_backend {
+using namespace llvm;
+static map<string, Type*> typeReference;
+static map<string, Function*> funcReference;
+static LLVMContext theContext;
+static Module* theModule;
+static IRBuilder<> builder(theContext);
+static Environment* globalEnv;
+}
+```
+
+`LLVMContext` 在单个线程内用来管理其 `llvm::Type` 的资源获取和释放。因为 SGS 编译器暂时只支持单文件编译，所以这里只需要一个 `Module` 来存放所有的 Global Definition。 `typeReference` 和 `funcReference` 用来保存顶层定义的类型和函数。 `builder` 是一个 `llvm::IRBuilder` ，用来生成相应的指令。
+
+对于顶层中会出现的语句，会分别按以下方法进行翻译：
+
+1.  类型定义
+
+顶层的类型定义仅包括结构体 (class) 定义，与其相对应的是 `llvm::StructType` ，所以可以通过 `llvm::StructType::Create` 来在 `theContext` 中创建一个署名结构类型：
+
+```c++
+Type* toLLVMType(LLVMContext& context, const map<string, Type*>& typeReference) const override {
+    if (typeReference.find(name) != typeReference.end()) {
+        return typeReference.find(name)->second;
+    }
+    vector<Type*> res;
+    for (auto && type : types) {
+        res.push_back(type.second->toLLVMType(context, typeReference));
+    }
+    return StructType::create(context, res, name);
+}
+```
+
+2.  函数定义
+
+函数的翻译需要先通过函数的原型 (Prototype) 得到函数的类型，在这里是一个 `llvm::FunctionType` ：
+
+```c++
+FunctionType* FuncProto::getLLVMType(LLVMContext& context, const map<string, Type*>& typeReference) const {
+    vector<Type*> res;
+    for (const auto& x : paramList) {
+        res.push_back(getParamType(x.first, context, typeReference));
+    }
+    return FunctionType::get(returnType->toLLVMType(context, typeReference), res, false);
+}
+```
+
+然后通过 `llvm::Function::Create` 来在 `theModule` 中创建一个新函数，并在 `funcReference` 中添加新函数
+
+```c++
+Function* fun = Function::Create(
+    funType, 
+    GlobalValue::ExternalLinkage, 
+    funDef->getProto()->getName(), 
+    theModule
+);
+funcReference[funDef->getProto()->getName()] = fun;
+```
+
+紧接着为函数添加第一个 `BasicBlock` ，并命名其入口为 `entry` 、将 `builder` 的插入点设置为此 `BasicBlock` 
+
+```c++
+BasicBlock* funBB = BasicBlock::Create(theContext, "entry", fun);
+builder.SetInsertPoint(funBB);
+```
+
+由于结构体类型传参是传引用，在这里也就是 `const` 指针；而其他参数则需要单独声明一个变量，然后将作为函数参数的值存进来。
+
+```c++
+for (const auto& x : funDef->getProto()->getParam()) {
+    if (x.first->getLevel() != Types::TUPLE_TYPE) {
+        const auto temp = builder.CreateAlloca(iter->getType(), 0, nullptr, x.second);
+        env->insert(x.second, temp);
+        builder.CreateStore(iter, temp);
+        iter++;
+    } else {
+        iter->setName(x.second);
+        env->insert(x.second, iter);
+        iter++;
+    }
+}
+```
+
+最后则开始翻译函数的主体，也就是一个 `BlockStatement` 
+
+3.  全局变量定义
+
+为了使数组参数不会因为长度而被限制，生成的 LLVM IR 中所有与数组相关的操作都将会使用数组头指针代替整个数组，这样使得每个数组的定义都需要单独定义另外一个变量，用来保存数组头指针。
+
+```c++
+if (tp->getLevel() == Types::ARRAY_TYPE){ // complex type global variable definition
+    const auto aryTp = dynamic_cast<SArrayType*>(tp);
+    Constant* res = new GlobalVariable(
+        *theModule,
+        aryTp->toLLVMType(theContext, typeReference),
+        false, 
+        GlobalValue::CommonLinkage,
+        ConstantAggregateZero::get(aryTp->toLLVMType(theContext, typeReference)),
+        glbVarDef->getName() + ".array");
+    Constant* get = ConstantExpr::getInBoundsGetElementPtr(
+        aryTp->toLLVMType(theContext, typeReference),
+        res, vector<Constant*>({
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0)) ,
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0))
+        }));
+    const auto temp = new GlobalVariable(
+        *theModule,
+        aryTp->getElementType()->toLLVMType(theContext, typeReference)->getPointerTo(0),
+        false, 
+        GlobalValue::InternalLinkage, 
+        get, 
+        glbVarDef->getName());
+    return globalEnv->getBindings()[glbVarDef->getName()] = temp;
+}
+```
+
+生成的所有全局变量都将用 0 进行初始化。
+
+考虑到对于字符串字面量的支持，我们在翻译时开了一个洞。我们设置了一个单独的 AST 类型用来表示常量字符串，它仅能出现在赋值表达式的右边，且左边是一个长度不小于其的 `char` 数组。这一条语句会被翻译成一次对 `strcpy` 的调用：
+
+```c++
+if (ass->getRigth()->getExpType() == ET_CONSTR) { // deal with string assignment seperately
+    Value* lhs = exprCodegen(ass->getLeft(), env);
+    string conStr = dynamic_cast<ConstString*>(ass->getRigth())->getStr();
+    Type* strType = ArrayType::get(Type::getInt8Ty(theContext), conStr.length() + 1);
+    Constant* constStr = ConstantDataArray::getString(theContext, conStr);
+    GlobalVariable* constStrv = new GlobalVariable(
+        *theModule,
+        strType,
+        true,
+        GlobalValue::PrivateLinkage,
+        constStr,
+        conStr + ".str"
+    );
+    Value* strPtr = builder.CreateLoad(lhs, "str.ptr");
+    Value* conStrPtr = builder.CreateInBoundsGEP(
+        constStrv,
+        { 
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0)) ,
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0))},
+        "const.str.ptr"
+    );
+    return builder.CreateCall(funcReference["strcpy"], { strPtr, conStrPtr });
+}
+```
+
+整数类型的隐式转换在二元运算符的翻译过程中随处可见，这里使用了一个函数用来将运算符两边的变量提升到同一个整数位宽上：
+
+```c++
+inline void integerTypeExtension(Value*& lhs, Value*& rhs) {
+    const auto tl = dyn_cast<IntegerType>(lhs->getType());
+    const auto tr = dyn_cast<IntegerType>(rhs->getType());
+    if (tl->getBitWidth() < tr->getBitWidth()) {
+        lhs = builder.CreateSExt(lhs, tr, "sext.temp");
+    } else if (tl->getBitWidth() > tr->getBitWidth()) {
+        rhs = builder.CreateSExt(rhs, tl, "sext.temp");
+    }
+}
+```
+
+对于控制流语句 `IfStatement` 和 `WhileStatement` ，只需要创建新的 `BasicBlock` 和 有/无 条件跳转语句即可完成翻译。下面是用来翻译 `IfStatement` 的代码。首先通过 `builder` 来获取
+
+```c++
+case ST_IF: {
+    Function* fun = builder.GetInsertBlock()->getParent();
+    const auto ifs = dynamic_cast<IfStmt*>(stmt);
+    Value* cond = exprCodegen(ifs->getCond(), env);
+    if (!cond) {
+        std::cerr << "Translation error : at IfStmt, condition translation is failed" << std::endl;
+        return nullptr;
+    }
+    if (cond->getType()->isPointerTy()) {
+        cond = builder.CreateLoad(cond, "if.cond.load");
+    }
+    BasicBlock* taken = BasicBlock::Create(theContext, "if.take", fun);
+    BasicBlock* untaken = BasicBlock::Create(theContext, "if.fail");
+    BasicBlock* merge = BasicBlock::Create(theContext, "if.merge");
+    builder.CreateCondBr(cond, taken, untaken);
+    builder.SetInsertPoint(taken);
+    stmtCodegen(ifs->getPass(), env, cont, bk);
+    builder.CreateBr(merge);
+
+    fun->getBasicBlockList().push_back(untaken);
+    builder.SetInsertPoint(untaken);
+    stmtCodegen(ifs->getFail(), env, cont, bk);
+    const auto res = builder.CreateBr(merge);
+
+    fun->getBasicBlockList().push_back(merge);
+    builder.SetInsertPoint(merge);
+
+    return res;
+}
+```
+
+
+
+
 
 
 
