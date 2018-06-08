@@ -182,9 +182,74 @@ switch(token){
 
 #### 语义分析
 
+经过编译器前端得到的 AST1 中仅仅保存了每个出现的标识符的名字，在语义分析阶段中，我们将对每一个词法作用域（在这里包括所有的 `Block` 和全局空间）建立一个符号表 `Env` 用来保存变量的类型 ：
 
+```c++
+class Env {
+    Env* parent;
+    std::map<string, sgs_backend::SType*> bindings;
+public:
+    Env(Env* parent) : parent(parent) {}
+	void insert(const string& str, sgs_bakend::SType*);
+    sgs_backend::SType* find(const string& str);
+};
+```
+
+由于词法作用域本身是一个嵌套的结构，所以每个环境都会保存它的父环境用来实现跨域访问。同时，通过这种方法也能够实现不同作用域的变量 shadow 。
+
+语义分析是与 AST 转换同时进行的，由于 SGS 本身支持全局作用域下的 `Statement` ，而 LLVM IR 则是通过 `main` 函数入口来执行代码，所以这里需要创建一个单独的 `main` 函数，并将顶层空间中的 `Statement` 全部放在 `main` 函数的 `body` 中。同时，为了消除 `result` 作为函数返回值的语法糖，在创建函数的时候，会在函数的 `body` 的头部插入一个变量定义，并对所有的 `Return Statement` 增加 `result` 这个值。
+
+##### 类型检查
+
+语义分析中的一个关键就是对于类型的检查，由于运算符与函数调用被显式地分开了，所以这里需要完成的类型检查包括：
+
+-   运算符类型检查
+-   数组下标访问表达式类型检查
+-   结构体成员访问表达式类型检查
+-   `IfStatement` 条件类型检查
+-   `WhileStatement` 条件类型检查
+-   函数调用参数类型检查
+
+因为 SGS 支持了整数类型之间的隐式类型转换，而没有支持浮点数和整数类型之间的隐式转换，所以在对运算符表达式进行类型检查时需要对浮点数和整数的运算抛出异常； `VisitExp` 需要保证访问的主体的类型为数组，而下标的类型必须为 `Integer` ；`AccessExp` 则要在结构体的复合类型中寻找访问的成员名字，如果没有找到也需要抛出异常。而函数的调用中一个需要考量的点是数组参数的处理方法。在检查类型是否匹配时将只检查数组元素类型而不考虑数组长度。
+
+针对类型转换，我们对二元运算符得到的结果类型单独使用了一个函数进行类型提升：
+
+```c++
+sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, Context& context) {
+	switch (op) {
+	case AND:
+	case OR:
+	case GT:
+	case LT:
+		return context.getBoolType();
+	case ADD:
+	case SUB:
+	case MUL:
+	case DIV: {
+		assert(lhs->getLevel() == Types::BASIC_TYPE);
+		assert(rhs->getLevel() == Types::BASIC_TYPE);
+		const auto ls = dynamic_cast<SBasicType*>(lhs);
+		const auto rs = dynamic_cast<SBasicType*>(rhs);
+		if (ls->getBasicType() == BasicType::FLOAT) {
+			return lhs;
+		}
+		if (ls->getBasicType() == BasicType::INTEGER || rs->getBasicType() == BasicType::INTEGER) {
+			return context.getIntType();
+		}
+		if (ls->getBasicType() == BasicType::CHAR || rs->getBasicType() == BasicType::CHAR) {
+			return context.getCharType();
+		}
+		return lhs;
+	}
+	default:
+		return nullptr;
+	}
+}
+```
 
 #### 代码生成
+
+// TODO
 
 ### 辅助工具
 
@@ -229,6 +294,8 @@ switch(token){
 #### 生成可执行 C 代码
 
 #### 生成 DOT 文件得到 AST2 图形显示
+
+
 
 ## 测试
 

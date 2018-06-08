@@ -448,7 +448,25 @@ sgs_backend::AST* transformAST(sgs::AST* ast, sgs_backend::Context& context, Env
             new_env->getBindings()[x.second] = x.first;
         }
         const auto block = dynamic_cast<sgs_backend::BlockStmt*>(transformAST(func->getBody(), context, new_env));
-        block->getContent().insert(block->getContent().begin(), new sgs_backend::VarDefStmt(retTy, nullptr, "result"));
+        sgs_backend::LiteralExp* initValue = nullptr;
+        if (retTy->getLevel() == sgs_backend::Types::BASIC_TYPE) {
+            const auto bt = dynamic_cast<sgs_backend::SBasicType* const>(retTy);
+            switch (bt->getBasicType()) {
+            case sgs_backend::BasicType::INTEGER:
+                initValue = sgs_backend::getLiteral(0, context);
+                break;
+            case sgs_backend::BasicType::FLOAT:
+                initValue = sgs_backend::getLiteral(0.0, context);
+                break;
+            case sgs_backend::BasicType::BOOLEAN:
+                initValue = sgs_backend::getLiteral(false, context);
+                break;
+            case sgs_backend::BasicType::CHAR:
+                initValue = sgs_backend::getLiteral('\0', context);
+            default: ;
+            }
+        } 
+        block->getContent().insert(block->getContent().begin(), new sgs_backend::VarDefStmt(retTy, initValue, "result"));
         block->getContent().push_back(new sgs_backend::ReturnStmt(new sgs_backend::IdExp("result", retTy)));
         return new sgs_backend::FuncDef(proto, block);
     }
