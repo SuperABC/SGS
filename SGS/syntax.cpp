@@ -258,7 +258,22 @@ void SgsSyntax::parse() {
 		else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_DOT) {
             proc++;
             continue;
-        } 
+        }
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
+			proc++;
+			error("return", SGS_SE_INCOMPLETE);
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_BREAK) {
+			proc++;
+			error("break", SGS_SE_INCOMPLETE);
+			continue;
+		}
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_REDO) {
+			proc++;
+			error("redo", SGS_SE_INCOMPLETE);
+			continue;
+		}
 		else {
             error("", SGS_SE_UNKNOWN);
             skipLine();
