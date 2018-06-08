@@ -33,6 +33,7 @@ int floatToInt(float a) {
 string x;
 int main() {
     x = "123";
+    break;
     x[0] = (x[0] + 1);
     print_a_str(x);
     return 0;

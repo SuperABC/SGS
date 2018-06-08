@@ -278,7 +278,61 @@ sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, 
 
 #### 代码生成
 
+代码生成是编译器中最为核心的一部分，它揭示了从一门语言到另一门语言之间的映射关系。只有在对这两种语言都有着充分的了解之后才能找出这种映射关系。
+
+我们选择的目标语言是 LLVM IR，所以这里我们会简单介绍 LLVM IR 的语法并讲解 LLVM C++ API 、LLVM IR 、AST2 之间的对应关系。
+
+##### LLVM IR
+
+>   LLVM is a Static Single Assignment (SSA) based representation that provides type safety, low-level operations, flexibility, and the capability of representing ‘all’ high-level languages cleanly. It is the common code representation used throughout all phases of the LLVM compilation strategy. 
+
+一份 LLVM IR 代码由若干 `Module` 组成，对应着 C/C++ 中的一份（头）文件。每个 `Module` 中包含了一系列 Global Definitions， 包括各种函数声明/定义、全局变量定义、LLVM 元数据等。LLVM IR 和 C 语言类似，需要定义名为 `@main()` 的入口函数用以执行其内容。 LLVM IR 的 `Function` 由若干 `BasicBlock` 组成，每个 `BasicBlock` 会有一个入口 `label` ， 包含若干条 `Instruction` ，并且 `BasicBlock` 的最后一条 `Instruction` 一定是一条跳转指令，反之亦然。 
+
+LLVM IR 的类型系统作为一门底层的语言而说是非常强大的。 它支持任意 `bitsize` 的整数类型，数种小数类型，多个类型组成的 tuple ，以及数组、向量类型和指针等。足以覆盖我们的需求。在没有支持 垃圾收集 的情况下， LLVM IR 支持在栈上进行内存分配并得到相应类型的指针。
+
+下面是一段典型的 LLVM IR 代码
+
+```llvm
+declare i32 @sum(i32 %a, i32 %b) {
+entry:
+    %a.param = alloca i32
+    %b.param = alloca i32
+    store i32 %a, i32* %a.param
+    store i32 %b, i32* %b.param
+    %a.value = load i32, i32* %a.param
+    %b.value = load i32, i32* %b.param
+    %add.res = add i32 %a.value, %b.value
+    ret i32 %add.res
+}
+```
+
+与其对应的 C 语言代码是
+
+```c
+int sum(int a, int b) {
+    return a + b;
+}
+```
+
+首先是 `declare i32 @sum(i32 %a, i32 %b)` 描述了函数的返回值类型，两个参数的类型和名字。
+
+第二行的 `entry:` 声明了一个类型为 `label` ，名字为 `%entry` 的值作为函数的第一个 `BasicBlock` 的标签。
+
+三四行使用 `alloca` 指令在 `@sum` 的栈空间中开出了两个 `i32` 的空间用来保存可变的形参 `a` 和 `b` 。
+
+五六行使用 `store` 在刚才获取的空间中保存参数的值来为形参初始化。
+
+下面开始对应于 C 语言中函数的正文：`return a + b;` 。这条语句中包含了两次从左值到右值的隐式转换，所以需要两次 `load` 指令来获取 `a` 和 `b` 的值。接下来通过 `add` 指令计算出它们的和，最终使用 `ret` 指令结束了这个 `BasicBlock` ，同时结束了这个 `Function` 。 
+
+可以看到，这里发生的变换是非常清晰、直接的，这对于我们生成从 AST2 生成 LLVM IR 也会带来很大的帮助。
+
+##### LLVM C++ API 
+
+LLVM 本身提供了一套完善的 API 用来创建/优化/维护 LLVM IR 。
+
 // TODO
+
+
 
 ### 辅助工具
 
