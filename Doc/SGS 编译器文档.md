@@ -630,9 +630,9 @@ case ST_VARDEF: {
 
 #### 命令行 AST 输出
 
-单纯借助IDE（我们使用的是Visual Studio 2017）调试AST1将会困难重重，因为AST树已经存放在内存中，监视某一个AST树的结点需要进行多次强制变量转换才能获取所有细节。这种调试方法既繁琐，又十分容易在调试过程本身犯错。
+单纯借助IDE（我们使用的是Visual Studio 2017）调试AST1将会困难重重，因为AST树已经存放在内存中，监视某一个AST树的结点变量需要进行多次强制变量转换才能获取所有细节。这种调试方法既繁琐，又十分容易在调试过程本身犯错。
 
-因此为了让调试AST1的过程更为顺利，同时调试过程本身不出现错误，我们编写了一个命令行输出AST1树的调试工具。具体效果如下：
+因此为了让调试AST1的过程更为顺利，同时为了保证调试过程本身不出现错误，我们编写了一个命令行输出AST1树的调试工具`printAST`。具体效果如下：
 
 ![AST 调试工具](./printAST.png)
 
@@ -649,8 +649,8 @@ _本句SGS语言源码为：`print an int with value lists[0]'s list[0].`_
 
 举例说明：如上图，工作过程如下：
 
-1.  本调试工具会首先分析当前AST树的根结点，发现AST种类是`sgs::AST_TYPE::AT_STMT`，调试工具就会进入相应的处理分支
-2.  调试工具调用`void dealWithStmtType(sgs::AST *s);`处理当前结点. 将当前结点转化为`sgs::Statement *`后，检查`sgs::Statement::stmtType`，发现当前结点具体种类为`sgs::STMT_TYPE::ST_CALL`。
+1.  本调试工具会首先分析当前AST树的根结点，发现AST种类是`sgs::AST_TYPE::AT_STMT`，调试工具就会进入相应的处理分支；
+2.  调试工具调用`void dealWithStmtType(sgs::AST *s);`处理当前结点. 将当前结点转化为`sgs::Statement *`后，检查`sgs::Statement::stmtType`，发现当前结点具体种类为`sgs::STMT_TYPE::ST_CALL`；
 3.  调试工具于是打印`stmtType: ST_CALL`，并设置缩进增加一格，然后分析当前结点的左child结点与右child结点，重复类似于步骤1、2、3的工作；
 4.  当调试工具递归分析到最底层的AST结点后，将只打印最底层的AST结点的信息，而不是试图继续分析左右child结点（因为不存在）；
 5.  当调试工具遵循上述4个步骤遍历完一整颗AST树后，该AST树的具体结构也通过命令行的形式可视化的打印出来，此时调试工具将转向分析下一棵AST树，直至`vector<sgs::AST *>`中所有的AST树均被遍历完毕。
@@ -667,12 +667,12 @@ _本句SGS语言源码为：`print an int with value lists[0]'s list[0].`_
 
 考虑到SGS语言在表面上更接近于python，转化成C代码时必须遵循下列规则转化：
 
-1. 转化最开始，需要插入引用的头文件。为了方便起见，我们选择了一次性插入所有可能会用到的头文件
-2. 插入可能要用到的所有`using`
+1. 转化最开始，需要插入引用的头文件。为了方便起见，我们选择了一次性插入所有可能会用到的头文件；
+2. 插入可能要用到的所有`using`；
 3. 插入所有SGS内置的库函数对应的C语言翻译
-4. 顶层的变量都是全局变量
-5. `int main()`函数外放置`class`的声明、`function`的声明和定义
-6. `int main()`函数内只能有表达式、语句；
+4. 顶层的变量都是全局变量；
+5. `int main()`函数外放置`class`的声明、`function`的声明和定义；
+6. `int main()`函数内只能有表达式、语句。
 
 
 如果要进行语言转化，必定需要了解所给定AST树的所有结点的信息，而在命令行输出工具`printAST`正好拥有遍历AST树所有结点的功能。因此我们编写的该工具是以`printAST`的代码框架为基础，进行一定程度的改动编写而成的。
@@ -697,7 +697,7 @@ let lists[0]'s list[0] be 2.
 print an int with value lists[0]'s list[0].
 ```
 
-生成的代码为
+生成的代码为:
 
 ```c++
 #include <iostream>
