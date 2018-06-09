@@ -14,3 +14,4 @@
 *.db-wal
 SGS/*.png
 *.TMP
+*.sbr
