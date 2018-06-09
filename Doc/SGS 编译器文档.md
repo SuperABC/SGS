@@ -175,6 +175,61 @@ AST2 的结构类似于 AST1， 但在 `Expression` 上标注了结果的类型�
 
 ​	SGS语法分析使用LL(1)递归下降分析算法完成。
 
+​	首先定义数据结构。
+
+​	对于类型系统，我们定义     `class VarType` 为所有类型的基类。然后，定义三种继承类：`class BasicType` 、 `class ArrayType` 、 `class ClassType` 。其中BasicType为基础类型，包括整形、浮点型、布尔型、字符型和字符串型。ArrayType为数组类型，ClassType为结构类型。由于SGS中我们避免了指针的使用，所以在赋值及参数传递的时候，只有基础类型会按值传递，数组和结构均按引用传递。这样的好处在于代码更加安全，不存在直接访问随机地址的可能性。
+
+​	对于AST，我们定义 `class AST` 为抽象语法树所有节点的基类。对于该抽象语法树基类，我们又如下继承类： `class VarDef` (变量声明)、 `class ClassDef` (类声明)、 `class Statement` (语句)、 `class Expression` (表达式)、 `class FuncProto` (函数声明)、 `class FuncDef` (函数定义)。其中Statement类包含更多继承类： `class AssignStmt` (赋值语句)、 `class BlockStmt` (语句块)、 `class CallStmt` (函数调用语句)、 `class IfStmt` (分支语句)、 `class WhileStmt` (循环语句)、 `class ReturnStmt` (返回语句)、 `class BreakStmt` (跳出语句)、 `class ContinueStmt` (重做语句)。Expression类也包含很多继承类： `class OpExp` (二元操作符表达式)、 `class LiteralExp` (字面量表达式)、 `class IdExp` (用户标识符表达式)、 `class Access` (类成员表达式)、 `class VisitExp` (数组元素表达式)、 `class CallExp` (函数调用表达式)。
+
+​	如此定义SGS的AST数据结构，对其多态操作非常有利。在处理的过程中很多节点可以进行上溯造型，将其作为父类节点指针进行操作。这样，语法分析部分的代码逻辑更加清晰，更加容易理解。
+
+```mermaid
+graph TD
+
+	AST
+	AST --> VarDef
+	AST --> ClassDef
+	AST --> Statement
+	AST --> Expression
+	AST --> FuncProto
+	AST --> FuncDef
+
+
+
+```
+
+```mermaid
+graph TD
+	
+	Statement --> AssignStmt
+	Statement --> BlockStmt
+	Statement --> CallStmt
+	Statement --> IfStmt
+	Statement --> WhileStmt
+	Statement --> ReturnStmt
+	Statement --> BreakStmt
+	Statement --> ContinueStmt
+
+
+```
+
+```mermaid
+graph TD
+
+	Expression --> OpExp
+	Expression --> LiteralExp
+	Expression --> IdExp
+	Expression --> AccessExp
+	Expression --> VisitExp
+	Expression --> CallExp
+
+
+```
+
+
+
+
+
 ​	对于顶层语法分析，可用如下伪代码表示：
 
 ```c++
