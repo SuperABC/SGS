@@ -2,6 +2,6 @@ new function f1.
 new function f2.
 start f2.
     f1.
-ene f2.
+end f2.
 start f1.
 end f1.

@@ -114,5 +114,8 @@
     </None>
     <None Include="ClassDiagram.cd" />
     <None Include="ClassDiagram1.cd" />
+    <None Include="test7.sgs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

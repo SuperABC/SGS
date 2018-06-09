@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     string inputFilename = InputFilename.getValue();
     string inputFilenameWithoutExt = getNameWithoutExt(inputFilename);
 
-    std::ifstream fin(inputFilename);
+    std::ifstream fin("test7.sgs");
     
     if (!fin.good()) {
         std::cerr << "Cannot open file : " + inputFilename << std::endl;
