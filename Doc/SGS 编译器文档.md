@@ -9,6 +9,8 @@
 
 ### 项目概览
 
+项目架构如下图所示。编译器前端读取代码，对代码进行词法分析、语法分析，提供不含有类型标注的抽象语法树给编译器后端。后端对抽象语法树添加类型标注并检查语法树结构，将语法树生成为可正确执行的 LLVM IR。编译器前后端之间高内聚低耦合，后端可以适配多种类 C 语法的语言的代码生成。以 LLVM IR 为目标语言可以借助 LLVM 这一平台轻松的实现多种汇编代码的生成以及平台无关/有关的代码优化，同时也可以与其它语言在 LLVM IR 层面上实现相互调用或者 FFI ，从而使语言本身获得更加强大的适配性。
+
 ```mermaid
 graph TD
     subgraph FrontEnd
@@ -28,7 +30,34 @@ graph TD
     end
 ```
 
+### 编译器命令行接口
 
+编译器可执行文件名字默认为 `sgs.exe` 。将其添加到 PATH 后可以在命令行中调用其功能。一些扩展功能需要用户环境中包含相应的工具。下面是它的命令行帮助界面：
+
+```
+λ sgs -help
+USAGE: sgs [options] <input file>
+
+OPTIONS:
+
+General options:
+
+  -emit-ast            - Print abstract syntax tree in console
+  -emit-cpp            - To generate cpp file
+  -emit-dot            - To generate dot file
+  -emit-ir             - To generate LLVM IR
+  -emit-png            - To generate png file by dot
+  -i                   - Just-in-time execute with lli
+  -o=<output filename> - Generate executable file with llvm and clang facilities
+
+Generic Options:
+
+  -help                - Display available options (-help-hidden for more)
+  -help-list           - Display list of available options (-help-list-hidden for more)
+  -version             - Display the version of this program
+```
+
+依赖的 LLVM 工具包括 `clang` , `lli` , `llvm-as` , `llc` 
 
 ## SGS 语言手册
 
@@ -521,18 +550,14 @@ inline void integerTypeExtension(Value*& lhs, Value*& rhs) {
 }
 ```
 
-对于控制流语句 `IfStatement` 和 `WhileStatement` ，只需要创建新的 `BasicBlock` 和 有/无 条件跳转语句即可完成翻译。下面是用来翻译 `IfStatement` 的代码。首先通过 `builder` 来获取
+对于控制流语句 `IfStatement` 和 `WhileStatement` ，只需要创建新的 `BasicBlock` 和 有/无 条件跳转语句即可完成翻译。下面是用来翻译 `IfStatement` 的代码。首先通过 `builder` 来获取当前插入点所在的函数，然后创建 3 个 `IfStatement` 需要的 `BasicBlock` 。第一个 `BasicBlock` 可以直接接在当前函数的 `BasicBlock` 表后，而其它的两个需要在翻译完相应的分支内容后再插入。 
 
 ```c++
 case ST_IF: {
     Function* fun = builder.GetInsertBlock()->getParent();
     const auto ifs = dynamic_cast<IfStmt*>(stmt);
     Value* cond = exprCodegen(ifs->getCond(), env);
-    if (!cond) {
-        std::cerr << "Translation error : at IfStmt, condition translation is failed" << std::endl;
-        return nullptr;
-    }
-    if (cond->getType()->isPointerTy()) {
+    if (cond->getType()->isPointerTy()) { // implicit cast from lvalue to rvalue
         cond = builder.CreateLoad(cond, "if.cond.load");
     }
     BasicBlock* taken = BasicBlock::Create(theContext, "if.take", fun);
@@ -555,11 +580,51 @@ case ST_IF: {
 }
 ```
 
+再者是局部变量的定义时的处理方法。
 
+因为内存管理的关系，所有的局部变量声明（内存分配）都需要调整到函数的第一个 `BasicBlock` 中，防止无意义的重复内存分配。
 
+```c++
+case ST_VARDEF: {
+    const auto vardef = dynamic_cast<VarDefStmt*>(stmt);
+    IRBuilder<> tempBuilder(&builder.GetInsertBlock()->getParent()->getEntryBlock(), builder.GetInsertBlock()->getParent()->getEntryBlock().begin());
+    Value* res = tempBuilder.CreateAlloca(vardef->getVarType()->toLLVMType(theContext, typeReference), nullptr, vardef->getName());
+    Type* type = vardef->getVarType()->toLLVMType(theContext, typeReference);
+    if (type->isArrayTy()) { // we shall use the array type with its element pointer
+        const auto* atype = dyn_cast<ArrayType>(type);
+        IRBuilder<> tempBuilder2(&builder.GetInsertBlock()->getParent()->getEntryBlock(), builder.GetInsertBlock()->getParent()->getEntryBlock().begin());
+        Value* res2 = tempBuilder2.CreateAlloca(PointerType::get(atype->getElementType(), 0), nullptr, vardef->getName() + ".ptr");
+        res = builder.CreateInBoundsGEP(res, { 
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0)),
+            Constant::getIntegerValue(Type::getInt32Ty(theContext), APInt(32, 0)) 
+        });
+        builder.CreateStore(res, res2);
+        res = res2;
+    }
+    env->insert(vardef->getName(), res);
+    if (vardef->getInitValue()) {
+        builder.CreateStore(exprCodegen(vardef->getInitValue(), env), res);
+    }
+    return res;
+}
+```
 
+对于数组类型的变量声明，会通过一次显式的 `getelementptr` 指令获取数组的头指针，并将其作为一个值来分配一个新的变量以保存这个值，如果用 C 语言来描述的话大约是这样：
 
+```c
+{
+    int a[10];
+    a[0] = 1;
+    /* after transform */
+    int _a[10];
+    int* a = _a;
+    a[0] = 1;
+}
+```
 
+这个措施主要是使数组作为函数参数时能得到形式上的统一。
+
+内置函数会在 `funcReference` 中保留函数类型定义，然后在生成代码时粘贴到代码开头。最终使用 `llvm::raw_fd_ostream` 将 `Module` 中的内容输出到指定的文件中。
 
 ### 辅助工具
 
@@ -592,7 +657,7 @@ _本句SGS语言源码为：`print an int with value lists[0]'s list[0].`_
 
 借助上述调试工具，我们可以很清晰的看出存放在内存中的AST的结构，当AST存在错误的时候，可以一眼看出错误所在点，进而排除对应bug。
 
-​    
+
 
 #### 生成可执行的 C++ 代码
 
@@ -683,9 +748,79 @@ int main() {
 }
 ```
 
-
-
 #### 生成 DOT 文件得到 AST2 图形显示
+
+graphviz 是一款优秀的框图生成软件，其使用的描述图结构的语言为 DOT 。抽象语法树的结构非常清晰，非常适合与使用 graphviz 进行可视化。
+
+由于生成的是有向图，所以在开头需要标注 `digraph` 。
+
+对于 AST 在图上的表示，我们会把 AST 的属性的内容作为图上的一个节点，而属性的含义作为图上的边进行标注。为了保证生成的每一个节点的唯一性，我们会使用 AST 节点的地址作为在 图上的标注
+
+下面是生成的一个例子：
+
+sgs 代码为:
+
+```sgs
+let integer a be 0.
+print an int with a.
+```
+
+翻译到 C 后为：
+
+```c
+int a;
+int main() {
+    a = 0;
+    printNum(a);
+    return 0;
+}
+```
+
+生成的 DOT 文件为：
+
+```dot
+digraph g {
+node[shape = box, fontname = "Fira Code Light"]
+edge[fontname = "Fira Code Light", splines = line]
+54691248 [label="GlobalVarDef"]
+54691248 -> 1 [label="name"]
+1 [label="a"]
+54691248 -> 2 [label="type"]
+2 [label="int"]
+54713400 [label="FunctionDefinition"]
+54713400 -> 54702592 [label="proto"]
+54713400 -> 54667824 [label="body"]
+54702592 [label="FunctionPrototype"]
+54702592 -> 3 [label="name"]
+3 [label="main"]
+54702592 -> 4 [label="returnType"]
+4 [label="int"]
+54667824 [label="BlockStatement"]
+54667824 -> 54712632 [label=0]
+54667824 -> 54713528 [label=1]
+54667824 -> 54712504 [label=2]
+54712632 [label="AssignStatement"]
+54712632 -> 54692216 [label="lvalue"]
+54712632 -> 54712440 [label="rvalue"]
+54692216 [label="Id:a"]
+54712440 [label="IntLiteral:0"]
+54713528 [label="ExpStatement"]
+54713528 -> 54703112 [label="value"]
+54703112 [label="CallExpression"]
+54703112 -> 5 [label="function"]
+5 [label="printNum"]
+54703112 -> 54690808 [label="param 0"]
+54690808 [label="Id:a"]
+54712504 [label="ReturnStatement"]
+54712504 -> 54713912 [label="retval"]
+54713912 [label="IntLiteral:0"]
+}
+```
+
+对应的图片是 
+
+![test1](test1.png)
+
 
 
 ## 测试
