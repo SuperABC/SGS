@@ -101,5 +101,5 @@ loop when true.
 		let c be getchar.
 	end loop.
 	let integer res be parseExpr.
-	print a number with value res.
+	print an int with value res.
 end loop.
