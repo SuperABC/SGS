@@ -1,2 +1,7 @@
-let integer a be 0.
-print an int with a.
+new function f1.
+new function f2.
+start f2.
+    f1.
+ene f2.
+start f1.
+end f1.

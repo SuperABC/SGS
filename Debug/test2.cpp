@@ -18,7 +18,7 @@ void print_a_bool(bool a){
         std::cout << "false" << std::endl;
 }
 
-void print_a_string(std::string a){
+void print_a_str(std::string a){
     std::cout << a << std::endl;
 }
 
