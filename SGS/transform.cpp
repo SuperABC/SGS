@@ -491,13 +491,12 @@ sgs_backend::Content transform(vector<sgs::AST*>& cont1, sgs_backend::Context& c
         case sgs::AT_CLASS:
         case sgs::AT_VARDEF:
         case sgs::AT_FUNC:
+        case sgs::AT_PROTO:
             content.push_back(transformAST(x, context, globalEnv, false));
             break;
         case sgs::AT_STMT:
         case sgs::AT_EXP:
             mainStmt.push_back(dynamic_cast<sgs_backend::Statement*>(transformAST(x, context, mainEnv, false)));
-            break;
-        case sgs::AT_PROTO:
             break;
         default:
             throw std::exception("what the fuck?? : at transform");

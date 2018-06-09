@@ -550,8 +550,7 @@ Value* sgs_backend::stmtCodegen(Statement* stmt, Environment* env, BasicBlock* c
 	{
 		const auto funDef = dynamic_cast<FuncDef*>(ast);
 		FunctionType* funType = funDef->getProto()->getLLVMType(theContext, typeReference);
-		Function* fun = Function::Create(funType, GlobalValue::ExternalLinkage, funDef->getProto()->getName(), theModule);
-		funcReference[funDef->getProto()->getName()] = fun;
+        Function* fun = dyn_cast<Function>(codegen(funDef->getProto()));
 		BasicBlock* funBB = BasicBlock::Create(theContext, "entry", fun);
 		builder.SetInsertPoint(funBB);
 		auto* env = Environment::derive(globalEnv);
@@ -573,8 +572,11 @@ Value* sgs_backend::stmtCodegen(Statement* stmt, Environment* env, BasicBlock* c
 	case AT_PROTO:
 	{
 		const auto funProto = dynamic_cast<FuncProto*>(ast);
+        if (funcReference.find(funProto->getName()) != funcReference.end()) {
+            return funcReference[funProto->getName()];
+        }
 		FunctionType* funTy = funProto->getLLVMType(theContext, typeReference);
-		return Function::Create(funTy, GlobalValue::ExternalLinkage, funProto->getName(), theModule);
+		return funcReference[funProto->getName()] = Function::Create(funTy, GlobalValue::ExternalLinkage, funProto->getName(), theModule);
 	}
 	case AT_GLBVARDEF: {
 		const auto glbVarDef = dynamic_cast<GlobalVarDef*>(ast);
