@@ -349,7 +349,7 @@ void printIfStmt(sgs::Statement *stmtStmt) {
     depth--;
     std::cout << ASTTab(depth) << "untaken:" << std::endl;
     depth++;
-    printBlockStmt(IfStmt->getUntaken());
+	if(IfStmt->getUntaken())printBlockStmt(IfStmt->getUntaken());
     depth--;
 }
 void printWhileStmt(sgs::Statement *stmtStmt) {

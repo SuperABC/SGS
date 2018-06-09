@@ -123,6 +123,8 @@ string getNameWithoutExt(const string& filename) {
 
 int main(int argc, char* argv[]) 
 {
+	compile("cal");
+
     cl::ParseCommandLineOptions(argc, argv);
     std::cout << getBanner() << std::endl;
 

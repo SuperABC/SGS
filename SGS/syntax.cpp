@@ -21,7 +21,7 @@ SgsSyntax::~SgsSyntax() = default;
 void SgsSyntax::prepare() {
 
     funcList.push_back(new FuncProto(new BasicType(BT_INT), "getchar", {}));
-    funcList.push_back(new FuncProto(new BasicType(BT_INT), "putchar", { std::make_pair(new BasicType(BT_INT), "emm") }));
+    funcList.push_back(new FuncProto(new BasicType(BT_INT), "putchar", { std::make_pair(new BasicType(BT_INT), "value") }));
     funcList.push_back(new FuncProto(nullptr, "print an int", { std::make_pair(new BasicType(BT_INT), "value") }));
     funcList.push_back(new FuncProto(nullptr, "print a number", { std::make_pair(new BasicType(BT_FLOAT), "value") }));
     funcList.push_back(new FuncProto(nullptr, "print a str", { std::make_pair(new ArrayType(new BasicType(BT_CHAR), 0), "value") }));
@@ -312,23 +312,27 @@ Expression *SgsSyntax::parseExp() {
                 if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_LBRAKET) {
                     proc++;
                     value.push(parseClassConst(classIdx));
-                } else
+                }
+				else
                     error(classList[classIdx]->getName().data(), SGS_SE_INCOMPLETE);
-            } else if ((funcIdx = findFunc()) >= 0) {
+            }
+			else if ((funcIdx = findFunc()) >= 0) {
                 if (content[proc].type != SGS_TT_SYS || content[proc].id != SGS_ID_WITH)
                     value.push(new CallExp(funcList[funcIdx], vector<Expression *>()));
                 else {
                     proc++;
                     value.push(new CallExp(funcList[funcIdx], parseParam(funcIdx)));
                 }
-            } else {
+            }
+			else {
                 value.push(parseVar());
             }
         } 
 		else if (content[proc].type == SGS_TT_DATA) {
             if (content[proc].s != nullptr) {
                 value.push(new StrLiteral(content[proc].s));
-            } else {
+            }
+			else {
                 switch (content[proc].id) {
                 case CT_INT:
                     value.push(new IntLiteral(int(content[proc].value)));

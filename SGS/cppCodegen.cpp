@@ -420,11 +420,13 @@ void translateIfStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
     cppDepth--;
     fout << cppTab(cppDepth) << "}" << std::endl;
 
-    fout << cppTab(cppDepth) << "else{" << std::endl;
-    cppDepth++;
-    translateBlockStmt(IfStmt->getUntaken(), fout);
-    cppDepth--;
-    fout << cppTab(cppDepth) << "}" << std::endl;
+	if (IfStmt->getUntaken()) {
+		fout << cppTab(cppDepth) << "else{" << std::endl;
+		cppDepth++;
+		translateBlockStmt(IfStmt->getUntaken(), fout);
+		cppDepth--;
+		fout << cppTab(cppDepth) << "}" << std::endl;
+	}
 
 }
 void translateWhileStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
@@ -615,7 +617,7 @@ void translateFuncDefType(sgs::AST *s, std::ofstream &fout) {
 			case BT_INT: fout << " = 0;" << std::endl; break;
 			case BT_FLOAT: fout << " = 0.0;" << std::endl; break;
 			case BT_BOOL: fout << " = false;" << std::endl; break;
-			case BT_CHAR: fout << R"( = '\0'";)" << std::endl; break;
+			case BT_CHAR: fout << R"( = '\0';)" << std::endl; break;
 			case BT_STRING: fout << " = \"\";" << std::endl; break;
 			default:
 				break;
