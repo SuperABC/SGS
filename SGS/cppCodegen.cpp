@@ -403,6 +403,8 @@ void translateCallStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
         else
             fout << ", ";
     }
+	if(count == 0)
+		fout << ");" << std::endl;
 }
 void translateBlockStmt(sgs::Statement *stmtStmt, std::ofstream &fout) {
     sgs::BlockStmt *blockStmt = dynamic_cast<sgs::BlockStmt *>(stmtStmt);
@@ -603,9 +605,9 @@ void translateFuncDefType(sgs::AST *s, std::ofstream &fout) {
     translateFuncProtoType(currentStmt->getProto(), fout);
     fout << "{" << std::endl;
     cppDepth++;
-    translateVarType(s, FUNC, fout);
 	if (currentStmt->getProto()->getReturnType() != nullptr)
 	{
+		translateVarType(s, FUNC, fout);
 		fout << "result";
 		if (currentStmt->getProto()->getReturnType()->getVarType() == VAR_TYPE::VT_BASIC)
 			switch (dynamic_cast<sgs::BasicType *>(currentStmt->getProto()->getReturnType())->getBasicType())
@@ -752,9 +754,9 @@ void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename) {
         }
         case AT_PROTO:
         {
-            // sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
-            // translateFuncProtoType(currentStmt, fout);
-            // fout << ";" << std::endl;
+            sgs::FuncProto *currentStmt = dynamic_cast<sgs::FuncProto *>(stmts[loopNum]);
+            translateFuncProtoType(currentStmt, fout);
+            fout << ";" << std::endl;
             break;
         }
         default:
