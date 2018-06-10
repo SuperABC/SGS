@@ -5,7 +5,7 @@
 ---
 ## 前言
 
-​    
+
 
 ### 项目概览
 
@@ -158,6 +158,29 @@ graph TD
 类似于 `LLVMContext` 的设计思路，这里所有的类型都由 `Context` 统一进行资源管理，并隐藏 `SType` 的构造函数使用户无法通过使用 `Context` 以外的方法获取到 `SType` 的示例，这也同时能够使类型的比较只需要比较进行指针比较而不需要通过复杂的递归。同时，建立了此类型系统与 LLVM 类型系统之间的映射。
 
 AST2 的结构类似于 AST1， 但在 `Expression` 上标注了结果的类型，用以检查 AST2 结构的合理性。对于非法的整数与浮点数之间的类型转换会直接抛出异常。标注了类型的 AST2 在转换到 LLVM IR 会更加方便。具体的实现细节会在后文中提到。
+
+#### 编译器命令行命令解析
+
+这里我们直接使用了 LLVM 的 `Support` 模块中的命令行工具，在全局作用域中声明用作命令行参数的 flag ：
+
+```c++
+cl::opt<string> OutputFilename("o", cl::desc("Generate executable file with llvm and clang facilities"), cl::value_desc("output filename"));
+cl::opt<bool> GenerateIR("emit-ir", cl::desc("To generate LLVM IR"));
+cl::opt<bool> GenerateDot("emit-dot", cl::desc("To generate dot file"));
+cl::opt<bool> GenerateCpp("emit-cpp", cl::desc("To generate cpp file"));
+cl::opt<bool> GeneratePng("emit-png", cl::desc("To generate png file by dot"));
+cl::opt<bool> PrintAst("emit-ast", cl::desc("Print abstract syntax tree in console"));
+cl::opt<bool> Execute("i", cl::desc("Just-in-time execute with lli"));
+cl::opt<string> InputFilename(cl::Positional, cl::desc("<input file>"), cl::Required);
+```
+
+然后通过其命令行解析器来获取每个选项的值或是输出帮助选项：
+
+```c++
+cl::ParseCommandLineOptions(argc, argv);
+```
+
+
 
 ### 编译器前端
 
@@ -882,12 +905,11 @@ edge[fontname = "Fira Code Light", splines = line]
 
 ### 简单测试
 
-#### 简单表达式测试
+#### 整数/布尔类型变量声明和赋值，If 语句功能测试
 
 SGS 代码
 
 ```sgs
-#simpleTest
 let integer a be 0.
 let integer b be 1.
 let bool c be false.
@@ -899,13 +921,187 @@ end if.
 print an int with a.
 ```
 
+#### 浮点数整数转换、While 语句功能测试
 
+```sgs
+let integer i be 1.
+let float fact be 1.0.
+let float res be 1.0.
+loop when i < 11
+	let res be res + 1.0 / fact.
+	let fact be fact * intToFloat with value i.
+	let i be i + 1.
+end loop.
+print a number with value res.
+```
+
+#### 数组定义/访问测试
+
+```sgs
+#localArrayTest
+let integer array 10 a.
+let a[0] be 0.
+let a[1] be a[0] + 5.
+print a number with value a[1].
+```
+
+#### 全局变量/数组访问测试
+
+```sgs
+let integer a.
+let integer array 10 arr.
+new function visitGArray with integer i return integer.
+start visitGArray.
+	let result be arr[i].
+end visitGArray.
+new function writeGArray with integer array 10 b, integer i, integer v return integer.
+start writeGArray.
+	let b[i] be v.
+end writeGArray.
+writeGArray with arr, 1, 2.
+print a number with visitGArray with 1.
+```
+
+#### 字符串字面量赋值/修改测试
+
+```sgs
+let char array 4 x.
+let x be "123".
+let x[0] be x[0] + 1.
+print a str with value x.
+```
+
+### 结构体内部数组/结构体数组测试
+
+```sgs
+#complex type
+new class list with integer name, integer array 10 list.
+let list one.
+let one's list[0] be 1.
+print an int with value one's list[0].
+let list array 10 lists.
+let lists[0]'s list[0] be 2.
+print an int with value lists[0]'s list[0].
+```
 
 ### 复杂测试
+
+这里使用 SGS 实现了一个递归下降的简单数学表达式计算器，仅保证针对正确的输入会得到正确的输出
+
+对于输入中的所有空格会直接忽略，当遇到换行时输出结果
+
+```sgs
+let char array 100 str.
+let integer length.
+let integer position.
+
+new function current return char.
+start current.
+	if position <= length then
+		let result be str[position].
+		return.
+	end if.
+	let result be 0.
+end current.
+
+new function match.
+start match.
+	let position be position + 1.
+end match.
+
+new function parseNum return integer.
+start parseNum.
+	let char c be current.
+	let result be 0.
+	loop when c >= 48 && c <= 57.
+		let result be result * 10 + c - 48.
+		match.
+		let c be current.
+	end loop.
+end parseNum.
+
+new function parseFactor return integer.
+
+new function parseTerm return integer.
+start parseTerm.
+	let result be parseFactor.
+	let char c be current.
+	loop when c = 42 || c = 47.
+		if c = 42 then
+			match.
+			let result be result * parseFactor.
+		else
+			match.
+			let result be result / parseFactor.
+		end if.
+		let c be current.
+	end loop.
+end parseTerm.
+
+new function parseExpr return integer.
+start parseExpr.
+	let result be parseTerm.
+	let char c be current.
+	loop when c = 43 || c = 45.
+		if c = 43 then
+			match.
+			let result be result + parseTerm.
+		else
+			match.
+			let result be result - parseTerm.
+		end if.
+		let c be current.
+	end loop.
+end parseExpr.
+
+start parseFactor.
+	let char c be current.
+	if c = 40 then
+		match.
+		let integer temp be parseExpr.
+		match.
+		let result be temp.
+		return.
+	end if.
+	let result be parseNum.
+end parseFactor.
+
+loop when true.
+	let length be 0.
+	let position be 0.
+	let char c be getchar.
+	loop when c != 10.
+		if c = 32 then
+			let c be getchar.
+			redo.
+		end if.
+		let str[length] be c.
+		let length be length + 1.
+		let c be getchar.
+	end loop.
+	let integer res be parseExpr.
+	print an int with value res.
+	newline.
+end loop.
+```
 
 ## 后记 	
 
 ### 分工
 
-### 额外说明
+编译器开发组成员及工作
+
+-   朱瑞昇：SGS 语法设计、编译器前端部分及其对应文档、测试样例的完成
+-   蔡展璋：编译器前端测试以及调试，辅助调试工具、CPP 代码生成器及其对应文档
+-   魏耀东：编译器后端、DOT生成器部分及其对应文档，对编译器整体的测试
+
+### 扩展与改进
+
+-   [ ] 支持 `import` 和 `export` 等实现代码的模块化 
+-   [ ] 支持类成员方法，引入 `this` 关键字
+-   [ ] 实现 SGS 标准库
+-   [ ] 实现与 C 语言之间的互操作，引入和使用 C 语言的文件/方法。
+-   [ ] 实现简单的宏
+
+
 

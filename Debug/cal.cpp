@@ -7,6 +7,8 @@ void print_an_int(int a){
     printf("%d\n", a);
 }
 
+int newline() {puts("");}
+
 void print_a_number(double a){
     printf("%lf\n", a);
 }
@@ -149,6 +151,7 @@ int main() {
         int res;
         res = parseExpr();
         print_an_int(res);
+        newline();
     }
     return 0;
 }
