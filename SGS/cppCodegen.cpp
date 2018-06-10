@@ -231,13 +231,13 @@ void translateOpSwitchCase(SGSOPERATOR OP, std::ofstream &fout) {
         fout << " < ";
         break;
     case SGS_OP_NSMALLER:
-        fout << " <= ";
+        fout << " >= ";
         break;
     case SGS_OP_GREATER:
         fout << " > ";
         break;
     case SGS_OP_NGREATER:
-        fout << " >= ";
+        fout << " <= ";
         break;
     case SGS_OP_NOT:
         fout << " !";

@@ -882,9 +882,28 @@ edge[fontname = "Fira Code Light", splines = line]
 
 ### 简单测试
 
+#### 简单表达式测试
+
+SGS 代码
+
+```sgs
+#simpleTest
+let integer a be 0.
+let integer b be 1.
+let bool c be false.
+let b be b+a.
+let c be b>a.
+if c then let b be 5.
+else let b be 3.
+end if.
+print an int with a.
+```
+
+
+
 ### 复杂测试
 
-## 后记
+## 后记 	
 
 ### 分工
 

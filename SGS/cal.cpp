@@ -30,29 +30,26 @@ int floatToInt(float a) {
     return a;
 }
 
-int fail;
 void readNum();
 void readNum(){
     return result;
-    char c;
+    int c;
     c = getchar();
     while(((c < 48) || (c > 57))){
-        char c;
         c = getchar();
     }
-    while(((c <= 48) || (c >= 57))){
+    while(((c >= 48) || (c <= 57))){
         result = (((result * 10) + c) - 48);
-        char c;
         c = getchar();
     }
 }
-string str;
+int str[100];
 int length;
 int position;
-char current();
-char current(){
-    char result = '\0';
-    if((position >= length)){
+int current();
+int current(){
+    int result = 0;
+    if((position <= length)){
         result = str[position];
         return result;
     }
@@ -66,13 +63,12 @@ void match(){
 int parseNum();
 int parseNum(){
     int result = 0;
-    char c;
+    int c;
     c = current();
     result = 0;
-    while(((c <= 48) && (c >= 57))){
+    while(((c >= 48) && (c <= 57))){
         result = (((result * 10) + c) - 48);
         match();
-        char c;
         c = current();
     }
     return result;
@@ -81,18 +77,17 @@ int parseFactor();
 int parseTerm();
 int parseTerm(){
     int result = 0;
-    int cur;
-    cur = parseFactor();
-    char c;
+    result = parseFactor();
+    int c;
     c = current();
     while(((c == 42) || (c == 47))){
         if((c == 42)){
             match();
-            cur = (cur * parseFactor());
+            result = (result * parseFactor());
         }
         else{
             match();
-            cur = (cur / parseFactor());
+            result = (result / parseFactor());
         }
         c = current();
     }
@@ -101,18 +96,17 @@ int parseTerm(){
 int parseExpr();
 int parseExpr(){
     int result = 0;
-    int cur;
-    cur = parseTerm();
-    char c;
+    result = parseTerm();
+    int c;
     c = current();
     while(((c == 43) || (c == 45))){
         if((c == 43)){
             match();
-            cur = (cur + parseTerm());
+            result = (result + parseTerm());
         }
         else{
             match();
-            cur = (cur - parseTerm());
+            result = (result - parseTerm());
         }
         c = current();
     }
@@ -121,7 +115,7 @@ int parseExpr(){
 int parseFactor(){
     int result = 0;
     return result;
-    char c;
+    int c;
     c = current();
     if((c == 40)){
         match();
@@ -135,12 +129,10 @@ int parseFactor(){
     return result;
 }
 int main() {
-    fail = 0;
     while(true){
         length = 0;
         position = 0;
-        fail = 0;
-        char c;
+        int c;
         c = getchar();
         while((c != 10)){
             if((c == 32)){
@@ -152,8 +144,8 @@ int main() {
             c = getchar();
         }
         int res;
-        res = parseExpr();
-        print_a_number(res);
+        res = parseNum();
+        print_an_int(res);
     }
     return 0;
 }

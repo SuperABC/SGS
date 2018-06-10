@@ -160,10 +160,12 @@ std::string sgs_backend::printStatement(Statement* stmt) {
 		res += addr + " [label=\"IfStatement\"]\n";
 		res += addr + " -> " + ADDR(temp->getCond()) + " [label=\"cond\"]\n";
 		res += addr + " -> " + ADDR(temp->getPass()) + " [label=\"pass\"]\n";
-		res += addr + " -> " + ADDR(temp->getFail()) + " [label=\"fail\"]\n";
-		res += printExpression(temp->getCond());
-		res += printStatement(temp->getPass());
-		res += printStatement(temp->getFail());
+        res += printExpression(temp->getCond());
+        res += printStatement(temp->getPass());
+        if (temp->getFail()) {
+            res += addr + " -> " + ADDR(temp->getFail()) + " [label=\"fail\"]\n";
+            res += printStatement(temp->getFail());
+        }
 		return res; 
 	}
 	case ST_WHILE: {
@@ -443,6 +445,7 @@ sgs_backend::SType* sgs_backend::getBinopType(BINOP op, SType* lhs, SType* rhs, 
 	case OR:
 	case GT:
 	case LT:
+    case EQ:
 		return context.getBoolType();
 	case ADD:
 	case SUB:

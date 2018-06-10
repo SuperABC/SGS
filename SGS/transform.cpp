@@ -127,7 +127,7 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
             }
             return new sgs_backend::BinopExp(sgs_backend::MOD, left, right, context);
         }
-        case SGS_OP_AND: {
+        case SGS_OP_ANDAND: {
             if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
                 right->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
                 throw std::exception("invalid operator type in and binary operator expression");
@@ -137,7 +137,7 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
             }
             return new sgs_backend::BinopExp(sgs_backend::AND, left, right, context);
         }
-        case SGS_OP_OR: {
+        case SGS_OP_OROR: {
             if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
                 right->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
                 throw std::exception("invalid operator type in or binary operator expression");
@@ -186,11 +186,50 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
             }
             return new sgs_backend::BinopExp(sgs_backend::GT, left, right, context);
         }
+        case SGS_OP_NSMALLER: {
+            if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
+                right->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
+                throw std::exception("invalid operator type in less binary operator expression");
+            }
+            if (lt->getBasicType() == rt->getBasicType()) {
+                return new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::BinopExp(sgs_backend::LT, left, right, context), context);
+            }
+            if (lt->getBasicType() == sgs_backend::BasicType::FLOAT || rt->getBasicType() == sgs_backend::BasicType::FLOAT) {
+                throw std::exception("implicit casting from int to float is forbidden.");
+            }
+            return new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::BinopExp(sgs_backend::LT, left, right, context), context);
+        }
+        case SGS_OP_NGREATER: {
+            if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
+                right->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
+                throw std::exception("invalid operator type in greater binary operator expression");
+            }
+            if (lt->getBasicType() == rt->getBasicType()) {
+                return new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::BinopExp(sgs_backend::GT, left, right, context), context);
+            }
+            if (lt->getBasicType() == sgs_backend::BasicType::FLOAT || rt->getBasicType() == sgs_backend::BasicType::FLOAT) {
+                throw std::exception("implicit casting from int to float is forbidden.");
+            }
+            return new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::BinopExp(sgs_backend::GT, left, right, context), context);
+        }
         case SGS_OP_NOT: {
             if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
                 throw std::exception("invalid operator type in not unique operator expression");
             }
             return new sgs_backend::UniopExp(sgs_backend::NOT, left, context);
+        }
+        case SGS_OP_NOTEQ: {
+            if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
+                right->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE) {
+                throw std::exception("invalid operator type in EQ binary operator expression");
+            }
+            if (lt->getBasicType() == rt->getBasicType()) {
+                return new sgs_backend::BinopExp(sgs_backend::EQ, left, right, context);
+            }
+            if (lt->getBasicType() == sgs_backend::BasicType::FLOAT || rt->getBasicType() == sgs_backend::BasicType::FLOAT) {
+                throw std::exception("implicit casting from int to float is forbidden.");
+            }
+            return new sgs_backend::UniopExp(sgs_backend::NOT, new sgs_backend::BinopExp(sgs_backend::EQ, left, right, context), context);
         }
         case SGS_OP_EQUAL: {
             if (left->getResType()->getLevel() != sgs_backend::Types::BASIC_TYPE ||
@@ -314,6 +353,7 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
 }
 
 sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context& context, Env* env, bool inWhile) {
+    if (!stmt) return nullptr;
     switch (stmt->getStmtType()) {
     case sgs::ST_ASSIGN: {
         const auto ass = dynamic_cast<sgs::AssignStmt*>(stmt);
@@ -374,8 +414,8 @@ sgs_backend::Statement* transformStmt(sgs::Statement* stmt, sgs_backend::Context
         return new sgs_backend::WhileStmt(cond, dynamic_cast<sgs_backend::BlockStmt*>(body));
     }
     case sgs::ST_RETURN: {
-        const auto val = env->find("ret");
-        return new sgs_backend::ReturnStmt(new sgs_backend::IdExp("ret", val));
+        const auto val = env->find("result");
+        return new sgs_backend::ReturnStmt(new sgs_backend::IdExp("result", val));
     }
     case sgs::ST_BREAK: {
         if (!inWhile) {

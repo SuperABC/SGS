@@ -445,7 +445,9 @@ Value* sgs_backend::stmtCodegen(Statement* stmt, Environment* env, BasicBlock* c
 
 		fun->getBasicBlockList().push_back(untaken);
 		builder.SetInsertPoint(untaken);
-		stmtCodegen(ifs->getFail(), env, cont, bk);
+        if (ifs->getFail()) {
+            stmtCodegen(ifs->getFail(), env, cont, bk);
+        }
 		const auto res = builder.CreateBr(merge);
 
 		fun->getBasicBlockList().push_back(merge);

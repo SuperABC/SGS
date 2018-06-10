@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.v": "verilog",
+        "*.ASM": "asm",
+        "*.ll": "llvm",
+        "stack": "cpp"
+    }
+}
