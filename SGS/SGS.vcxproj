@@ -73,6 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Program Files (x86)\LLVM\include;</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;D:\Program Files (x86)\LLVM\lib;</LibraryPath>
+    <TargetName>sgs</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Program Files (x86)\LLVM\include;</IncludePath>
@@ -164,15 +165,6 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="ClassDiagram1.cd" />
-    <None Include="debug.sgs" />
-    <None Include="test0.sgs" />
-    <None Include="test1.sgs" />
-    <None Include="test2.sgs" />
-    <None Include="test3.sgs" />
-    <None Include="test4.sgs" />
-    <None Include="test5.sgs" />
-    <None Include="test6.sgs" />
-    <None Include="test7.sgs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,0 @@
-#complex type
-new class list with integer name, integer array 10 list.
-let list one.
-let one's list[0] be 1.
-print an int with value one's list[0].
-let list array 10 lists.
-let lists[0]'s list[0] be 2.
-print an int with value lists[0]'s list[0].

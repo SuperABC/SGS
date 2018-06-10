@@ -1,0 +1,92 @@
+let char array 100 str.
+let integer length.
+let integer position.
+
+new function current return char.
+start current.
+	if position <= length then
+		let result be str[position].
+		return.
+	end if.
+	let result be 0.
+end current.
+
+new function match.
+start match.
+	let position be position + 1.
+end match.
+
+new function parseNum return integer.
+start parseNum.
+	let char c be current.
+	let result be 0.
+	loop when c >= `0` && c <= `9`.
+		let result be result * 10 + c - `0`.
+		match.
+		let c be current.
+	end loop.
+end parseNum.
+
+new function parseFactor return integer.
+
+new function parseTerm return integer.
+start parseTerm.
+	let result be parseFactor.
+	let char c be current.
+	loop when c = `*` || c = `/`.
+		if c = `*` then
+			match.
+			let result be result * parseFactor.
+		else
+			match.
+			let result be result / parseFactor.
+		end if.
+		let c be current.
+	end loop.
+end parseTerm.
+
+new function parseExpr return integer.
+start parseExpr.
+	let result be parseTerm.
+	let char c be current.
+	loop when c = `+` || c = `-`.
+		if c = `+` then
+			match.
+			let result be result + parseTerm.
+		else
+			match.
+			let result be result - parseTerm.
+		end if.
+		let c be current.
+	end loop.
+end parseExpr.
+
+start parseFactor.
+	let char c be current.
+	if c = `(` then
+		match.
+		let integer temp be parseExpr.
+		match.
+		let result be temp.
+		return.
+	end if.
+	let result be parseNum.
+end parseFactor.
+
+loop when true.
+	let length be 0.
+	let position be 0.
+	let char c be getchar.
+	loop when c != 10.
+		if c = ` ` then
+			let c be getchar.
+			redo.
+		end if.
+		let str[length] be c.
+		let length be length + 1.
+		let c be getchar.
+	end loop.
+	let integer res be parseExpr.
+	print an int with value res.
+	newline.
+end loop.

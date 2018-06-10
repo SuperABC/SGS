@@ -263,9 +263,9 @@ sgs_backend::Expression* transformExpr(sgs::Expression* expr, sgs_backend::Conte
             case sgs::BT_BOOL: {
                 return sgs_backend::getLiteral(dynamic_cast<sgs::BoolLiteral*>(lit)->getValue(), context);
             }
-            // case sgs::BT_CHAR: {
-            //     // return sgs_backend::getLiteral(dynamic_cast<sgs::CharLiteral*>(lit)->getValue(), context);
-            // }
+            case sgs::BT_CHAR: {
+                return sgs_backend::getLiteral(dynamic_cast<sgs::CharLiteral*>(lit)->getValue(), context);
+            }
             case sgs::BT_STRING: {
                 return new sgs_backend::ConstString(dynamic_cast<sgs::StrLiteral*>(lit)->getValue());
             }

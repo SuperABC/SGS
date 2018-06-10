@@ -1013,8 +1013,8 @@ new function parseNum return integer.
 start parseNum.
 	let char c be current.
 	let result be 0.
-	loop when c >= 48 && c <= 57.
-		let result be result * 10 + c - 48.
+	loop when c >= `0` && c <= `9`.
+		let result be result * 10 + c - `0`.
 		match.
 		let c be current.
 	end loop.
@@ -1026,8 +1026,8 @@ new function parseTerm return integer.
 start parseTerm.
 	let result be parseFactor.
 	let char c be current.
-	loop when c = 42 || c = 47.
-		if c = 42 then
+	loop when c = `*` || c = `/`.
+		if c = `*` then
 			match.
 			let result be result * parseFactor.
 		else
@@ -1042,8 +1042,8 @@ new function parseExpr return integer.
 start parseExpr.
 	let result be parseTerm.
 	let char c be current.
-	loop when c = 43 || c = 45.
-		if c = 43 then
+	loop when c = `+` || c = `-`.
+		if c = `+` then
 			match.
 			let result be result + parseTerm.
 		else
@@ -1056,7 +1056,7 @@ end parseExpr.
 
 start parseFactor.
 	let char c be current.
-	if c = 40 then
+	if c = `(` then
 		match.
 		let integer temp be parseExpr.
 		match.
@@ -1071,7 +1071,7 @@ loop when true.
 	let position be 0.
 	let char c be getchar.
 	loop when c != 10.
-		if c = 32 then
+		if c = ` ` then
 			let c be getchar.
 			redo.
 		end if.

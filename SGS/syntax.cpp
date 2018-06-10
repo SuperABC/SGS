@@ -337,6 +337,9 @@ Expression *SgsSyntax::parseExp() {
                 case CT_INT:
                     value.push(new IntLiteral(int(content[proc].value)));
                     break;
+                case CT_CHAR:
+                    value.push(new CharLiteral(char(content[proc].value)));
+                    break;
                 case CT_FLOAT:
                     value.push(new FloatLiteral(content[proc].value));
                     break;

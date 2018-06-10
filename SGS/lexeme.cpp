@@ -498,6 +498,18 @@ vector<SgsTokenPrim> SgsLex::parse() {
                     while (content[i] != '\n')i++;
                 }
                 continue;
+            case '`':
+                node.type = SGS_TT_DATA;
+                i++;
+                node.id = CT_CHAR;
+                node.value = content[i];
+                i++;
+                if (content[i] != '`')
+                    error("", SGS_LE_INCOMPLETE);
+                node.end = i + 1;
+                node.line = tmpLine;
+                output.push_back(node);
+                continue;
             case '#':
                 while (content[++i] != '\n');
             default:;

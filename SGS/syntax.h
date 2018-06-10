@@ -134,6 +134,12 @@ namespace sgs {
 		explicit IntLiteral(int value = 0) : LiteralExp(new BasicType(BT_INT)), value(value) {}
 		int getValue() const { return value; }
 	};
+    class CharLiteral : public LiteralExp {
+        char value;
+    public:
+        explicit CharLiteral(char value = '\0') : LiteralExp(new BasicType(BT_CHAR)), value(value) {}
+        char getValue() const { return value; }
+    };
 	class FloatLiteral : public LiteralExp {
 		float value;
 	public:
