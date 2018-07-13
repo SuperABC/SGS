@@ -1,2 +1,2 @@
 # SGS
-SG Script for SGL
+The compiler version for compile course.
