@@ -1,5 +1,0 @@
-#stringSimpleTest
-let char array 4 x.
-let x be "123".
-let x[0] be x[0] + 1.
-print a str with value x.

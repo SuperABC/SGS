@@ -1,12 +1,9 @@
 #pragma once
 
+#include <fstream>
 #include "lexeme.h"
 #include "machine.h"
-#include <fstream>
-#include "printAST.h"
 #include "syntax.h"
-
-// using namespace sgs;
 
 class cppTab {
 private:
