@@ -1,13 +1,13 @@
 #ifndef LEXEME_H
 #define LEXEME_H
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "message.h"
 #include <cstdio>
 #include <iostream>
 #include <vector>
 #include <string>
 
-#define _CRT_SECURE_NO_WARNINGS
-#define SYS_ID_NUM 37
 
 using std::vector;
 using std::string;
@@ -18,48 +18,41 @@ enum SGSTOKENTYPE {
 	SGS_TT_OP,
 	SGS_TT_SYS,
 };
-enum SGSCONSTTYPE {
-	CT_INT,
-	CT_CHAR,
-	CT_STRING,
-	CT_FLOAT,
-	CT_BOOL
-};
 
 enum SGSIDENTIFIER {
-	SGS_ID_INTEGER,
-	SGS_ID_CHAR,
-	SGS_ID_STRING,
-	SGS_ID_FLOAT,
 	SGS_ID_BOOL,
+	SGS_ID_CHAR,
+	SGS_ID_INTEGER,
+	SGS_ID_FLOAT,
+	SGS_ID_STRING,
 	SGS_ID_ARRAY,
 	SGS_ID_CLASS,
 	SGS_ID_FUNCTION,
-	SGS_ID_NONE,
 
 	SGS_ID_LET,
 	SGS_ID_BE,
 	SGS_ID_NEW,
-	SGS_ID_WITH,
 	SGS_ID_START,
 	SGS_ID_END,
+	SGS_ID_WITH,
 	SGS_ID_IF,
 	SGS_ID_THEN,
 	SGS_ID_ELSE,
 	SGS_ID_LOOP,
 	SGS_ID_WHEN,
+	SGS_ID_UNTIL,
 	SGS_ID_OF,
+	SGS_ID_AND,
+	SGS_ID_OR,
 	SGS_ID_IS,
 	SGS_ID_ARE,
 	SGS_ID_SMALLER,
-	SGS_ID_LARGER,
+	SGS_ID_GREATER,
 	SGS_ID_THAN,
 	SGS_ID_USE,
 	SGS_ID_LIBRARY,
 	SGS_ID_RESULT,
 	SGS_ID_QUIT,
-	SGS_ID_AND,
-	SGS_ID_OR,
 	SGS_ID_NOT,
 	SGS_ID_XOR,
 	SGS_ID_BREAK,
@@ -68,6 +61,8 @@ enum SGSIDENTIFIER {
 	SGS_ID_TRUE,
 	SGS_ID_ITSELF,
 	SGS_ID_RETURN,
+	SGS_ID_LAMBDA,
+	SGS_ID_EMBED,
 	SGS_ID_NULL,
 	SGS_ID_COMMENT
 };
@@ -116,6 +111,13 @@ enum SGSOPERATOR {
 	SGS_OP_DBQUOT,
 	SGS_OP_CROSS
 };
+enum SGSLITERALTYPE {
+	SGS_CT_BOOL,
+	SGS_CT_CHAR,
+	SGS_CT_INTEGER,
+	SGS_CT_FLOAT,
+	SGS_CT_STRING,
+};
 
 struct SgsHashNode {
 	enum SGSTOKENTYPE type;
@@ -127,8 +129,16 @@ struct SgsHashNode {
 struct SgsTokenPrim {
 	enum SGSTOKENTYPE type;
 	int id;
-	float value;
-	char *s = nullptr;
+	union {
+		bool bvalue;
+		char cvalue;
+		int ivalue;
+		float fvalue;
+		char *svalue;
+		void *ovalue = nullptr;
+
+		int opvalue;
+	};
 
 	int line;
 	int start, end;

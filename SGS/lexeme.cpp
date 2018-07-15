@@ -24,7 +24,7 @@ SgsLex::~SgsLex() {
         j++;
     }
     for (auto& i : output) {
-        delete i.s;
+        if(i.ovalue)delete i.ovalue;
     }
 }
 
@@ -51,38 +51,39 @@ int SgsLex::preserve(const char *str) {
     return tmp->id;
 }
 void SgsLex::prepare() {
-    preserve("integer");
-    preserve("char");
-    preserve("string");
-    preserve("float");
     preserve("bool");
+    preserve("char");
+    preserve("integer");
+    preserve("float");
+    preserve("string");
     preserve("array");
     preserve("class");
     preserve("function");
-    preserve("none");
+
     preserve("let");
     preserve("be");
     preserve("new");
-    preserve("with");
     preserve("start");
     preserve("end");
+    preserve("with");
     preserve("if");
     preserve("then");
     preserve("else");
     preserve("loop");
     preserve("when");
+	preserve("until");
     preserve("of");
+    preserve("and");
+    preserve("or");
     preserve("is");
     preserve("are");
     preserve("smaller");
-    preserve("larger");
+    preserve("greater");
     preserve("than");
     preserve("use");
     preserve("library");
     preserve("result");
     preserve("quit");
-    preserve("and");
-    preserve("or");
     preserve("not");
     preserve("xor");
     preserve("break");
@@ -91,6 +92,8 @@ void SgsLex::prepare() {
     preserve("true");
     preserve("itself");
     preserve("return");
+	preserve("lambda");
+	preserve("embed");
     preserve("null");
     preserve("comment");
 }
@@ -130,7 +133,8 @@ vector<SgsTokenPrim> SgsLex::parse() {
         if (content[i] == ' ' || content[i] == '\t')continue;
         else if (content[i] == '\n') {
             tmpLine++;
-        } else if (content[i] >= '0' && content[i] <= '9') {
+        }
+		else if (content[i] >= '0' && content[i] <= '9') {
             node.type = SGS_TT_DATA;
             node.start = i;
 
@@ -139,11 +143,12 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 t++;
             }
             if (content[t] == '.' && ++t != content.size() && content[t] >= '0'&&content[t] <= '9') {
-                node.value = float(atof(content.data() + i));
-                node.id = CT_FLOAT;
-            } else {
-                node.value = float(atoi(content.data() + i));
-                node.id = CT_INT;
+                node.fvalue = float(atof(content.data() + i));
+                node.id = SGS_CT_FLOAT;
+            }
+			else {
+                node.ivalue = float(atoi(content.data() + i));
+                node.id = SGS_CT_INTEGER;
             }
 
             i++;
@@ -162,14 +167,15 @@ vector<SgsTokenPrim> SgsLex::parse() {
             node.line = tmpLine;
             output.push_back(node);
             continue;
-        } else if ((content[i] >= 'A'&&content[i] <= 'Z') || (content[i] >= 'a'&&content[i] <= 'z') || content[i] == '_') {
+        }
+		else if ((content[i] >= 'A'&&content[i] <= 'Z') || (content[i] >= 'a'&&content[i] <= 'z') ||
+			content[i] == '_' || content[i] == '$' || content[i] == '@') {
             node.type = SGS_TT_SYS;
             node.start = i;
-            node.value = 0;
             char str[32];
             int j = 0;
             while ((content[i] >= 'A'&&content[i] <= 'Z') || (content[i] >= 'a'&&content[i] <= 'z') ||
-                (content[i] >= '0'&&content[i] <= '9') || content[i] == '_') {
+                (content[i] >= '0'&&content[i] <= '9') || content[i] == '_' || content[i] == '$' || content[i] == '@') {
                 str[j++] = content[i++];
                 if (j == 31) {
                     error(str, SGS_LE_TOOLONG);
@@ -182,35 +188,50 @@ vector<SgsTokenPrim> SgsLex::parse() {
             if (node.id > SGS_ID_COMMENT) {
                 node.type = SGS_TT_USER;
             }
+			else {
+				if (node.id == SGS_ID_TRUE) {
+					node.type = SGS_TT_DATA;
+					node.id = SGS_CT_BOOL;
+					node.bvalue = true;
+				}
+				if (node.id == SGS_ID_FALSE) {
+					node.type = SGS_TT_DATA;
+					node.id = SGS_CT_BOOL;
+					node.bvalue = false;
+				}
+			}
+			i--;
 
-            node.end = i;
+            node.end = i + 1;
             node.line = tmpLine;
             output.push_back(node);
-            i--;
             continue;
-        } else {
+        }
+		else {
             node.type = SGS_TT_OP;
             node.start = i;
-            node.value = 0;
+            node.opvalue = 0;
             std::string str;
             switch (content[i]) {
             case '+':
                 if (content[i + 1] == '+') {
-                    node.id = SGS_OP_PLUSPLUS;
+                    node.opvalue = SGS_OP_PLUSPLUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQPLUS;
+                }
+				else if (content[i + 1] == '=') {
+                    node.opvalue = SGS_OP_EQPLUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_PLUS;
+                }
+				else {
+                    node.opvalue = SGS_OP_PLUS;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -218,21 +239,23 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '-':
                 if (content[i + 1] == '-') {
-                    node.id = SGS_OP_MINUSMINUS;
+                    node.opvalue = SGS_OP_MINUSMINUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQMINUS;
+                }
+				else if (content[i + 1] == '=') {
+                    node.opvalue = SGS_OP_EQMINUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_MINUS;
+                }
+				else {
+                    node.opvalue = SGS_OP_MINUS;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -240,14 +263,15 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '*':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQMULTY;
+                    node.opvalue = SGS_OP_EQMULTY;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_MULTY;
+                }
+				else {
+                    node.opvalue = SGS_OP_MULTY;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -255,14 +279,15 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '/':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQDIVIDE;
+                    node.opvalue = SGS_OP_EQDIVIDE;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_DIVIDE;
+                }
+				else {
+                    node.opvalue = SGS_OP_DIVIDE;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -270,14 +295,15 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '%':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQMOD;
+                    node.opvalue = SGS_OP_EQMOD;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_MOD;
+                }
+				else {
+                    node.opvalue = SGS_OP_MOD;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -285,21 +311,23 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '&':
                 if (content[i + 1] == '&') {
-                    node.id = SGS_OP_ANDAND;
+                    node.opvalue = SGS_OP_ANDAND;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQAND;
+                }
+				else if (content[i + 1] == '=') {
+                    node.opvalue = SGS_OP_EQAND;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_AND;
+                }
+				else {
+                    node.opvalue = SGS_OP_AND;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -307,21 +335,23 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '|':
                 if (content[i + 1] == '|') {
-                    node.id = SGS_OP_OROR;
+                    node.opvalue = SGS_OP_OROR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQOR;
+                }
+				else if (content[i + 1] == '=') {
+                    node.opvalue = SGS_OP_EQOR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_OR;
+                }
+				else {
+                    node.opvalue = SGS_OP_OR;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -329,14 +359,15 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '^':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQNOR;
+                    node.opvalue = SGS_OP_EQNOR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_NOR;
+                }
+				else {
+                    node.opvalue = SGS_OP_NOR;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -344,65 +375,67 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '~':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_EQINVERSE;
+                    node.opvalue = SGS_OP_EQINVERSE;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_INVERSE;
+                }
+				else {
+                    node.opvalue = SGS_OP_INVERSE;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case '(':
-                node.id = SGS_OP_LBRACE;
+                node.opvalue = SGS_OP_LBRACE;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ')':
-                node.id = SGS_OP_RBRACE;
+                node.opvalue = SGS_OP_RBRACE;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '[':
-                node.id = SGS_OP_LPARENTHESIS;
+                node.opvalue = SGS_OP_LPARENTHESIS;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ']':
-                node.id = SGS_OP_RPARENTHESIS;
+                node.opvalue = SGS_OP_RPARENTHESIS;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '{':
-                node.id = SGS_OP_LBRAKET;
+                node.opvalue = SGS_OP_LBRAKET;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '}':
-                node.id = SGS_OP_RBRAKET;
+                node.opvalue = SGS_OP_RBRAKET;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '>':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_NSMALLER;
+                    node.opvalue = SGS_OP_NSMALLER;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_GREATER;
+                }
+				else {
+                    node.opvalue = SGS_OP_GREATER;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -410,66 +443,67 @@ vector<SgsTokenPrim> SgsLex::parse() {
                 }
             case '<':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_NGREATER;
+                    node.opvalue = SGS_OP_NGREATER;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_SMALLER;
+                }
+				else {
+                    node.opvalue = SGS_OP_SMALLER;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case ';':
-                node.id = SGS_OP_SEMI;
+                node.opvalue = SGS_OP_SEMI;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ',':
-                node.id = SGS_OP_COMMA;
+                node.opvalue = SGS_OP_COMMA;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '.':
-                node.id = SGS_OP_DOT;
+                node.opvalue = SGS_OP_DOT;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case  '!':
                 if (content[i + 1] == '=') {
-                    node.id = SGS_OP_NOTEQ;
+                    node.opvalue = SGS_OP_NOTEQ;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
-                } else {
-                    node.id = SGS_OP_NOT;
+                }
+				else {
+                    node.opvalue = SGS_OP_NOT;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case '=':
-                node.id = SGS_OP_EQUAL;
+                node.opvalue = SGS_OP_EQUAL;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '?':
-                node.id = SGS_OP_QUERY;
+                node.opvalue = SGS_OP_QUERY;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
-            case '\"':
-            {
+            case '\"': {
                 node.type = SGS_TT_DATA;
                 i++;
                 while (content[i] != '\"'&& content[i] != '\n') {
@@ -479,8 +513,8 @@ vector<SgsTokenPrim> SgsLex::parse() {
                     error("", SGS_LE_INCOMPLETE);
                 char *a = new char[str.length() + 1];
                 strcpy(a, str.data());
-                node.id = CT_STRING;
-                node.s = a;
+                node.id = SGS_CT_STRING;
+                node.svalue = a;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
@@ -493,26 +527,18 @@ vector<SgsTokenPrim> SgsLex::parse() {
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
-                } else {
-                    error("\'s", SGS_LE_EXPOP);
-                    while (content[i] != '\n')i++;
                 }
-                continue;
-            case '`':
-                node.type = SGS_TT_DATA;
-                i++;
-                node.id = CT_CHAR;
-                node.value = content[i];
-                i++;
-                if (content[i] != '`')
-                    error("", SGS_LE_INCOMPLETE);
-                node.end = i + 1;
-                node.line = tmpLine;
-                output.push_back(node);
+				else {
+                    error("\'s", SGS_LE_EXPOP);
+					while (content[++i] != '\n');
+					i--;
+                }
                 continue;
             case '#':
                 while (content[++i] != '\n');
-            default:;
+				i--;
+            default:
+				break;
             }
         }
     }
@@ -528,7 +554,7 @@ void SgsLex::error(const char *word, SGSLEXEMEERROR type) {
     case SGS_LE_ILLEGAL:
         msgList.emplace_back(string("Illegal identifier: ") + word + ".\n", MT_ERROR);
     case SGS_LE_TOOLONG:
-        msgList.emplace_back(word + string("Identifier length overflow.\n"), MT_WARNING);
+        msgList.emplace_back(word + string("Identifier length overflow, cut at position 31.\n"), MT_WARNING);
     case SGS_LE_INCOMPLETE:
         msgList.emplace_back(word + string("Incomplete type.\n"), MT_ERROR);
     case SGS_LE_EXPOP:
