@@ -129,7 +129,7 @@ void translateClassType(sgs::VarType *stmtVar, std::ofstream &fout) {
     cppDepth--;
     return;
 }
-void translateOpSwitchCase(SGSOPERATOR OP, std::ofstream &fout) {
+void translateOpSwitchCase(OPERATOR OP, std::ofstream &fout) {
     switch (OP) {
     case SGS_OP_PLUS:
         fout << " + ";

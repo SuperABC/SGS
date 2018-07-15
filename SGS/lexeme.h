@@ -138,8 +138,6 @@ namespace sgs {
 			float fvalue;
 			char *svalue;
 			void *ovalue = nullptr;
-
-			int opvalue;
 		};
 
 		int line;

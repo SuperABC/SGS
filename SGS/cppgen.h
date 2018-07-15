@@ -5,6 +5,8 @@
 #include "machine.h"
 #include "syntax.h"
 
+using namespace sgs;
+
 class cppTab {
 private:
     int num;
@@ -23,7 +25,7 @@ string removeSpace(const string& input);
 void insertBuiltinFunction(std::ofstream &fout);
 void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout);
 sgs::VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout);
-void opSwitchCase(SGSOPERATOR OP, std::ofstream &fout);
+void opSwitchCase(OPERATOR OP, std::ofstream &fout);
 void translateOpExp(sgs::Expression *stmtExp, std::ofstream &fout);
 void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout);
 void translateIdExp(sgs::Expression *stmtExp, std::ofstream &fout);

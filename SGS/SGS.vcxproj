@@ -23,7 +23,7 @@
     <ProjectGuid>{7F373AA6-97F8-4B82-AE70-367831C31C07}</ProjectGuid>
     <RootNamespace>SGS</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-    <ProjectName>SGS(Compile)</ProjectName>
+    <ProjectName>SGS</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -136,35 +136,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ast.cpp" />
-    <ClCompile Include="codegen.cpp" />
-    <ClCompile Include="codegenTest.cpp" />
-    <ClCompile Include="cppCodegen.cpp" />
     <ClCompile Include="lexeme.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
-    <ClCompile Include="printAST.cpp" />
     <ClCompile Include="syntax.cpp" />
-    <ClCompile Include="transform.cpp" />
-    <ClCompile Include="TypeSys.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ast.h" />
-    <ClInclude Include="codegen.h" />
-    <ClInclude Include="cppCodegen.h" />
     <ClInclude Include="lexeme.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="message.h" />
-    <ClInclude Include="printAST.h" />
     <ClInclude Include="syntax.h" />
-    <ClInclude Include="transform.h" />
-    <ClInclude Include="TypeSys.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

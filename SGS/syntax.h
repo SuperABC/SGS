@@ -93,6 +93,7 @@ namespace sgs {
 		ClassType *getDecType() const { return decType; }
 	};
 
+	class FuncProto;
 	enum EXP_TYPE {
 		ET_OP,
 		ET_LITERAL,

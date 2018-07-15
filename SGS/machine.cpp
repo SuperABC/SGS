@@ -53,19 +53,19 @@ string nameReform(string input) {
     return ret;
 }
 
-SgsMachine::SgsMachine() {
+Machine::Machine() {
     initModule();
 }
-SgsMachine::~SgsMachine() {
+Machine::~Machine() {
 
 }
-void SgsMachine::initModule() {
+void Machine::initModule() {
     loadDlls();
 }
-void SgsMachine::loadDlls() {
+void Machine::loadDlls() {
     dllList.push_back(LoadLibrary("Function.dll"));
 }
-void SgsMachine::addSymbol(VarNode *var) {
+void Machine::addSymbol(VarNode *var) {
     string name = var->name;
     int index = 0;
     for (auto c : name)index += c;
@@ -74,7 +74,7 @@ void SgsMachine::addSymbol(VarNode *var) {
     symbol->next = table[index];
     table[index] = symbol;
 }
-VarNode *SgsMachine::findSymbol(string name) {
+VarNode *Machine::findSymbol(string name) {
     int index = 0;
     for (auto c : name)index += c;
     index = index % 256;
@@ -86,7 +86,7 @@ VarNode *SgsMachine::findSymbol(string name) {
     }
     return nullptr;
 }
-void SgsMachine::removeLocal(string local, bool del) {
+void Machine::removeLocal(string local, bool del) {
     int index = 0;
     for (auto c : local)index += c;
     index = index % 256;
@@ -110,7 +110,7 @@ void SgsMachine::removeLocal(string local, bool del) {
     }
 }
 
-SgsMachine *SgsMachine::input(vector<AST *> s,
+Machine *Machine::input(vector<AST *> s,
     vector<ClassType *> c, vector<FuncProto *> f) {
     stmts = s;
     classList = c;
@@ -119,13 +119,10 @@ SgsMachine *SgsMachine::input(vector<AST *> s,
     }
     return this;
 }
-void SgsMachine::environment(void *env) {
-
-}
-void SgsMachine::execute() {
+void Machine::execute() {
     for (auto s : stmts)step(s);
 }
-void SgsMachine::step(AST *s) {
+void Machine::step(AST *s) {
     switch (s->astType) {
     case AT_VARDEF:
         declare(s);
@@ -146,7 +143,7 @@ void SgsMachine::step(AST *s) {
         break;
     }
 }
-void SgsMachine::declare(AST *s) {
+void Machine::declare(AST *s) {
     VarDef *dec = (VarDef *)s;
     VarNode *tmp = nullptr;
     switch (dec->getDecType()->getVarType()) {
@@ -180,10 +177,10 @@ void SgsMachine::declare(AST *s) {
     addSymbol(tmp);
     stack.push(tmp->name);
 }
-void SgsMachine::structure(AST *s) {
+void Machine::structure(AST *s) {
 
 }
-void SgsMachine::statement(AST *s) { //suspend.
+void Machine::statement(AST *s) { //suspend.
     Statement *stmt = (Statement *)s;
     switch (stmt->getStmtType()) {
     case ST_ASSIGN:
@@ -226,10 +223,10 @@ void SgsMachine::statement(AST *s) { //suspend.
         break;
     }
 }
-void SgsMachine::prototype(AST *s) {
+void Machine::prototype(AST *s) {
 
 }
-void SgsMachine::definition(AST *s) {
+void Machine::definition(AST *s) {
     FuncDef *def = (FuncDef *)s;
     for (auto &dec : funcList) {
         if (def->getProto()->getName() == dec.first->getName())
@@ -237,7 +234,7 @@ void SgsMachine::definition(AST *s) {
     }
 }
 
-void SgsMachine::assignValue(VarNode *left, VarNode *right) {
+void Machine::assignValue(VarNode *left, VarNode *right) {
     if (left == nullptr || right == nullptr)return;
     switch (left->type->getVarType()) {
     case sgs::VT_BASIC:
@@ -303,7 +300,7 @@ void SgsMachine::assignValue(VarNode *left, VarNode *right) {
         break;
     }
 }
-VarNode *SgsMachine::callFunc(FuncProto *proto, vector<Expression *> paras) {
+VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
     string name = proto->getName();
     SGSFUNC tmp;
     for (const auto& func : funcList) {
@@ -332,7 +329,7 @@ VarNode *SgsMachine::callFunc(FuncProto *proto, vector<Expression *> paras) {
     }
     return nullptr;
 }
-void SgsMachine::exeBlock(BlockStmt *block) {
+void Machine::exeBlock(BlockStmt *block) {
     stack.push("");
     for (auto s : block->getContent())step(s);
     while (stack.top() != "") {
@@ -341,7 +338,7 @@ void SgsMachine::exeBlock(BlockStmt *block) {
     }
     stack.pop();
 }
-VarNode *SgsMachine::getPointer(Expression *e) {
+VarNode *Machine::getPointer(Expression *e) {
     VarNode *ret;
     switch (e->getExpType()) {
     case ET_IDENT:
@@ -359,7 +356,7 @@ VarNode *SgsMachine::getPointer(Expression *e) {
         return nullptr;
     }
 }
-VarNode *SgsMachine::expValue(Expression *e) {
+VarNode *Machine::expValue(Expression *e) {
     switch (e->getExpType()) {
     case ET_OP:
         return binCalc(((OpExp *)e)->getOp(), ((OpExp *)e)->getLeft(), ((OpExp *)e)->getRight());
@@ -411,7 +408,7 @@ VarNode *SgsMachine::expValue(Expression *e) {
         return nullptr;
     }
 }
-VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
+VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
     VarNode *v2 = expValue(a);
     VarNode *v1 = expValue(b);
     switch (op) {
@@ -624,35 +621,35 @@ VarNode *SgsMachine::binCalc(SGSOPERATOR op, Expression *a, Expression *b) {
     }
     return nullptr;
 }
-VarNode *SgsMachine::arrayElement(Expression *e) {
+VarNode *Machine::arrayElement(Expression *e) {
     return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
         ((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
 }
-VarNode *SgsMachine::classAttrib(Expression *e) {
+VarNode *Machine::classAttrib(Expression *e) {
     return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
         ((AccessExp *)e)->getMember());
 }
-VarType *SgsMachine::checkExp(sgs::Expression *e) {
+VarType *Machine::checkExp(sgs::Expression *e) {
     return nullptr;
 }
 
-int SgsMachine::getInt(VarNode *val) {
+int Machine::getInt(VarNode *val) {
     return ((IntNode *)val)->value;
 }
-float SgsMachine::getFloat(VarNode *val) {
+float Machine::getFloat(VarNode *val) {
     return ((FloatNode *)val)->value;
 }
-bool SgsMachine::getBool(VarNode *val) {
+bool Machine::getBool(VarNode *val) {
     return ((BoolNode *)val)->value;
 }
-const char *SgsMachine::getStr(VarNode *val) {
+const char *Machine::getStr(VarNode *val) {
     return ((StrNode *)val)->value.data();
 }
 
-void SgsMachine::clearMem() {
+void Machine::clearMem() {
     macMem.clear();
 }
-void SgsMachine::error(const char *inst, SGSVMERROR type) {
+void Machine::error(const char *inst, SGSVMERROR type) {
     switch (type) {
     case VE_DIVBYZERO:
         msgList.emplace_back(string("Division by zero"), MT_ERROR);

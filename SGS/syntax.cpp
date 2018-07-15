@@ -30,6 +30,8 @@ void Syntax::prepare() {
     funcList.push_back(new FuncProto(0, nullptr, "print number", { std::make_pair(new BasicType(BT_FLOAT), "value") }));
     funcList.push_back(new FuncProto(0, nullptr, "print str", { std::make_pair(new BasicType(BT_STRING), "value") }));
     funcList.push_back(new FuncProto(0, nullptr, "new line", {}));
+
+	funcList.push_back(new FuncProto(0, new BasicType(BT_INT), "current time", {}));
 }
 
 Syntax *Syntax::input(vector<string> &ids, vector<TokenPrim> &src) {

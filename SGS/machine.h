@@ -5,7 +5,7 @@
 
 namespace sgs {
 	class VarNode;
-	class IntNode; class FloatNode; class BoolNode; class StrNode;
+	class BoolNode; class CharNode; class IntNode; class FloatNode; class StrNode;
 	class ArrayNode; class ClassNode;
 
 	class VarNode {
@@ -14,6 +14,13 @@ namespace sgs {
 		string name;
 
 		VarNode(VarType *t, string n) : type(t), name(n) {}
+	};
+	class CharNode : public VarNode {
+	public:
+		char value;
+
+		CharNode(char v, string n) : VarNode(new BasicType(BT_CHAR), n), value(v) {}
+		CharNode(string n) : VarNode(new BasicType(BT_CHAR), n), value(0) {}
 	};
 	class IntNode : public VarNode {
 	public:
@@ -65,79 +72,79 @@ namespace sgs {
 }
 
 #ifndef SGS_DLL
-class Symbol {
-public:
-	sgs::VarNode *var;
-	Symbol *next;
 
-	Symbol(sgs::VarNode *var) : var(var), next(nullptr) {}
-};
+namespace sgs {
+	class Symbol {
+	public:
+		sgs::VarNode *var;
+		Symbol *next;
 
-typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
+		Symbol(sgs::VarNode *var) : var(var), next(nullptr) {}
+	};
+	typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
 
-enum SGSVMERROR {
-	VE_DIVBYZERO,
-	VE_NOID,
-	VE_TYPEMISMATCH,
-	VE_BROKEN
-};
-class SgsMachine {
-private:
-	vector<sgs::AST *> stmts;
+	enum SGSVMERROR {
+		VE_DIVBYZERO,
+		VE_NOID,
+		VE_TYPEMISMATCH,
+		VE_BROKEN
+	};
+	class Machine {
+	private:
+		vector<sgs::AST *> stmts;
 
-	vector<sgs::ClassType *>classList;
-	vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
-	vector<HINSTANCE> dllList;
+		vector<sgs::ClassType *>classList;
+		vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
+		vector<HINSTANCE> dllList;
 
-	Symbol *table[256] = { NULL };
-	std::stack<string> stack;
+		Symbol *table[256] = { NULL };
+		std::stack<string> stack;
 
-	SgsMemory macMem;
+		SgsMemory macMem;
 
-	void *env;
-	void initModule();
-	void loadDlls();
+		void initModule();
+		void loadDlls();
 
-	void addSymbol(sgs::VarNode *var);
-	sgs::VarNode *findSymbol(string name);
-	void removeLocal(string local, bool del = true);
+		void addSymbol(VarNode *var);
+		VarNode *findSymbol(string name);
+		void removeLocal(string local, bool del = true);
 
-	void step(sgs::AST *s);
-	void declare(sgs::AST *s);
-	void structure(sgs::AST *s);
-	void statement(sgs::AST *s);
-	void prototype(sgs::AST *s);
-	void definition(sgs::AST *s);
+		void step(AST *s);
+		void declare(AST *s);
+		void structure(AST *s);
+		void statement(AST *s);
+		void prototype(AST *s);
+		void definition(AST *s);
 
-	void assignValue(sgs::VarNode *left, sgs::VarNode *right);
-	sgs::VarNode *callFunc(sgs::FuncProto *func, vector<sgs::Expression *> paras);
-	void exeBlock(sgs::BlockStmt *block);
-	sgs::VarNode *getPointer(sgs::Expression *e);
-	sgs::VarNode *expValue(sgs::Expression *e);
-	sgs::VarNode *binCalc(SGSOPERATOR op, sgs::Expression *a, sgs::Expression *b);
-	sgs::VarNode *arrayElement(sgs::Expression *e);
-	sgs::VarNode *classAttrib(sgs::Expression *e);
-	sgs::VarType *checkExp(sgs::Expression *e);
+		void assignValue(VarNode *left, VarNode *right);
+		VarNode *callFunc(FuncProto *func, vector<Expression *> paras);
+		void exeBlock(BlockStmt *block);
+		VarNode *getPointer(Expression *e);
+		VarNode *expValue(Expression *e);
+		VarNode *binCalc(OPERATOR op, Expression *a, Expression *b);
+		VarNode *arrayElement(Expression *e);
+		VarNode *classAttrib(Expression *e);
+		VarType *checkExp(Expression *e);
 
-	int getInt(sgs::VarNode *val);
-	float getFloat(sgs::VarNode *val);
-	bool getBool(sgs::VarNode *val);
-	const char *getStr(sgs::VarNode *val);
-public:
-	vector<sgsMsg> msgList;
+		int getInt(VarNode *val);
+		float getFloat(VarNode *val);
+		bool getBool(VarNode *val);
+		const char *getStr(VarNode *val);
 
-	SgsMachine();
-	~SgsMachine();
+		void clearMem();
+		void error(const char *inst, SGSVMERROR type);
+	public:
+		vector<sgsMsg> msgList;
 
-	SgsMachine *input(vector<sgs::AST *> s,
-		vector<sgs::ClassType *> c, vector<sgs::FuncProto *> f);
-	void execute();
-	sgs::VarNode *execute(sgs::BlockStmt *block);
-	void environment(void *env);
+		Machine();
+		~Machine();
 
-	void clearMem();
-	void error(const char *inst, SGSVMERROR type);
-};
+		Machine *input(vector<AST *> s,
+			vector<ClassType *> c, vector<FuncProto *> f);
+		void execute();
+
+	};
+}
 #endif
 
 #endif

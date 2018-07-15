@@ -25,9 +25,6 @@ Lexeme::~Lexeme() {
         }
         j++;
     }
-    for (auto& i : output) {
-        if(i.ovalue)delete i.ovalue;
-    }
 }
 
 int Lexeme::preserve(const char *str) {
@@ -149,7 +146,7 @@ vector<TokenPrim> Lexeme::parse() {
                 node.id = SGS_CT_FLOAT;
             }
 			else {
-                node.ivalue = float(atoi(content.data() + i));
+                node.ivalue = atoi(content.data() + i);
                 node.id = SGS_CT_INTEGER;
             }
 
@@ -212,12 +209,12 @@ vector<TokenPrim> Lexeme::parse() {
 		else {
             node.type = SGS_TT_OP;
             node.start = i;
-            node.opvalue = 0;
+            node.id = 0;
             std::string str;
             switch (content[i]) {
             case '+':
                 if (content[i + 1] == '+') {
-                    node.opvalue = SGS_OP_PLUSPLUS;
+                    node.id = SGS_OP_PLUSPLUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -225,7 +222,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQPLUS;
+                    node.id = SGS_OP_EQPLUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -233,7 +230,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_PLUS;
+                    node.id = SGS_OP_PLUS;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -241,7 +238,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '-':
                 if (content[i + 1] == '-') {
-                    node.opvalue = SGS_OP_MINUSMINUS;
+                    node.id = SGS_OP_MINUSMINUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -249,7 +246,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQMINUS;
+                    node.id = SGS_OP_EQMINUS;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -257,7 +254,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_MINUS;
+                    node.id = SGS_OP_MINUS;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -265,7 +262,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '*':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQMULTY;
+                    node.id = SGS_OP_EQMULTY;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -273,7 +270,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_MULTY;
+                    node.id = SGS_OP_MULTY;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -281,7 +278,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '/':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQDIVIDE;
+                    node.id = SGS_OP_EQDIVIDE;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -289,7 +286,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_DIVIDE;
+                    node.id = SGS_OP_DIVIDE;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -297,7 +294,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '%':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQMOD;
+                    node.id = SGS_OP_EQMOD;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -305,7 +302,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_MOD;
+                    node.id = SGS_OP_MOD;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -313,7 +310,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '&':
                 if (content[i + 1] == '&') {
-                    node.opvalue = SGS_OP_ANDAND;
+                    node.id = SGS_OP_ANDAND;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -321,7 +318,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQAND;
+                    node.id = SGS_OP_EQAND;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -329,7 +326,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_AND;
+                    node.id = SGS_OP_AND;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -337,7 +334,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '|':
                 if (content[i + 1] == '|') {
-                    node.opvalue = SGS_OP_OROR;
+                    node.id = SGS_OP_OROR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -345,7 +342,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQOR;
+                    node.id = SGS_OP_EQOR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -353,7 +350,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_OR;
+                    node.id = SGS_OP_OR;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -361,7 +358,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '^':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQNOR;
+                    node.id = SGS_OP_EQNOR;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -369,7 +366,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_NOR;
+                    node.id = SGS_OP_NOR;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -377,7 +374,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '~':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_EQINVERSE;
+                    node.id = SGS_OP_EQINVERSE;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -385,51 +382,51 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_INVERSE;
+                    node.id = SGS_OP_INVERSE;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case '(':
-                node.opvalue = SGS_OP_LBRACE;
+                node.id = SGS_OP_LBRACE;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ')':
-                node.opvalue = SGS_OP_RBRACE;
+                node.id = SGS_OP_RBRACE;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '[':
-                node.opvalue = SGS_OP_LPARENTHESIS;
+                node.id = SGS_OP_LPARENTHESIS;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ']':
-                node.opvalue = SGS_OP_RPARENTHESIS;
+                node.id = SGS_OP_RPARENTHESIS;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '{':
-                node.opvalue = SGS_OP_LBRAKET;
+                node.id = SGS_OP_LBRAKET;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '}':
-                node.opvalue = SGS_OP_RBRAKET;
+                node.id = SGS_OP_RBRAKET;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '>':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_NSMALLER;
+                    node.id = SGS_OP_NSMALLER;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -437,7 +434,7 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_GREATER;
+                    node.id = SGS_OP_GREATER;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
@@ -445,7 +442,7 @@ vector<TokenPrim> Lexeme::parse() {
                 }
             case '<':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_NGREATER;
+                    node.id = SGS_OP_NGREATER;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -453,33 +450,33 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_SMALLER;
+                    node.id = SGS_OP_SMALLER;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case ';':
-                node.opvalue = SGS_OP_SEMI;
+                node.id = SGS_OP_SEMI;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case ',':
-                node.opvalue = SGS_OP_COMMA;
+                node.id = SGS_OP_COMMA;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '.':
-                node.opvalue = SGS_OP_DOT;
+                node.id = SGS_OP_DOT;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case  '!':
                 if (content[i + 1] == '=') {
-                    node.opvalue = SGS_OP_NOTEQ;
+                    node.id = SGS_OP_NOTEQ;
                     i++;
                     node.end = i + 1;
                     node.line = tmpLine;
@@ -487,20 +484,20 @@ vector<TokenPrim> Lexeme::parse() {
                     continue;
                 }
 				else {
-                    node.opvalue = SGS_OP_NOT;
+                    node.id = SGS_OP_NOT;
                     node.end = i + 1;
                     node.line = tmpLine;
                     output.push_back(node);
                     continue;
                 }
             case '=':
-                node.opvalue = SGS_OP_EQUAL;
+                node.id = SGS_OP_EQUAL;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
                 continue;
             case '?':
-                node.opvalue = SGS_OP_QUERY;
+                node.id = SGS_OP_QUERY;
                 node.end = i + 1;
                 node.line = tmpLine;
                 output.push_back(node);
