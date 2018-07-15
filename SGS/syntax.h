@@ -7,8 +7,6 @@
 #include <memory>
 #include <utility>
 
-using std::unique_ptr;
-
 namespace sgs {
 
 	enum AST_TYPE {
@@ -21,9 +19,11 @@ namespace sgs {
 	};
 	class AST {
 	public:
-        virtual ~AST() = default;
+		int line;
+
 		AST_TYPE astType;
-		AST(AST_TYPE t) :astType(t) {}
+		AST(int line, AST_TYPE t) : line(line), astType(t) {}
+		virtual ~AST() = default;
 	};
 
 	enum VAR_TYPE {
@@ -31,12 +31,11 @@ namespace sgs {
 		VT_ARRAY,
 		VT_CLASS
 	};
-
 	class VarType {
 	private:
 		VAR_TYPE varType;
 	public:
-        virtual ~VarType() = default;
+		virtual ~VarType() = default;
 		VarType(VAR_TYPE t) : varType(t) {}
 		VAR_TYPE getVarType() const { return varType; }
 	};
@@ -63,7 +62,6 @@ namespace sgs {
 		VarType *getEleType() const { return eleType; }
 		int getLength() const { return length; }
 	};
-
 	class ClassType : public VarType {
 	private:
 		string className;
@@ -77,21 +75,21 @@ namespace sgs {
 		string getName() const { return className; }
 		vector <std::pair<VarType *, string>> getEle() const { return eleList; }
 	};
+	
 	class VarDef : public AST {
 	private:
 		VarType * decType;
 		string name;
 	public:
-		VarDef(VarType* t, string n) : AST(AT_VARDEF), decType(t), name(std::move(n)) {}
+		VarDef(int line, VarType* t, string n) : AST(line, AT_VARDEF), decType(t), name(std::move(n)) {}
 		VarType *getDecType() const { return decType; }
 		string getName() const { return name; }
 	};
-
 	class ClassDef : public AST {
 	private:
 		ClassType * decType;
 	public:
-		ClassDef(ClassType* t) : AST(AT_CLASS), decType(t) {}
+		ClassDef(int line, ClassType* t) : AST(line, AT_CLASS), decType(t) {}
 		ClassType *getDecType() const { return decType; }
 	};
 
@@ -107,105 +105,106 @@ namespace sgs {
 	private:
 		EXP_TYPE expType;
 	public:
-		Expression(EXP_TYPE t) : AST(AT_EXP), expType(t) {}
+		Expression(int line, EXP_TYPE t) : AST(line, AT_EXP), expType(t) {}
 		EXP_TYPE getExpType() const { return expType; }
 	};
 	class OpExp : public Expression {
 	private:
-		SGSOPERATOR op;
+		OPERATOR op;
 		Expression *left, *right;
 	public:
-		explicit OpExp(SGSOPERATOR op) : Expression(ET_OP), op(op), left(nullptr), right(nullptr) {}
+		explicit OpExp(int line, OPERATOR op) : Expression(line, ET_OP), op(op), left(nullptr), right(nullptr) {}
 		void setLeft(Expression *l) { left = l; }
 		void setRight(Expression *r) { right = r; }
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
-		SGSOPERATOR getOp() const { return op; }
+		OPERATOR getOp() const { return op; }
 	};
 	class LiteralExp : public Expression {
 		VarType *type;
 	public:
-		explicit LiteralExp(VarType *type) : Expression(ET_LITERAL), type(type) {}
+		explicit LiteralExp(int line, VarType *type) : Expression(line, ET_LITERAL), type(type) {}
 		VarType *getType() const { return type; }
 	};
 	class IntLiteral : public LiteralExp {
 		int value;
 	public:
-		explicit IntLiteral(int value = 0) : LiteralExp(new BasicType(BT_INT)), value(value) {}
+		explicit IntLiteral(int line, int value = 0) : LiteralExp(line, new BasicType(BT_INT)), value(value) {}
 		int getValue() const { return value; }
 	};
-    class CharLiteral : public LiteralExp {
-        char value;
-    public:
-        explicit CharLiteral(char value = '\0') : LiteralExp(new BasicType(BT_CHAR)), value(value) {}
-        char getValue() const { return value; }
-    };
+	class CharLiteral : public LiteralExp {
+		char value;
+	public:
+		explicit CharLiteral(int line, char value = '\0') : LiteralExp(line, new BasicType(BT_CHAR)), value(value) {}
+		char getValue() const { return value; }
+	};
 	class FloatLiteral : public LiteralExp {
 		float value;
 	public:
-		explicit FloatLiteral(float value = 0) : LiteralExp(new BasicType(BT_FLOAT)), value(value) {}
+		explicit FloatLiteral(int line, float value = 0) : LiteralExp(line, new BasicType(BT_FLOAT)), value(value) {}
 		float getValue() const { return value; }
 	};
 	class BoolLiteral : public LiteralExp {
 		bool value;
 	public:
-		explicit BoolLiteral(bool value = false) : LiteralExp(new BasicType(BT_BOOL)), value(value) {}
+		explicit BoolLiteral(int line, bool value = false) : LiteralExp(line, new BasicType(BT_BOOL)), value(value) {}
 		bool getValue() const { return value; }
 	};
 	class StrLiteral : public LiteralExp {
 		string value;
 	public:
-		explicit StrLiteral(string value = "") : LiteralExp(new BasicType(BT_STRING)), value(std::move(value)) {}
+		explicit StrLiteral(int line, string value = "") : LiteralExp(line, new BasicType(BT_STRING)), value(std::move(value)) {}
 		string getValue() const { return value; }
 	};
 	class ArrayLiteral : public LiteralExp {
 		vector<Expression *> cont;
 	public:
-		explicit ArrayLiteral(VarType *t, vector<Expression *> cont) : 
-			LiteralExp(new ArrayType(t, cont.size())), cont(cont) {}
+		explicit ArrayLiteral(int line, VarType *t, vector<Expression *> cont) :
+			LiteralExp(line, new ArrayType(t, cont.size())), cont(cont) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
 	class ClassLiteral : public LiteralExp {
 		vector<Expression *> cont;
 	public:
-		explicit ClassLiteral(string n, vector<std::pair<VarType *, string>> dec,
+		explicit ClassLiteral(int line, string n, vector<std::pair<VarType *, string>> dec,
 			vector<Expression *> cont) :
-			LiteralExp(new ClassType(n, dec)), cont(std::move(cont)) {}
+			LiteralExp(line, new ClassType(n, dec)), cont(std::move(cont)) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
 	class IdExp : public Expression {
 	private:
 		string name;
 	public:
-		explicit IdExp(string n) : Expression(ET_IDENT), name(std::move(n)) {}
+		explicit IdExp(int line, string n) : Expression(line, ET_IDENT), name(std::move(n)) {}
 		string getName() const { return name; }
 	};
 	class AccessExp : public Expression {
 		Expression* object;
 		string member;
 	public:
-		AccessExp(Expression* obj, string member) : Expression(ET_ACCESS), object(obj), member(std::move(member)) {}
+		AccessExp(int line, Expression* obj, string member) :
+			Expression(line, ET_ACCESS), object(obj), member(std::move(member)) {}
 		Expression* getObject() const { return object; }
 		string getMember() const { return member; }
 	};
 	class VisitExp : public Expression {
 	private:
-		Expression *array;
+		Expression * array;
 		Expression *index;
 	public:
 
-		VisitExp(Expression* array, Expression* index) : Expression(ET_VISIT), array(array), index(index) {}
+		VisitExp(int line, Expression* array, Expression* index) :
+			Expression(line, ET_VISIT), array(array), index(index) {}
 		Expression *getArray() const { return array; }
 		Expression *getIndex() const { return index; }
 	};
-    class FuncProto;
 	class CallExp : public Expression {
 	private:
 		FuncProto * function;
 		vector <Expression *> paramList;
 	public:
-		CallExp(FuncProto *f, vector<Expression*> paramList) :
-			Expression(ET_CALL), function(f), paramList(std::move(paramList)) {}
+		CallExp(int line, FuncProto *f, vector<Expression*> paramList) :
+			Expression(line, ET_CALL), function(f), paramList(std::move(paramList)) {}
 		void pushParam(Expression *e) { paramList.push_back(e); }
 		FuncProto *getFunction() const { return function; };
 		const vector <Expression *>& getParam() const { return paramList; };
@@ -221,29 +220,28 @@ namespace sgs {
 		ST_CONTINUE,
 		ST_BLOCK
 	};
-
 	class Statement : public AST {
 	private:
 		STMT_TYPE stmtType;
 	public:
-		explicit Statement(STMT_TYPE t) : AST(AT_STMT), stmtType(t) {}
+		explicit Statement(int line, STMT_TYPE t) : AST(line, AT_STMT), stmtType(t) {}
 		STMT_TYPE getStmtType() const { return stmtType; }
 	};
 	class AssignStmt : public Statement {
 	private:
 		Expression * left, *right;
 	public:
-		AssignStmt(Expression* left, Expression* right) : Statement(ST_ASSIGN), left(left), right(right) {}
+		AssignStmt(int line, Expression* left, Expression* right) : Statement(line, ST_ASSIGN), left(left), right(right) {}
 		void setLeft(Expression *l) { left = l; }
 		void setRigth(Expression *r) { right = r; }
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
 	};
-	class BlockStmt : public Statement {    
+	class BlockStmt : public Statement {
 	private:
 		vector<AST *>content;
 	public:
-		BlockStmt() : Statement(ST_BLOCK) {}
+		BlockStmt(int line) : Statement(line, ST_BLOCK) {}
 		void pushAST(AST *t) { content.push_back(t); }
 		const vector<AST *>& getContent() const { return content; }
 	};
@@ -252,8 +250,8 @@ namespace sgs {
 		FuncProto * function;
 		vector <Expression *> paramList;
 	public:
-		explicit CallStmt(FuncProto *f, vector<Expression*> paramList) :
-			Statement(ST_CALL), function(f), paramList(std::move(paramList)) {}
+		explicit CallStmt(int line, FuncProto *f, vector<Expression*> paramList) :
+			Statement(line, ST_CALL), function(f), paramList(std::move(paramList)) {}
 		void pushParam(Expression *e) { paramList.push_back(e); }
 		FuncProto *getFunction() const { return function; };
 		const vector <Expression *>& getParam() const { return paramList; };
@@ -263,8 +261,8 @@ namespace sgs {
 		Expression * condition;
 		BlockStmt *taken, *untaken;
 	public:
-		IfStmt(Expression *b, BlockStmt* taken, BlockStmt* untaken) :
-			Statement(ST_IF), condition(b), taken(taken), untaken(untaken) {}
+		IfStmt(int line, Expression *b, BlockStmt* taken, BlockStmt* untaken) :
+			Statement(line, ST_IF), condition(b), taken(taken), untaken(untaken) {}
 		void setTaken(BlockStmt *t) { taken = t; }
 		void setUntaken(BlockStmt *u) { untaken = u; }
 		BlockStmt *getTaken() const { return taken; }
@@ -276,22 +274,22 @@ namespace sgs {
 		Expression * condition;
 		BlockStmt *body;
 	public:
-		WhileStmt(Expression *c, BlockStmt* body) : Statement(ST_WHILE), condition(c), body(body) {}
+		WhileStmt(int line, Expression *c, BlockStmt* body) : Statement(line, ST_WHILE), condition(c), body(body) {}
 		void setBody(BlockStmt *b) { body = b; }
 		BlockStmt *getBody() const { return body; }
 		Expression* getCondition() const { return condition; }
 	};
 	class ReturnStmt : public Statement {
 	public:
-		ReturnStmt() : Statement(ST_RETURN) {}
+		ReturnStmt(int line) : Statement(line, ST_RETURN) {}
 	};
 	class BreakStmt : public Statement {
 	public:
-		BreakStmt() : Statement(ST_BREAK) {}
+		BreakStmt(int line) : Statement(line, ST_BREAK) {}
 	};
-	class ContinueStmt : public Statement {
+	class RedoStmt : public Statement {
 	public:
-		ContinueStmt() : Statement(ST_CONTINUE) {}
+		RedoStmt(int line) : Statement(line, ST_CONTINUE) {}
 	};
 
 	class FuncProto : public AST {
@@ -300,8 +298,8 @@ namespace sgs {
 		string name;
 		vector <std::pair<VarType *, string>> paramList;
 	public:
-		FuncProto(VarType *ret, string n, vector<std::pair<VarType *, string>> list = vector<std::pair<VarType *, string>>()) :
-			AST(AT_PROTO), returnType(ret), name(std::move(n)), paramList(std::move(list)) {}
+		FuncProto(int line, VarType *ret, string n, vector<std::pair<VarType *, string>> list = vector<std::pair<VarType *, string>>()) :
+			AST(line, AT_PROTO), returnType(ret), name(std::move(n)), paramList(std::move(list)) {}
 		void pushParam(VarType *t, string n) {
 			paramList.emplace_back(t, n);
 		}
@@ -309,94 +307,93 @@ namespace sgs {
 		string getName() const { return name; }
 		const vector <std::pair<VarType *, string>>& getParam() const { return paramList; };
 	};
-
 	class FuncDef : public AST {
 	private:
 		FuncProto * proto;
 		BlockStmt* body;
 	public:
-		FuncDef(FuncProto* p) : AST(AT_FUNC), proto(p), body(nullptr) {}
+		FuncDef(int line, FuncProto* p) : AST(line, AT_FUNC), proto(p), body(nullptr) {}
 		FuncProto *getProto() const { return proto; }
 		void setBody(BlockStmt *b) { body = b; }
 		BlockStmt *getBody() const { return body; }
 	};
 
-	inline LiteralExp* getLiteral(int value = 0) {
-		return new IntLiteral(value);
+	inline LiteralExp* getLiteral(int line, int value = 0) {
+		return new IntLiteral(line, value);
 	}
-	inline LiteralExp* getLiteral(float value = 0.f) {
-		return new FloatLiteral(value);
+	inline LiteralExp* getLiteral(int line, float value = 0.f) {
+		return new FloatLiteral(line, value);
 	}
-	inline LiteralExp* getLiteral(bool value = false) {
-		return new BoolLiteral(value);
+	inline LiteralExp* getLiteral(int line, bool value = false) {
+		return new BoolLiteral(line, value);
 	}
-	inline LiteralExp* getLiteral(char *value = nullptr) {
-		return new StrLiteral(value);
+	inline LiteralExp* getLiteral(int line, char *value = nullptr) {
+		return new StrLiteral(line, value);
 	}
+
+	enum SYNTAXERROR {
+		SGS_SE_EXPOSE,
+		SGS_SE_UNIQUE,
+		SGS_SE_EXPDOT,
+		SGS_SE_EXPCOMMA,
+		SGS_SE_EXPBRACE,
+		SGS_SE_REDEF,
+		SGS_SE_INVALIDTYPE,
+		SGS_SE_DISACCORD,
+		SGS_SE_NOID,
+		SGS_SE_INCOMPLETE,
+		SGS_SE_UNKNOWN,
+		SGS_SE_UNSUPPORT
+	};
+	class Syntax {
+	private:
+		vector<TokenPrim> content;
+		vector<string> strId;
+
+		SgsMemory synMem;
+
+		unsigned int proc;
+		int func = -1;
+
+		void prepare();
+		void skipLine();
+
+		void parseLib(string lib);
+		sgs::Expression *parseExp();
+		sgs::Expression *parseVar();
+		sgs::ClassDef *parseClassDec();
+		sgs::ClassLiteral *parseClassLiteral(int classid);
+		sgs::FuncProto *parseFuncDec();
+		sgs::FuncDef *parseFuncDef(int funcid);
+		vector<sgs::Expression *>parseParam(int funcid);
+		sgs::BlockStmt *parseBlock(bool untaken = false);
+
+		string parseUser(string guide = "");
+		int parseUser(vector<string> guides);
+		int findClass();
+		int findFunc();
+
+		void clearMem();
+
+		static bool compare(int op1, int op2);
+
+	public:
+		vector<sgs::AST *> stmts;
+
+		vector<sgs::ClassType *>classList;
+		vector<sgs::FuncProto *>funcList;
+
+		vector<sgsMsg> msgList;
+
+		Syntax();
+		Syntax(vector<string> &ids, vector<TokenPrim> &input);
+		~Syntax();
+
+		Syntax *input(vector<string> &ids, vector<TokenPrim> &src);
+		void parse();
+
+		void error(const char *word, SYNTAXERROR type);
+	};
 }
-
-enum SGSYNTAXERROR {
-	SGS_SE_EXPOSE,
-	SGS_SE_UNIQUE,
-	SGS_SE_EXPDOT,
-	SGS_SE_EXPCOMMA,
-	SGS_SE_EXPBRACE,
-	SGS_SE_REDEF,
-	SGS_SE_INVALIDTYPE,
-	SGS_SE_DISACCORD,
-	SGS_SE_NOID,
-	SGS_SE_INCOMPLETE,
-	SGS_SE_UNKNOWN,
-	SGS_SE_UNSUPPORT
-};
-class SgsSyntax {
-private:
-	vector<SgsTokenPrim> content;
-	vector<string> strId;
-
-	SgsMemory synMem;
-
-	unsigned int proc;
-	int func = -1;
-
-	void prepare();
-	void skipLine();
-
-	void parseLib(string lib);
-	sgs::Expression *parseExp();
-	sgs::Expression *parseVar();
-	sgs::ClassDef *parseClassDec();
-	sgs::ClassLiteral *parseClassConst(int classid);
-	sgs::FuncProto *parseFuncDec();
-	sgs::FuncDef *parseFuncDef(int funcid);
-	vector<sgs::Expression *>parseParam(int funcid);
-	sgs::BlockStmt *parseBlock(bool untaken = false);
-
-	string parseUser(string guide = "");
-	int parseUser(vector<string> guides);
-	int findClass();
-	int findFunc();
-
-	void clearMem();
-
-	static bool compare(int op1, int op2);
-
-public:
-	vector<sgs::AST *> stmts;
-
-	vector<sgs::ClassType *>classList;
-	vector<sgs::FuncProto *>funcList;
-
-	vector<sgsMsg> msgList;
-
-	SgsSyntax();
-	SgsSyntax(vector<string> &ids, vector<SgsTokenPrim> &input);
-	~SgsSyntax();
-
-	SgsSyntax *input(vector<string> &ids, vector<SgsTokenPrim> &src);
-	void parse();
-
-	void error(const char *word, SGSYNTAXERROR type);
-};
 
 #endif

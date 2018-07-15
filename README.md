@@ -14,7 +14,7 @@ SGS is a language with weak type constraint. That is, we need not to tell the in
 ##### Declare and Assign
 
 ```sgs
-let test word.
+let string test word.
 let test word be "hello world!".
 ```
 
@@ -53,7 +53,7 @@ end loop.
 ##### Function Declaration
 
 ```sgs
-new function add with a, b.
+new function add with a, b return integer.
 ```
 
 ##### Function Definition.
@@ -68,7 +68,7 @@ print a line with add with 1, 2.
 ##### Lambda Expression
 
 ```sgs
-let fp be lambda with a, b
+let fp be lambda with a, b return integer
 	let result be a+b.
 end lambda.
 print a line with fp with 1, 2.

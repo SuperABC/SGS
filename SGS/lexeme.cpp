@@ -2,7 +2,9 @@
 #include "lexeme.h"
 #include <cstring>
 
-SgsLex::SgsLex(const char *input) {
+using namespace sgs;
+
+Lexeme::Lexeme(const char *input) {
     for (auto& i : list) {
         i = nullptr;
     }
@@ -12,10 +14,10 @@ SgsLex::SgsLex(const char *input) {
     if (input == nullptr)return;
     content = std::string(input);
 }
-SgsLex::~SgsLex() {
+Lexeme::~Lexeme() {
     int j = 0, ids = 256;
     while (ids--) {
-        SgsHashNode *tmp = list[j];
+        HashNode *tmp = list[j];
         while (tmp) {
             list[j] = list[j]->next;
             delete tmp;
@@ -28,19 +30,19 @@ SgsLex::~SgsLex() {
     }
 }
 
-int SgsLex::preserve(const char *str) {
+int Lexeme::preserve(const char *str) {
     int value = 0;
     int len = strlen(str);
     for (int i = 0; i < len; i++) {
         value += str[i];
     }
     value %= 256;
-    SgsHashNode *tmp = list[value];
+    HashNode *tmp = list[value];
     while (tmp != nullptr && strcmp(tmp->name.data(), str) != 0) {
         tmp = tmp->next;
     }
     if (tmp == nullptr) {
-        tmp = new SgsHashNode();
+        tmp = new HashNode();
         tmp->id = idNum++;
         tmp->type = SGS_TT_SYS;
         tmp->name = string(str);
@@ -50,7 +52,7 @@ int SgsLex::preserve(const char *str) {
     }
     return tmp->id;
 }
-void SgsLex::prepare() {
+void Lexeme::prepare() {
     preserve("bool");
     preserve("char");
     preserve("integer");
@@ -97,19 +99,19 @@ void SgsLex::prepare() {
     preserve("null");
     preserve("comment");
 }
-int SgsLex::hash(string str) {
+int Lexeme::hash(string str) {
     int value = 0;
     int len = str.length();
     for (int i = 0; i < len; i++) {
         value += str[i];
     }
     value %= 256;
-    SgsHashNode *tmp = list[value];
+    HashNode *tmp = list[value];
     while (tmp != nullptr && str != tmp->name) {
         tmp = tmp->next;
     }
     if (tmp == nullptr) {
-        tmp = new SgsHashNode();
+        tmp = new HashNode();
         tmp->id = idNum++;
         tmp->type = SGS_TT_USER;
         tmp->name = std::string(str);
@@ -120,16 +122,16 @@ int SgsLex::hash(string str) {
     return tmp->id;
 }
 
-SgsLex *SgsLex::input(const char *str) {
+Lexeme *Lexeme::input(const char *str) {
     content = std::string(str);
     return this;
 }
-vector<SgsTokenPrim> SgsLex::parse() {
+vector<TokenPrim> Lexeme::parse() {
     output.clear();
 
     int len = content.length();
     for (int i = 0; i < len; i++) {
-        SgsTokenPrim node;
+        TokenPrim node;
         if (content[i] == ' ' || content[i] == '\t')continue;
         else if (content[i] == '\n') {
             tmpLine++;
@@ -545,11 +547,11 @@ vector<SgsTokenPrim> SgsLex::parse() {
     return output;
 }
 
-const char *SgsLex::get() const {
+const char *Lexeme::get() const {
     return content.data();
 }
 
-void SgsLex::error(const char *word, SGSLEXEMEERROR type) {
+void Lexeme::error(const char *word, LEXEMEERROR type) {
     switch (type) {
     case SGS_LE_ILLEGAL:
         msgList.emplace_back(string("Illegal identifier: ") + word + ".\n", MT_ERROR);
