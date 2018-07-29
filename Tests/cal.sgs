@@ -7,7 +7,7 @@ start current.
 	if position <= length then
 		let result be str[position].
 		return.
-	end if.
+	end.
 	let result be 0.
 end current.
 
@@ -24,7 +24,7 @@ start parseNum.
 		let result be result * 10 + c - `0`.
 		match.
 		let c be current.
-	end loop.
+	end.
 end parseNum.
 
 new function parseFactor return integer.
@@ -40,9 +40,9 @@ start parseTerm.
 		else
 			match.
 			let result be result / parseFactor.
-		end if.
+		end.
 		let c be current.
-	end loop.
+	end.
 end parseTerm.
 
 new function parseExpr return integer.
@@ -56,9 +56,9 @@ start parseExpr.
 		else
 			match.
 			let result be result - parseTerm.
-		end if.
+		end.
 		let c be current.
-	end loop.
+	end.
 end parseExpr.
 
 start parseFactor.
@@ -69,7 +69,7 @@ start parseFactor.
 		match.
 		let result be temp.
 		return.
-	end if.
+	end.
 	let result be parseNum.
 end parseFactor.
 
@@ -81,11 +81,11 @@ loop when true.
 		if c = ` ` then
 			let c be getchar.
 			redo.
-		end if.
+		end.
 		let str[length] be c.
 		let length be length + 1.
 		let c be getchar.
-	end loop.
+	end.
 	let integer res be parseExpr.
 	print an int with value res.
 	newline.
