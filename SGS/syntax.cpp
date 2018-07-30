@@ -29,13 +29,14 @@ void Syntax::prepare() {
     funcList.push_back(new FuncProto(0, nullptr, "print int", { std::make_pair(new BasicType(BT_INT), "value") }));
     funcList.push_back(new FuncProto(0, nullptr, "print number", { std::make_pair(new BasicType(BT_FLOAT), "value") }));
     funcList.push_back(new FuncProto(0, nullptr, "print str", { std::make_pair(new BasicType(BT_STRING), "value") }));
-    funcList.push_back(new FuncProto(0, nullptr, "new line", {}));
+    funcList.push_back(new FuncProto(0, nullptr, "skip line", {}));
 
 	funcList.push_back(new FuncProto(0, new BasicType(BT_INT), "current time", {}));
 }
 
 Syntax *Syntax::input(vector<string> &ids, vector<TokenPrim> &src) {
     content = src;
+	stmts.clear();
 
     for (const auto& i : ids) {
         unsigned int j = 0;
@@ -224,9 +225,6 @@ void Syntax::parse() {
 
             if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
                 proc++;
-                if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF)
-                    proc++;
-                else error("End if", SGS_SE_INCOMPLETE);
             }
 			else error("If(end)", SGS_SE_INCOMPLETE);
 
@@ -249,10 +247,6 @@ void Syntax::parse() {
             stmts.push_back(new WhileStmt(line, cond, parseBlock()));
             if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_END) {
                 proc++;
-                if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_LOOP)
-                    proc++;
-                else
-                    error("End loop", SGS_SE_INCOMPLETE);
             }
 			else error("Loop(end)", SGS_SE_INCOMPLETE);
 
@@ -910,7 +904,8 @@ BlockStmt *Syntax::parseBlock(bool untaken) {
                     if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_IF)
                         proc++;
                     else error("End if", SGS_SE_INCOMPLETE);
-                } else error("If(end)", SGS_SE_INCOMPLETE);
+                }
+				else error("If(end)", SGS_SE_INCOMPLETE);
             }
 
             if (untaken)break;

@@ -121,6 +121,7 @@ int Lexeme::hash(string str) {
 
 Lexeme *Lexeme::input(const char *str) {
     content = std::string(str);
+	output.clear();
     return this;
 }
 vector<TokenPrim> Lexeme::parse() {

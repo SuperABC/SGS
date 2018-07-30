@@ -11,9 +11,16 @@ namespace sgs {
 	class VarNode {
 	public:
 		VarType *type;
-		string name;
+		char *name;
 
-		VarNode(VarType *t, string n) : type(t), name(n) {}
+		VarNode(VarType *t, string n) : type(t) {
+			name = (char *)malloc(n.length() + 1);
+			strcpy(name, n.data());
+		}
+		virtual ~VarNode() {
+			free(name);
+			delete type;
+		}
 	};
 	class CharNode : public VarNode {
 	public:
@@ -21,6 +28,7 @@ namespace sgs {
 
 		CharNode(char v, string n) : VarNode(new BasicType(BT_CHAR), n), value(v) {}
 		CharNode(string n) : VarNode(new BasicType(BT_CHAR), n), value(0) {}
+		virtual ~CharNode() = default;
 	};
 	class IntNode : public VarNode {
 	public:
@@ -28,6 +36,7 @@ namespace sgs {
 
 		IntNode(int v, string n) : VarNode(new BasicType(BT_INT), n), value(v) {}
 		IntNode(string n) : VarNode(new BasicType(BT_INT), n), value(0) {}
+		virtual ~IntNode() = default;
 	};
 	class FloatNode : public VarNode {
 	public:
@@ -35,6 +44,7 @@ namespace sgs {
 
 		FloatNode(float v, string n) : VarNode(new BasicType(BT_FLOAT), n), value(v) {}
 		FloatNode(string n) : VarNode(new BasicType(BT_FLOAT), n), value(0.f) {}
+		virtual ~FloatNode() = default;
 	};
 	class BoolNode : public VarNode {
 	public:
@@ -42,6 +52,7 @@ namespace sgs {
 
 		BoolNode(bool v, string n) : VarNode(new BasicType(BT_BOOL), n), value(v) {}
 		BoolNode(string n) : VarNode(new BasicType(BT_BOOL), n), value(false) {}
+		virtual ~BoolNode() = default;
 	};
 	class StrNode : public VarNode {
 	public:
@@ -49,12 +60,17 @@ namespace sgs {
 
 		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n), value(v) {}
 		StrNode(string n) : VarNode(new BasicType(BT_STRING), n), value("") {}
+		virtual ~StrNode() = default;
 	};
 	class ArrayNode : public VarNode {
 	public:
 		vector<VarNode *> content;
 
 		ArrayNode(VarType *t, int length, string n);
+		VarNode *operator [](int i) {
+			return content[i];
+		}
+		virtual ~ArrayNode() = default;
 	};
 	class ClassNode : public VarNode {
 	public:
@@ -68,6 +84,7 @@ namespace sgs {
 			}
 			return nullptr;
 		}
+		virtual ~ClassNode() = default;
 	};
 }
 
@@ -81,7 +98,7 @@ namespace sgs {
 
 		Symbol(sgs::VarNode *var) : var(var), next(nullptr) {}
 	};
-	typedef sgs::VarNode *(*SGSFUNC)(vector<sgs::VarNode *> param);
+	typedef sgs::VarNode *(*SGSFUNC)(int n, VarNode *param[]);
 
 	enum SGSVMERROR {
 		VE_DIVBYZERO,
@@ -124,7 +141,6 @@ namespace sgs {
 		VarNode *binCalc(OPERATOR op, Expression *a, Expression *b);
 		VarNode *arrayElement(Expression *e);
 		VarNode *classAttrib(Expression *e);
-		VarType *checkExp(Expression *e);
 
 		int getInt(VarNode *val);
 		float getFloat(VarNode *val);

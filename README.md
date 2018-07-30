@@ -7,7 +7,7 @@ The main properties in SGS is similar to JavaScript and C++, however, there are 
 
 #### Type System
 
-SGS is a language with weak type constraint. That is, we need not to tell the interpreter the type explicitly. For programmer, we can regard all variables and function return values as arbitrary type.
+SGS separate types into three groups. They are basic type, array type and class type. For basic type, there are bool, char, integer, float, string five types. Then for array type, we need to tell the element type. Last, for class type, we need to tell the type and name for every elements.
 
 #### Statement
 
@@ -16,6 +16,13 @@ SGS is a language with weak type constraint. That is, we need not to tell the in
 ```sgs
 let string test word.
 let test word be "hello world!".
+
+let string test word be "hello world!".
+
+let string test one, test two, test three.
+let test one, test two, test three be 1.
+
+let string test one, test two, test three be 1, 2.
 ```
 
 ##### Function Call
@@ -33,7 +40,7 @@ let test branch be true.
 if test branch is true then
 	print a line with "true".
 else print a line with "false".
-end if.
+end.
 ```
 
 ##### Loop
@@ -43,7 +50,7 @@ let rounds be 10.
 loop when rounds > 0.
 	let rounds be rounds - 1.
 	print a line with rounds.
-end loop.
+end.
 ```
 
 

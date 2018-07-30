@@ -1,0 +1,13 @@
+let integer round be 10000.
+let integer sum be 0.
+
+let integer time begin be current time.
+loop when round > 0.
+	let sum be sum + round.
+	let round be round - 1.
+end loop.
+let integer time over be current time.
+
+print int with sum.
+skip line.
+print int with time over - time begin.

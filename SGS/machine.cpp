@@ -37,8 +37,8 @@ ArrayNode::ArrayNode(VarType *t, int length, string n) :
 }
 ClassNode::ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
     VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
-    for (auto e : content) {
-        // TODO
+    for (auto &e : content) {
+
     }
 }
 
@@ -96,14 +96,22 @@ void Machine::removeLocal(string local, bool del) {
         if (tmp->var->name == local) {
             if (pre) {
                 pre->next = tmp->next;
-                if (del)delete tmp;
-                break;
-            } else {
-                table[index] = tmp->next;
-                if (del)delete tmp;
+				if (del) {
+					delete tmp->var;
+					delete tmp;
+				}
                 break;
             }
-        } else {
+			else {
+                table[index] = tmp->next;
+				if (del) {
+					delete tmp->var;
+					delete tmp;
+				}
+                break;
+            }
+        }
+		else {
             pre = tmp;
             tmp = tmp->next;
         }
@@ -162,7 +170,8 @@ void Machine::declare(AST *s) {
             tmp = new StrNode(dec->getName());
             break;
         case BT_CHAR: break;
-        default:;
+        default:
+			break;
         }
         break;
     case sgs::VT_ARRAY:
@@ -240,8 +249,10 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
     case sgs::VT_BASIC:
         switch (((BasicType *)left->type)->getBasicType()) {
         case BT_INT:
-            if (((BasicType *)right->type)->getBasicType() == BT_INT)
-                ((IntNode *)left)->value = (int)((IntNode *)right)->value;
+			if (((BasicType *)right->type)->getBasicType() == BT_INT) {
+				((IntNode *)left)->value = (int)((IntNode *)right)->value;
+				if (right->name[0] == 0)delete(right);
+			}
             else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT)
                 ((IntNode *)left)->value = (int)((FloatNode *)right)->value;
             else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
@@ -308,10 +319,10 @@ VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
             if (func.second) {
                 addSymbol(new VarNode(func.first->getReturnType(), "result"));
                 for (unsigned int i = 0; i < paras.size(); i++) {
-                    VarNode *temp2 = new VarNode(
+                    VarNode *para = new VarNode(
                         func.first->getParam()[i].first, func.first->getParam()[i].second);
-                    assignValue(temp2, expValue(paras[i]));
-                    addSymbol(temp2);
+                    assignValue(para, expValue(paras[i]));
+                    addSymbol(para);
                 }
                 exeBlock(func.second->getBody());
                 VarNode *res = findSymbol("result");
@@ -324,7 +335,9 @@ VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
         if ((tmp = (SGSFUNC)GetProcAddress(dll, nameReform(name).data()))) {
             vector<VarNode *> list;
             for (auto exp : paras)list.push_back(expValue(exp));
-            return tmp(list);
+			if(list.size())
+				return tmp(list.size(), &list[0]);
+			else return tmp(0, NULL);
         }
     }
     return nullptr;
@@ -375,8 +388,7 @@ VarNode *Machine::expValue(Expression *e) {
             default:
                 return nullptr;
             }
-        case sgs::VT_ARRAY:
-        {
+        case sgs::VT_ARRAY: {
             ArrayNode *ret = new ArrayNode(((ArrayType *)((ArrayLiteral *)e)->getType())->getEleType(),
                 ((ArrayType *)((ArrayLiteral *)e)->getType())->getLength(), "");
             for (unsigned int i = 0; i < ((ArrayLiteral *)e)->getValue().size(); i++) {
@@ -384,8 +396,7 @@ VarNode *Machine::expValue(Expression *e) {
             }
             return ret;
         }
-        case sgs::VT_CLASS:
-        {
+        case sgs::VT_CLASS: {
             ClassNode *ret = new ClassNode(((ClassType *)((ClassLiteral *)e)->getType())->getEle(),
                 ((ClassType *)((ClassLiteral *)e)->getType())->getName(), "");
             for (unsigned int i = 0; i < ((ClassLiteral *)e)->getValue().size(); i++) {
@@ -417,11 +428,16 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new IntNode(((IntNode *)v1)->value + ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+                IntNode *ret = new IntNode(((IntNode *)v1)->value + ((IntNode *)v2)->value, "");
+				if (v1->name[0] == 0)delete v1;
+				if (v2->name[0] == 0)delete v2;
+				return ret;
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new FloatNode(((FloatNode *)v1)->value + ((FloatNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_STRING &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_STRING &&
                 ((BasicType *)v2->type)->getBasicType() == BT_STRING) {
                 return new StrNode((((StrNode *)v1)->value + ((StrNode *)v2)->value).data(), "");
             }
@@ -432,10 +448,14 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new IntNode(((IntNode *)v1)->value - ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+				IntNode *ret = new IntNode(((IntNode *)v2)->value - ((IntNode *)v1)->value, "");
+				if (v1->name[0] == 0)delete v1;
+				if (v2->name[0] == 0)delete v2;
+				return ret;
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new FloatNode(((FloatNode *)v1)->value - ((FloatNode *)v2)->value, "");
+                return new FloatNode(((FloatNode *)v2)->value - ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -445,7 +465,8 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new IntNode(((IntNode *)v1)->value * ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new FloatNode(((FloatNode *)v1)->value * ((FloatNode *)v2)->value, "");
             }
@@ -456,10 +477,11 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new IntNode(((IntNode *)v1)->value / ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+                return new IntNode(((IntNode *)v2)->value / ((IntNode *)v1)->value, "");
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new FloatNode(((FloatNode *)v1)->value / ((FloatNode *)v2)->value, "");
+                return new FloatNode(((FloatNode *)v2)->value / ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -478,7 +500,8 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new IntNode(((IntNode *)v1)->value & ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value & ((BoolNode *)v2)->value, "");
             }
@@ -490,10 +513,12 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new BoolNode(((IntNode *)v1)->value && ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new BoolNode(((FloatNode *)v1)->value && ((FloatNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value && ((BoolNode *)v2)->value, "");
             }
@@ -505,7 +530,8 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new IntNode(((IntNode *)v1)->value | ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value | ((BoolNode *)v2)->value, "");
             }
@@ -517,10 +543,12 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new BoolNode(((IntNode *)v1)->value || ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new BoolNode(((FloatNode *)v1)->value || ((FloatNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value || ((BoolNode *)v2)->value, "");
             }
@@ -532,7 +560,8 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new IntNode(((IntNode *)v1)->value ^ ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value ^ ((BoolNode *)v2)->value, "");
             }
@@ -543,10 +572,11 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new BoolNode(((IntNode *)v1)->value < ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+                return new BoolNode(((IntNode *)v2)->value < ((IntNode *)v1)->value, "");
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new BoolNode(((FloatNode *)v1)->value < ((FloatNode *)v2)->value, "");
+                return new BoolNode(((FloatNode *)v2)->value < ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -555,10 +585,11 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new BoolNode(((IntNode *)v1)->value >= ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+                return new BoolNode(((IntNode *)v2)->value >= ((IntNode *)v1)->value, "");
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new BoolNode(((FloatNode *)v1)->value >= ((FloatNode *)v2)->value, "");
+                return new BoolNode(((FloatNode *)v2)->value >= ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -567,10 +598,14 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new BoolNode(((IntNode *)v1)->value > ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+				BoolNode *ret = new BoolNode(((IntNode *)v2)->value > ((IntNode *)v1)->value, "");
+				if (v1->name[0] == 0)delete v1;
+				if (v2->name[0] == 0)delete v2;
+				return ret;
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new BoolNode(((FloatNode *)v1)->value > ((FloatNode *)v2)->value, "");
+                return new BoolNode(((FloatNode *)v2)->value > ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -579,10 +614,11 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             v2->type->getVarType() == sgs::VT_BASIC) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
-                return new BoolNode(((IntNode *)v1)->value <= ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+                return new BoolNode(((IntNode *)v2)->value <= ((IntNode *)v1)->value, "");
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
-                return new BoolNode(((FloatNode *)v1)->value <= ((FloatNode *)v2)->value, "");
+                return new BoolNode(((FloatNode *)v2)->value <= ((FloatNode *)v1)->value, "");
             }
         }
         break;
@@ -592,10 +628,12 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new BoolNode(((IntNode *)v1)->value != ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new BoolNode(((FloatNode *)v1)->value != ((FloatNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value != ((BoolNode *)v2)->value, "");
             }
@@ -607,10 +645,12 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             if (((BasicType *)v1->type)->getBasicType() == BT_INT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_INT) {
                 return new BoolNode(((IntNode *)v1)->value == ((IntNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_FLOAT &&
                 ((BasicType *)v2->type)->getBasicType() == BT_FLOAT) {
                 return new BoolNode(((FloatNode *)v1)->value == ((FloatNode *)v2)->value, "");
-            } else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
+            }
+			else if (((BasicType *)v1->type)->getBasicType() == BT_BOOL &&
                 ((BasicType *)v2->type)->getBasicType() == BT_BOOL) {
                 return new BoolNode(((BoolNode *)v1)->value == ((BoolNode *)v2)->value, "");
             }
@@ -628,9 +668,6 @@ VarNode *Machine::arrayElement(Expression *e) {
 VarNode *Machine::classAttrib(Expression *e) {
     return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
         ((AccessExp *)e)->getMember());
-}
-VarType *Machine::checkExp(sgs::Expression *e) {
-    return nullptr;
 }
 
 int Machine::getInt(VarNode *val) {
