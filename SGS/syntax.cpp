@@ -85,9 +85,11 @@ void Syntax::parse() {
 			int line = content[proc].line;
             proc++;
 
-            Expression *left;
+            vector<Expression *>lefts;
+			Expression *left;
             int classIdx;
             string newVar;
+
             if (content[proc].type == SGS_TT_USER) {
                 if ((classIdx = findClass()) >= 0) {
                     if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
@@ -95,16 +97,31 @@ void Syntax::parse() {
                         int length = int(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(classList[classIdx], length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(classList[classIdx], length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
 					else {
                         stmts.push_back(new VarDef(line, classList[classIdx], newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, classList[classIdx], newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
-                    left = new IdExp(line, newVar);
                 } 
 				else {
-                    left = parseExp();
+					lefts.push_back(parseExp());
+					while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+						proc++;
+						lefts.push_back(parseExp());
+					}
                 }
-            } 
+            }
 			else if (content[proc].type == SGS_TT_SYS) {
                 if (content[proc].id == SGS_ID_INTEGER) {
                     if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
@@ -112,12 +129,23 @@ void Syntax::parse() {
                         int length = static_cast<int>(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_INT), length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     } 
 					else {
                         proc++;
                         stmts.push_back(new VarDef(line, new BasicType(BT_INT), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new BasicType(BT_INT), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
-                    left = new IdExp(line, newVar);
                 } 
 				else if (content[proc].id == SGS_ID_FLOAT) {
                     if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
@@ -125,12 +153,23 @@ void Syntax::parse() {
                         int length = static_cast<int>(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_FLOAT), length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
 					else {
                         proc++;
                         stmts.push_back(new VarDef(line, new BasicType(BT_FLOAT), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new BasicType(BT_FLOAT), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
-                    left = new IdExp(line, newVar);
                 } 
 				else if (content[proc].id == SGS_ID_BOOL) {
                     if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
@@ -138,12 +177,23 @@ void Syntax::parse() {
                         int length = static_cast<int>(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_BOOL), length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
 					else {
                         proc++;
                         stmts.push_back(new VarDef(line, new BasicType(BT_BOOL), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new BasicType(BT_BOOL), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
-                    left = new IdExp(line, newVar);
                 }
 				else if (content[proc].id == SGS_ID_CHAR) {
                     if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
@@ -151,25 +201,50 @@ void Syntax::parse() {
                         int length = static_cast<int>(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_CHAR), length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
 					else {
                         proc++;
                         stmts.push_back(new VarDef(line, new BasicType(BT_CHAR), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new BasicType(BT_CHAR), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
-                    left = new IdExp(line, newVar);
-                } else if (content[proc].id == SGS_ID_STRING) {
+                }
+				else if (content[proc].id == SGS_ID_STRING) {
                     if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
                         proc += 2;
                         int length = static_cast<int>(content[proc].ivalue);
                         proc++;
                         stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new ArrayType(new BasicType(BT_STRING), length), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
 					else {
                         proc++;
                         stmts.push_back(new VarDef(line, new BasicType(BT_STRING), newVar = parseUser()));
+						lefts.push_back(new IdExp(line, newVar));
+						while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+							proc++;
+							stmts.push_back(new VarDef(line, new BasicType(BT_STRING), newVar = parseUser()));
+							lefts.push_back(new IdExp(line, newVar));
+						}
                     }
                     left = new IdExp(line, newVar);
-                } else {
+                }
+				else {
                     error(strId[content[proc].id].data(), SGS_SE_UNIQUE);
                     skipLine();
                     continue;
@@ -183,8 +258,19 @@ void Syntax::parse() {
 
             if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_BE) {
                 proc++;
-                stmts.push_back(new AssignStmt(line, left, parseExp()));
+
+				vector<Expression *>rights;
+				rights.push_back(parseExp());
+				while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+					proc++;
+					rights.push_back(parseExp());
+				}
+
+				for (int i = 0; i < rights.size(); i++) {
+					stmts.push_back(new AssignStmt(line, lefts[i], rights[i]));
+				}
             }
+
             continue;
         } 
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_START) {
