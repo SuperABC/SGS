@@ -150,6 +150,7 @@
     <ClInclude Include="syntax.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="io.sgs" />
     <None Include="test.sgs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

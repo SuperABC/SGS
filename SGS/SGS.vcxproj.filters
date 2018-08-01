@@ -52,5 +52,8 @@
     <None Include="test.sgs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="io.sgs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

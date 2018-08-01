@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #define SGS_DLL
 #include <iostream>
 #include "time.h"
@@ -45,6 +46,7 @@ extern "C" {
 		std::cout << std::endl;
 		return NULL;
 	}
+
     __declspec(dllexport) VarNode *currentTime(int n, VarNode *param[]) {
         return new IntNode(clock(), "");
     }

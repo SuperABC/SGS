@@ -56,10 +56,15 @@ namespace sgs {
 	};
 	class StrNode : public VarNode {
 	public:
-		string value;
+		char *value;
 
-		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n), value(v) {}
-		StrNode(string n) : VarNode(new BasicType(BT_STRING), n), value("") {}
+		StrNode(const char *v, string n) : VarNode(new BasicType(BT_STRING), n) {
+			value = new char[strlen(v) + 1];
+			strcpy(value, v);
+		}
+		StrNode(string n) : VarNode(new BasicType(BT_STRING), n) {
+			value = new char[1];
+		}
 		virtual ~StrNode() = default;
 	};
 	class ArrayNode : public VarNode {

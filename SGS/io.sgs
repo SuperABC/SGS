@@ -1,0 +1,9 @@
+
+new class file with
+	string path,
+	integer fp.
+
+new function read file with string name return file.
+start read file.
+
+end read file.

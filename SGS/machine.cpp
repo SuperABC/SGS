@@ -37,8 +37,38 @@ ArrayNode::ArrayNode(VarType *t, int length, string n) :
 }
 ClassNode::ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
     VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
-    for (auto &e : content) {
-
+	for (unsigned int i = 0; i < ele.size(); i++) {
+		switch (ele[i].first->getVarType()) {
+		case sgs::VT_BASIC:
+			switch (((BasicType *)ele[i].first)->getBasicType()) {
+			case BT_INT:
+				content[i] = new IntNode(ele[i].second);
+				break;
+			case BT_FLOAT:
+				content[i] = new FloatNode(ele[i].second);
+				break;
+			case BT_BOOL:
+				content[i] = new BoolNode(ele[i].second);
+				break;
+			case BT_STRING:
+				content[i] = new StrNode(ele[i].second);
+				break;
+			case BT_CHAR:
+				content[i] = new CharNode(ele[i].second);
+				break;
+			default:
+				break;
+			}
+			break;
+		case sgs::VT_ARRAY:
+			content[i] = new ArrayNode(((ArrayType *)ele[i].first)->getEleType(),
+				((ArrayType *)ele[i].first)->getLength(), ele[i].second);
+			break;
+		case sgs::VT_CLASS:
+			content[i] = new ClassNode(((ClassType *)ele[i].first)->getEle(),
+				((ClassType *)ele[i].first)->getName(), ele[i].second);
+			break;
+		}
     }
 }
 
@@ -169,7 +199,9 @@ void Machine::declare(AST *s) {
         case BT_STRING:
             tmp = new StrNode(dec->getName());
             break;
-        case BT_CHAR: break;
+        case BT_CHAR:
+			tmp = new CharNode(dec->getName());
+			break;
         default:
 			break;
         }
@@ -261,6 +293,8 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
                 ((IntNode *)left)->value = (int)((FloatNode *)right)->value;
             else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
                 ((IntNode *)left)->value = (int)((BoolNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_CHAR)
+				((IntNode *)left)->value = (int)((CharNode *)right)->value;
             else error("", VE_TYPEMISMATCH);
             break;
         case BT_FLOAT:
@@ -270,6 +304,8 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
                 ((FloatNode *)left)->value = (float)((FloatNode *)right)->value;
             else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
                 ((FloatNode *)left)->value = (float)((BoolNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_CHAR)
+				((FloatNode *)left)->value = (float)((CharNode *)right)->value;
             else error("", VE_TYPEMISMATCH);
             break;
         case BT_BOOL:
@@ -279,26 +315,47 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
                 ((BoolNode *)left)->value = (bool)((FloatNode *)right)->value;
             else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
                 ((BoolNode *)left)->value = (bool)((BoolNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_CHAR)
+				((BoolNode *)left)->value = (bool)((CharNode *)right)->value;
             else error("", VE_TYPEMISMATCH);
             break;
+		case BT_CHAR:
+			if (((BasicType *)right->type)->getBasicType() == BT_INT)
+				((CharNode *)left)->value = (char)((IntNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT)
+				((CharNode *)left)->value = (char)((FloatNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL)
+				((CharNode *)left)->value = (char)((BoolNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_CHAR)
+				((CharNode *)left)->value = (char)((CharNode *)right)->value;
+			else if (((BasicType *)right->type)->getBasicType() == BT_STRING)
+				((CharNode *)left)->value = (char)((StrNode *)right)->value[0];
+			else error("", VE_TYPEMISMATCH);
+			break;
         case BT_STRING:
             if (((BasicType *)right->type)->getBasicType() == BT_INT) {
                 char *buffer = (char *)malloc((int)log10(((IntNode *)right)->value) + 2);
                 sprintf(buffer, "%d", ((IntNode *)right)->value);
                 ((StrNode *)left)->value = buffer;
-            } else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT) {
+            }
+			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT) {
                 char *buffer = (char *)malloc((int)log10(((FloatNode *)right)->value) + 2);
                 sprintf(buffer, "%f", ((FloatNode *)right)->value);
                 ((StrNode *)left)->value = buffer;
-            } else if (((BasicType *)right->type)->getBasicType() == BT_BOOL) {
+            }
+			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL) {
                 if (((BoolNode *)right)->value)((StrNode *)left)->value = "true";
                 else ((StrNode *)left)->value = "false";
-            } else if (((BasicType *)right->type)->getBasicType() == BT_STRING) {
-                ((StrNode *)left)->value = ((StrNode *)right)->value;
-            } else error("", VE_TYPEMISMATCH);
+            }
+			else if (((BasicType *)right->type)->getBasicType() == BT_STRING) {
+				free(((StrNode *)left)->value);
+				((StrNode *)left)->value = new char[strlen(((StrNode *)right)->value)];
+                strcpy(((StrNode *)left)->value, ((StrNode *)right)->value);
+            }
+			else error("", VE_TYPEMISMATCH);
             break;
-        case BT_CHAR: break;
-        default:;
+        default:
+			break;;
         }
         break;
     case sgs::VT_ARRAY:
@@ -446,7 +503,10 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
             }
 			else if (((BasicType *)v1->type)->getBasicType() == BT_STRING &&
                 ((BasicType *)v2->type)->getBasicType() == BT_STRING) {
-				StrNode *ret = new StrNode((((StrNode *)v1)->value + ((StrNode *)v2)->value).data(), "");
+				char *str = new char[strlen(((StrNode *)v2)->value) + strlen(((StrNode *)v1)->value) + 1];
+				strcpy(str, ((StrNode *)v2)->value);
+				strcat(str, ((StrNode *)v1)->value);
+				StrNode *ret = new StrNode(str, "");
 				if (v1->name[0] == 0)delete v1;
 				if (v2->name[0] == 0)delete v2;
 				return ret;
@@ -783,7 +843,7 @@ bool Machine::getBool(VarNode *val) {
     return ((BoolNode *)val)->value;
 }
 const char *Machine::getStr(VarNode *val) {
-    return ((StrNode *)val)->value.data();
+    return ((StrNode *)val)->value;
 }
 
 void Machine::clearMem() {
