@@ -1,9 +1,26 @@
 
+#std io
+new function print int with integer content.
+new function print number with float content.
+new function print ch with char content.
+new function print str with string content.
+
+new function input int return integer.
+new function input number return float.
+new function input ch return char.
+new function input str return string.
+new function input line return string.
+
+new function skip line.
+
+#file io
+new function open file with string path.
 new class file with
 	string path,
-	integer fp.
+	integer fp,
+	integer index.
 
-new function read file with string name return file.
-start read file.
-
-end read file.
+new function file with string path.
+start file.
+	print str with path.
+end file

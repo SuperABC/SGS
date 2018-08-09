@@ -1,7 +1,6 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
 #include "lexeme.h"
-#include "memory.h"
 #include <cstdio>
 #include <stack>
 #include <memory>
@@ -26,6 +25,8 @@ namespace sgs {
 		virtual ~AST() = default;
 	};
 
+	class FuncProto;
+	class FuncDef;
 	enum VAR_TYPE {
 		VT_BASIC,
 		VT_ARRAY,
@@ -66,11 +67,21 @@ namespace sgs {
 	private:
 		string className;
 		vector <std::pair<VarType *, string>> eleList;
+		vector <std::pair<sgs::FuncProto *, sgs::FuncDef *>> constructor;
 	public:
 		explicit ClassType(string n, vector<std::pair<VarType *, string>> list = vector <std::pair<VarType *, string>>()) :
 			VarType(VT_CLASS), className(std::move(n)), eleList(std::move(list)) {}
 		void pushEle(VarType *t, string n) {
 			eleList.emplace_back(t, n);
+		}
+		void decConstructor(sgs::FuncProto *c) {
+			constructor.push_back(std::pair<sgs::FuncProto *, sgs::FuncDef *>(c, NULL));
+		}
+		std::pair<sgs::FuncProto *, sgs::FuncDef *> latestConstructor() {
+			return constructor.back();
+		}
+		void defConstructor(sgs::FuncDef *c) {
+			constructor.back().second = c;
 		}
 		string getName() const { return className; }
 		vector <std::pair<VarType *, string>> getEle() const { return eleList; }
@@ -93,7 +104,6 @@ namespace sgs {
 		ClassType *getDecType() const { return decType; }
 	};
 
-	class FuncProto;
 	enum EXP_TYPE {
 		ET_OP,
 		ET_LITERAL,
@@ -351,8 +361,6 @@ namespace sgs {
 		vector<TokenPrim> content;
 		vector<string> strId;
 
-		SgsMemory synMem;
-
 		unsigned int proc;
 		int func = -1;
 
@@ -366,15 +374,15 @@ namespace sgs {
 		sgs::ClassLiteral *parseClassLiteral(int classid);
 		sgs::FuncProto *parseFuncDec();
 		sgs::FuncDef *parseFuncDef(int funcid);
+		sgs::FuncDef *parseConstructorDef(int classid);
 		vector<sgs::Expression *>parseParam(int funcid);
+		vector<sgs::Expression *>parseAttrib(int classid);
 		sgs::BlockStmt *parseBlock(bool untaken = false);
 
 		string parseUser(string guide = "");
 		int parseUser(vector<string> guides);
 		int findClass();
 		int findFunc();
-
-		void clearMem();
 
 		static bool compare(int op1, int op2);
 

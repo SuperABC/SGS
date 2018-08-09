@@ -44,6 +44,9 @@ void compile(const string& filename) {
     if (success) {
         m.input(s.stmts, s.classList, s.funcList)->execute();
     }
+	for (auto msg : m.msgList) {
+		std::cout << msg.getMsg();
+	}
 }
 #endif
 #ifdef INPUT_SGS
@@ -64,6 +67,9 @@ void compile(const string& input) {
 	}
 	if (success) {
 		m.input(s.stmts, s.classList, s.funcList)->execute();
+	}
+	for (auto msg : m.msgList) {
+		std::cout << msg.getMsg();
 	}
 }
 #endif

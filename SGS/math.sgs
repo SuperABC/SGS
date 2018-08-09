@@ -1,0 +1,6 @@
+
+let float PI be 3.1415926535898.
+
+new function absent with float value return float.
+new function power with float value return float.
+new function logar with float value return float.

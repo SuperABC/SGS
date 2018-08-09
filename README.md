@@ -22,34 +22,35 @@ let string test word be "hello world!".
 let string test one, test two, test three.
 let test one, test two, test three be 1.
 
-let string test one, test two, test three be 1, 2.
+let string test one, test two, test three be 1, 2，3.
 ```
 
 ##### Function Call
 
 ```sgs
-let test word be "hello world!".
-print a line with content test word.
-print a line with test word.
+let string test word be "hello world!".
+print str with content test word.
+print str with test word.
 ```
 
 ##### Conditional Branch
 
 ```sgs
-let test branch be true.
+let bool test branch be true.
 if test branch is true then
-	print a line with "true".
-else print a line with "false".
+	print str with "true".
+else print str with "false".
 end.
 ```
 
 ##### Loop
 
 ```sgs
-let rounds be 10.
+let integer rounds be 10.
 loop when rounds > 0.
 	let rounds be rounds - 1.
-	print a line with rounds.
+	print int with rounds.
+	skip line.
 end.
 ```
 
@@ -60,7 +61,7 @@ end.
 ##### Function Declaration
 
 ```sgs
-new function add with a, b return integer.
+new function add with integer a, integer b return integer.
 ```
 
 ##### Function Definition.
@@ -69,7 +70,7 @@ new function add with a, b return integer.
 start add.
 	let result be a+b.
 end add.
-print a line with add with 1, 2.
+print int with add with 1, 2.
 ```
 
 ##### Lambda Expression
@@ -77,8 +78,8 @@ print a line with add with 1, 2.
 ```sgs
 let fp be lambda with a, b return integer
 	let result be a+b.
-end lambda.
-print a line with fp with 1, 2.
+end.
+print int with fp with 1, 2.
 ```
 
 
@@ -88,9 +89,10 @@ print a line with fp with 1, 2.
 ##### Array Definition
 
 ```sgs
-let arr be [].
+let integer arr.
+
 arr's push 1.
-arr's push "ok".
+arr's push 2.
 print a line with arr.
 ```
 
@@ -116,7 +118,7 @@ When we do generate and compile, we can insert pure cpp code in sgs context.
 embed cpp
 	int a, b;
 	result = a+b;
-end embed
+end
 ```
 
 

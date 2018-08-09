@@ -91,6 +91,16 @@ namespace sgs {
 		}
 		virtual ~ClassNode() = default;
 	};
+
+	class BreakNote {
+
+	};
+	class RedoNote {
+
+	};
+	class ReturnNote {
+
+	};
 }
 
 #ifndef SGS_DLL
@@ -122,8 +132,6 @@ namespace sgs {
 		Symbol *table[256] = { NULL };
 		std::stack<string> stack;
 
-		SgsMemory macMem;
-
 		void initModule();
 		void loadDlls();
 
@@ -140,6 +148,7 @@ namespace sgs {
 
 		void assignValue(VarNode *left, VarNode *right);
 		VarNode *callFunc(FuncProto *func, vector<Expression *> paras);
+		vector<VarNode *> constructClass(string name, vector<VarNode *> para);
 		void exeBlock(BlockStmt *block);
 		VarNode *getPointer(Expression *e);
 		VarNode *expValue(Expression *e);
@@ -150,9 +159,10 @@ namespace sgs {
 		int getInt(VarNode *val);
 		float getFloat(VarNode *val);
 		bool getBool(VarNode *val);
+		char getChar(VarNode *val);
 		const char *getStr(VarNode *val);
-
-		void clearMem();
+		VarNode *createVar(VarType *type, string name);
+		
 		void error(const char *inst, SGSVMERROR type);
 	public:
 		vector<sgsMsg> msgList;

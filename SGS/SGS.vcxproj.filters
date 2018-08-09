@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="memory.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="lexeme.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -33,9 +30,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexeme.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="memory.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="syntax.h">
@@ -53,6 +47,12 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="io.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="math.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="time.sgs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
