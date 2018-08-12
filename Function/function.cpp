@@ -109,6 +109,17 @@ extern "C" {
 		return new IntNode(fp, "");
 	}
 
+	//String
+	__declspec(dllexport) VarNode *convertToUpperCase(int n, VarNode *param[]) {
+		string content = ((StrNode *)param[0])->value;
+		for (auto &c : content)c |= 32;
+		return new StrNode(content.data(), "");
+	}
+	__declspec(dllexport) VarNode *convertToLowerCase(int n, VarNode *param[]) {
+		string content = ((StrNode *)param[0])->value;
+		for (auto &c : content)c ^= ~32;
+		return new StrNode(content.data(), "");
+	}
 
 	//Time
     __declspec(dllexport) VarNode *currentTime(int n, VarNode *param[]) {

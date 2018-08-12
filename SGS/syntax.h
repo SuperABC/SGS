@@ -62,6 +62,7 @@ namespace sgs {
 		ArrayType(VarType *t, int l) : VarType(VT_ARRAY), eleType(t), length(l) {}
 		VarType *getEleType() const { return eleType; }
 		int getLength() const { return length; }
+		void setLength(int l) { length = l; }
 	};
 	class ClassType : public VarType {
 	private:
@@ -343,6 +344,12 @@ namespace sgs {
 	}
 
 	enum SYNTAXERROR {
+		SGS_SE_NOLIB,
+		SGS_SE_USELIB,
+		SGS_SE_LIBNAME,
+		SGS_SE_AFTERNEW,
+		SGS_SE_EMPTYCLASS,
+		SGS_SE_EXPTYPE,
 		SGS_SE_EXPOSE,
 		SGS_SE_UNIQUE,
 		SGS_SE_EXPDOT,
@@ -367,7 +374,8 @@ namespace sgs {
 		void prepare();
 		void skipLine();
 
-		void parseLib(string lib);
+		bool checkBoarder();
+		void parseLib(string lib, int line);
 		sgs::Expression *parseExp();
 		sgs::Expression *parseVar();
 		sgs::ClassDef *parseClassDec();
@@ -401,7 +409,7 @@ namespace sgs {
 		Syntax *input(vector<string> &ids, vector<TokenPrim> &src);
 		void parse();
 
-		void error(const char *word, SYNTAXERROR type);
+		void error(const char *word, SYNTAXERROR type, int line);
 	};
 }
 

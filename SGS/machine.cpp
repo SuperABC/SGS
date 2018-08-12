@@ -5,71 +5,42 @@ using namespace sgs;
 ArrayNode::ArrayNode(VarType *t, int length, string n) :
     VarNode(new ArrayType(t, length), n), content(vector<VarNode *>(length)) {
     for (auto &e : content) {
-        switch (t->getVarType()) {
-        case VT_BASIC:
-            switch (((BasicType *)t)->getBasicType()) {
-            case BT_INT:
-                e = new IntNode("");
-                break;
-            case BT_FLOAT:
-                e = new FloatNode("");
-                break;
-            case BT_BOOL:
-                e = new BoolNode("");
-                break;
-            case BT_STRING:
-                e = new StrNode("");
-                break;
-            default:
-                break;
-            }
-            break;
-        case VT_ARRAY:
-            e = new ArrayNode(((ArrayType *)t)->getEleType(), ((ArrayType *)t)->getLength(), "");
-            break;
-        case VT_CLASS:
-            e = new ClassNode(((ClassType *)t)->getEle(), ((ClassType *)t)->getName(), "");
-            break;
-        default:
-            break;
-        }
+		e = createVar(t, "");
     }
 }
 ClassNode::ClassNode(vector <std::pair<VarType *, string>> ele, string cn, string n) :
     VarNode(new ClassType(cn, ele), n), content(vector<VarNode *>(ele.size())) {
 	for (unsigned int i = 0; i < ele.size(); i++) {
-		switch (ele[i].first->getVarType()) {
-		case sgs::VT_BASIC:
-			switch (((BasicType *)ele[i].first)->getBasicType()) {
-			case BT_INT:
-				content[i] = new IntNode(ele[i].second);
-				break;
-			case BT_FLOAT:
-				content[i] = new FloatNode(ele[i].second);
-				break;
-			case BT_BOOL:
-				content[i] = new BoolNode(ele[i].second);
-				break;
-			case BT_STRING:
-				content[i] = new StrNode(ele[i].second);
-				break;
-			case BT_CHAR:
-				content[i] = new CharNode(ele[i].second);
-				break;
-			default:
-				break;
-			}
-			break;
-		case sgs::VT_ARRAY:
-			content[i] = new ArrayNode(((ArrayType *)ele[i].first)->getEleType(),
-				((ArrayType *)ele[i].first)->getLength(), ele[i].second);
-			break;
-		case sgs::VT_CLASS:
-			content[i] = new ClassNode(((ClassType *)ele[i].first)->getEle(),
-				((ClassType *)ele[i].first)->getName(), ele[i].second);
+		content[i] = createVar(ele[i].first, ele[i].second);
+    }
+}
+
+VarNode *sgs::createVar(VarType *type, string name) {
+	switch (type->getVarType()) {
+	case sgs::VT_BASIC:
+		switch (((BasicType *)type)->getBasicType()) {
+		case BT_INT:
+			return new IntNode(0, name);
+		case BT_FLOAT:
+			return new FloatNode(0.f, name);
+		case BT_BOOL:
+			return new BoolNode(false, name);
+		case BT_CHAR:
+			return new CharNode('\0', name);
+		case BT_STRING:
+			return new StrNode("", name);
+		default:
 			break;
 		}
-    }
+		break;
+	case sgs::VT_ARRAY:
+		return new ArrayNode(((ArrayType *)type)->getEleType(), ((ArrayType *)type)->getLength(), "");
+	case sgs::VT_CLASS:
+		return new ClassNode(((ClassType *)type)->getEle(), ((ClassType *)type)->getName(), "");
+	default:
+		break;
+	}
+	return NULL;
 }
 
 string nameReform(string input) {
@@ -297,7 +268,9 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
 		switch (((BasicType *)left->type)->getBasicType()) {
 		case BT_INT:
 			if (((BasicType *)right->type)->getBasicType() == BT_INT) {
-				((IntNode *)left)->value = (int)((IntNode *)right)->value;
+				if(dynamic_cast<ArrayNode::ArrayLength *>(left))
+					((ArrayNode::ArrayLength *)left)->assign((IntNode *)right);
+				else ((IntNode *)left)->value = (int)((IntNode *)right)->value;
 				if (right->name[0] == 0)delete(right);
 			}
 			else if (((BasicType *)right->type)->getBasicType() == BT_FLOAT) {
@@ -472,9 +445,6 @@ VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
         }
     }
     return nullptr;
-}
-vector<VarNode *> constructClass(string name, vector<VarNode *> para) {
-	return vector<VarNode *>();
 }
 void Machine::exeBlock(BlockStmt *block) {
     stack.push("");
@@ -897,12 +867,48 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
     }
     return nullptr;
 }
+string Machine::getType(IdExp *id) {
+	VarNode *ret;
+
+	ret = findSymbol(id->getName());
+	if (ret) {
+		switch (ret->type->getVarType()) {
+		case VT_BASIC:
+			switch (((BasicType *)ret->type)->getBasicType()) {
+			case BT_INT:
+				return "integer";
+			case BT_FLOAT:
+				return "float";
+			case BT_BOOL:
+				return "bool";
+			case BT_CHAR:
+				return "char";
+			case BT_STRING:
+				return "string";
+			}
+			break;
+		case VT_ARRAY:
+			return "array";
+		case VT_CLASS:
+			return ((ClassNode *)ret)->name;
+		}
+	}
+	else {
+		error(((IdExp *)id)->getName().data(), VE_NOID);
+		return nullptr;
+	}
+	return "";
+}
 VarNode *Machine::arrayElement(Expression *e) {
     return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
         ((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
 }
 VarNode *Machine::classAttrib(Expression *e) {
-    return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
+	if(findSymbol(((IdExp *)((AccessExp *)e)->getObject())->getName())->
+		type->getVarType() == VT_ARRAY)
+		return ((ArrayNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+		((AccessExp *)e)->getMember());
+	else return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
         ((AccessExp *)e)->getMember());
 }
 
@@ -921,47 +927,24 @@ char Machine::getChar(VarNode *val) {
 const char *Machine::getStr(VarNode *val) {
     return ((StrNode *)val)->value;
 }
-VarNode *Machine::createVar(VarType *type, string name) {
-	switch (type->getVarType()) {
-	case VT_BASIC:
-		switch (((BasicType *)type)->getBasicType()) {
-		case BT_INT:
-			return new IntNode(0, name);
-		case BT_FLOAT:
-			return new FloatNode(0.f, name);
-		case BT_BOOL:
-			return new BoolNode(false, name);
-		case BT_CHAR:
-			return new CharNode('\0', name);
-		case BT_STRING:
-			return new StrNode("", name);
-		default:
-			break;
-		}
-		break;
-	case VT_ARRAY:
-		break;
-	case VT_CLASS:
-		break;
-	default:
-		break;
-	}
-	return NULL;
-}
 
-void Machine::error(const char *inst, SGSVMERROR type) {
+void Machine::error(const char *inst, SGSVMERROR type, int line) {
     switch (type) {
     case VE_DIVBYZERO:
-        msgList.emplace_back(string("除数为零。"), MT_ERROR);
+        msgList.emplace_back(string("第") + std::to_string(line) + string("行：") +
+			string("除数为零。"), MT_ERROR);
         break;
     case VE_NOID:
-        msgList.emplace_back(string("找不到符号") + inst + "。", MT_ERROR);
+        msgList.emplace_back(string("第") + std::to_string(line) + string("行：") +
+			string("找不到符号") + inst + "。", MT_ERROR);
         break;
     case VE_TYPEMISMATCH:
-        msgList.emplace_back(string("无法进行类型转换。"), MT_ERROR);
+        msgList.emplace_back(string("第") + std::to_string(line) + string("行：") +
+			string("无法进行类型转换。"), MT_ERROR);
         break;
     case VE_BROKEN:
-        msgList.emplace_back(string("虚拟机损坏。"), MT_ERROR);
+        msgList.emplace_back(string("第") + std::to_string(line) + string("行：") +
+			string("虚拟机损坏。"), MT_ERROR);
         break;
     }
 }

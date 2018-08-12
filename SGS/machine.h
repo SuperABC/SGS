@@ -8,6 +8,8 @@ namespace sgs {
 	class BoolNode; class CharNode; class IntNode; class FloatNode; class StrNode;
 	class ArrayNode; class ClassNode;
 
+	VarNode *createVar(VarType *type, string name);
+
 	class VarNode {
 	public:
 		VarType *type;
@@ -72,10 +74,27 @@ namespace sgs {
 		vector<VarNode *> content;
 
 		ArrayNode(VarType *t, int length, string n);
+		virtual ~ArrayNode() = default;
 		VarNode *operator [](int i) {
 			return content[i];
 		}
-		virtual ~ArrayNode() = default;
+
+		class ArrayLength : public IntNode {
+		public:
+			ArrayNode *array;
+			ArrayLength(ArrayNode *a, int v, string n) : IntNode(v, n), array(a) {}
+			void assign(IntNode *v) {
+				array->content.resize(v->value);
+				for (auto &e : array->content) {
+					e = createVar(((ArrayType *)array->type)->getEleType(), "");
+				}
+				((ArrayType *)array->type)->setLength(v->value);
+			}
+		};
+		VarNode *attribute(string op) {
+			if (op == "length")return new ArrayLength(this, content.size(), "");
+			return NULL;
+		}
 	};
 	class ClassNode : public VarNode {
 	public:
@@ -101,6 +120,7 @@ namespace sgs {
 	class ReturnNote {
 
 	};
+
 }
 
 #ifndef SGS_DLL
@@ -148,11 +168,12 @@ namespace sgs {
 
 		void assignValue(VarNode *left, VarNode *right);
 		VarNode *callFunc(FuncProto *func, vector<Expression *> paras);
-		vector<VarNode *> constructClass(string name, vector<VarNode *> para);
+		VarNode * constructClass(string name, vector<VarNode *> paras);
 		void exeBlock(BlockStmt *block);
 		VarNode *getPointer(Expression *e);
 		VarNode *expValue(Expression *e);
 		VarNode *binCalc(OPERATOR op, Expression *a, Expression *b);
+		string getType(IdExp *id);
 		VarNode *arrayElement(Expression *e);
 		VarNode *classAttrib(Expression *e);
 
@@ -161,9 +182,8 @@ namespace sgs {
 		bool getBool(VarNode *val);
 		char getChar(VarNode *val);
 		const char *getStr(VarNode *val);
-		VarNode *createVar(VarType *type, string name);
 		
-		void error(const char *inst, SGSVMERROR type);
+		void error(const char *inst, SGSVMERROR type, int line = 0);
 	public:
 		vector<sgsMsg> msgList;
 

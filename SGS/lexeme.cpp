@@ -91,6 +91,7 @@ void Lexeme::prepare() {
     preserve("true");
     preserve("itself");
     preserve("return");
+	preserve("its");
 	preserve("lambda");
 	preserve("embed");
     preserve("null");

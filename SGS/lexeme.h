@@ -63,6 +63,7 @@ namespace sgs {
 		SGS_ID_TRUE,
 		SGS_ID_ITSELF,
 		SGS_ID_RETURN,
+		SGS_ID_ITS,
 		SGS_ID_LAMBDA,
 		SGS_ID_EMBED,
 		SGS_ID_NULL,

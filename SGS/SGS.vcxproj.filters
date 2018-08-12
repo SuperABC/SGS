@@ -55,5 +55,11 @@
     <None Include="time.sgs">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="string.sgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="array.sgs">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

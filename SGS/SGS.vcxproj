@@ -148,8 +148,10 @@
     <ClInclude Include="syntax.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="array.sgs" />
     <None Include="io.sgs" />
     <None Include="math.sgs" />
+    <None Include="string.sgs" />
     <None Include="test.sgs" />
     <None Include="time.sgs" />
   </ItemGroup>
