@@ -146,7 +146,7 @@ namespace sgs {
 		vector<sgs::AST *> stmts;
 
 		vector<sgs::ClassType *>classList;
-		vector<std::pair<sgs::FuncProto *, sgs::FuncDef *>>funcList;
+		vector<sgs::FuncDef *>funcList;
 		vector<HINSTANCE> dllList;
 
 		Symbol *table[256] = { NULL };
@@ -168,12 +168,12 @@ namespace sgs {
 
 		void assignValue(VarNode *left, VarNode *right);
 		VarNode *callFunc(FuncProto *func, vector<Expression *> paras);
-		VarNode * constructClass(string name, vector<VarNode *> paras);
 		void exeBlock(BlockStmt *block);
 		VarNode *getPointer(Expression *e);
 		VarNode *expValue(Expression *e);
 		VarNode *binCalc(OPERATOR op, Expression *a, Expression *b);
 		string getType(IdExp *id);
+		bool sameType(VarType *t1, VarType *t2);
 		VarNode *arrayElement(Expression *e);
 		VarNode *classAttrib(Expression *e);
 

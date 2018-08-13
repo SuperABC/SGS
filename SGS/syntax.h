@@ -8,7 +8,7 @@
 
 namespace sgs {
 
-	enum AST_TYPE {
+	enum AST_TYPE { //AST的类型
 		AT_VARDEF,
 		AT_CLASS,
 		AT_EXP,
@@ -16,7 +16,7 @@ namespace sgs {
 		AT_PROTO,
 		AT_FUNC
 	};
-	class AST {
+	class AST { //AST类
 	public:
 		int line;
 
@@ -27,12 +27,12 @@ namespace sgs {
 
 	class FuncProto;
 	class FuncDef;
-	enum VAR_TYPE {
+	enum VAR_TYPE { //变量的类型
 		VT_BASIC,
 		VT_ARRAY,
 		VT_CLASS
 	};
-	class VarType {
+	class VarType { //变量类
 	private:
 		VAR_TYPE varType;
 	public:
@@ -40,21 +40,21 @@ namespace sgs {
 		VAR_TYPE getVarType() const { return varType; }
 		virtual ~VarType() = default;
 	};
-	enum BASIC_TYPE {
+	enum BASIC_TYPE { //基本变量的类型
 		BT_INT,
 		BT_FLOAT,
 		BT_BOOL,
 		BT_CHAR,
 		BT_STRING
 	};
-	class BasicType : public VarType {
+	class BasicType : public VarType { //基本变量类
 	private:
 		BASIC_TYPE basicType;
 	public:
 		BasicType(BASIC_TYPE t) :VarType(VT_BASIC), basicType(t) {}
 		BASIC_TYPE getBasicType() const { return basicType; }
 	};
-	class ArrayType : public VarType {
+	class ArrayType : public VarType { //数组变量类
 	private:
 		VarType * eleType;
 		int length;
@@ -64,7 +64,7 @@ namespace sgs {
 		int getLength() const { return length; }
 		void setLength(int l) { length = l; }
 	};
-	class ClassType : public VarType {
+	class ClassType : public VarType { //类变量类
 	private:
 		string className;
 		vector <std::pair<VarType *, string>> eleList;
@@ -88,7 +88,7 @@ namespace sgs {
 		vector <std::pair<VarType *, string>> getEle() const { return eleList; }
 	};
 	
-	class VarDef : public AST {
+	class VarDef : public AST { //变量声明AST
 	private:
 		VarType * decType;
 		string name;
@@ -97,7 +97,7 @@ namespace sgs {
 		VarType *getDecType() const { return decType; }
 		string getName() const { return name; }
 	};
-	class ClassDef : public AST {
+	class ClassDef : public AST { //类声明AST
 	private:
 		ClassType * decType;
 	public:
@@ -105,7 +105,7 @@ namespace sgs {
 		ClassType *getDecType() const { return decType; }
 	};
 
-	enum EXP_TYPE {
+	enum EXP_TYPE { //表达式类型
 		ET_OP,
 		ET_LITERAL,
 		ET_IDENT,
@@ -113,14 +113,14 @@ namespace sgs {
 		ET_CALL,
 		ET_ACCESS
 	};
-	class Expression : public AST {
+	class Expression : public AST { //表达式AST
 	private:
 		EXP_TYPE expType;
 	public:
 		Expression(int line, EXP_TYPE t) : AST(line, AT_EXP), expType(t) {}
 		EXP_TYPE getExpType() const { return expType; }
 	};
-	class OpExp : public Expression {
+	class OpExp : public Expression { //运算符表达式
 	private:
 		OPERATOR op;
 		Expression *left, *right;
@@ -132,50 +132,50 @@ namespace sgs {
 		Expression *getRight() const { return right; }
 		OPERATOR getOp() const { return op; }
 	};
-	class LiteralExp : public Expression {
+	class LiteralExp : public Expression { //字面量表达式
 		VarType *type;
 	public:
 		explicit LiteralExp(int line, VarType *type) : Expression(line, ET_LITERAL), type(type) {}
 		VarType *getType() const { return type; }
 	};
-	class IntLiteral : public LiteralExp {
+	class IntLiteral : public LiteralExp { //整数字面量表达式
 		int value;
 	public:
 		explicit IntLiteral(int line, int value = 0) : LiteralExp(line, new BasicType(BT_INT)), value(value) {}
 		int getValue() const { return value; }
 	};
-	class CharLiteral : public LiteralExp {
+	class CharLiteral : public LiteralExp { //字符字面量表达式
 		char value;
 	public:
 		explicit CharLiteral(int line, char value = '\0') : LiteralExp(line, new BasicType(BT_CHAR)), value(value) {}
 		char getValue() const { return value; }
 	};
-	class FloatLiteral : public LiteralExp {
+	class FloatLiteral : public LiteralExp { //浮点数字面量表达式
 		float value;
 	public:
 		explicit FloatLiteral(int line, float value = 0) : LiteralExp(line, new BasicType(BT_FLOAT)), value(value) {}
 		float getValue() const { return value; }
 	};
-	class BoolLiteral : public LiteralExp {
+	class BoolLiteral : public LiteralExp { //布尔字面量表达式
 		bool value;
 	public:
 		explicit BoolLiteral(int line, bool value = false) : LiteralExp(line, new BasicType(BT_BOOL)), value(value) {}
 		bool getValue() const { return value; }
 	};
-	class StrLiteral : public LiteralExp {
+	class StrLiteral : public LiteralExp { //字符串字面量表达式
 		string value;
 	public:
 		explicit StrLiteral(int line, string value = "") : LiteralExp(line, new BasicType(BT_STRING)), value(std::move(value)) {}
 		string getValue() const { return value; }
 	};
-	class ArrayLiteral : public LiteralExp {
+	class ArrayLiteral : public LiteralExp { //数组字面量表达式
 		vector<Expression *> cont;
 	public:
 		explicit ArrayLiteral(int line, VarType *t, vector<Expression *> cont) :
 			LiteralExp(line, new ArrayType(t, cont.size())), cont(cont) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
-	class ClassLiteral : public LiteralExp {
+	class ClassLiteral : public LiteralExp { //类字面量表达式
 		vector<Expression *> cont;
 	public:
 		explicit ClassLiteral(int line, string n, vector<std::pair<VarType *, string>> dec,
@@ -183,14 +183,14 @@ namespace sgs {
 			LiteralExp(line, new ClassType(n, dec)), cont(std::move(cont)) {}
 		vector<Expression *> getValue() const { return cont; }
 	};
-	class IdExp : public Expression {
+	class IdExp : public Expression { //标识符表达式
 	private:
 		string name;
 	public:
 		explicit IdExp(int line, string n) : Expression(line, ET_IDENT), name(std::move(n)) {}
 		string getName() const { return name; }
 	};
-	class AccessExp : public Expression {
+	class AccessExp : public Expression { //类成员表达式
 		Expression* object;
 		string member;
 	public:
@@ -199,7 +199,7 @@ namespace sgs {
 		Expression* getObject() const { return object; }
 		string getMember() const { return member; }
 	};
-	class VisitExp : public Expression {
+	class VisitExp : public Expression { //数组元素表达式
 	private:
 		Expression * array;
 		Expression *index;
@@ -210,7 +210,7 @@ namespace sgs {
 		Expression *getArray() const { return array; }
 		Expression *getIndex() const { return index; }
 	};
-	class CallExp : public Expression {
+	class CallExp : public Expression {  //函数调用表达式
 	private:
 		FuncProto * function;
 		vector <Expression *> paramList;
@@ -222,7 +222,7 @@ namespace sgs {
 		const vector <Expression *>& getParam() const { return paramList; };
 	};
 
-	enum STMT_TYPE {
+	enum STMT_TYPE { //语句的类型
 		ST_ASSIGN,
 		ST_CALL,
 		ST_IF,
@@ -232,14 +232,14 @@ namespace sgs {
 		ST_CONTINUE,
 		ST_BLOCK
 	};
-	class Statement : public AST {
+	class Statement : public AST { //语句AST
 	private:
 		STMT_TYPE stmtType;
 	public:
 		explicit Statement(int line, STMT_TYPE t) : AST(line, AT_STMT), stmtType(t) {}
 		STMT_TYPE getStmtType() const { return stmtType; }
 	};
-	class AssignStmt : public Statement {
+	class AssignStmt : public Statement { //赋值语句
 	private:
 		Expression * left, *right;
 	public:
@@ -249,7 +249,7 @@ namespace sgs {
 		Expression *getLeft() const { return left; }
 		Expression *getRight() const { return right; }
 	};
-	class BlockStmt : public Statement {
+	class BlockStmt : public Statement { //块语句
 	private:
 		vector<AST *>content;
 	public:
@@ -257,7 +257,7 @@ namespace sgs {
 		void pushAST(AST *t) { content.push_back(t); }
 		const vector<AST *>& getContent() const { return content; }
 	};
-	class CallStmt : public Statement {
+	class CallStmt : public Statement { //函数调用语句
 	private:
 		FuncProto * function;
 		vector <Expression *> paramList;
@@ -268,7 +268,7 @@ namespace sgs {
 		FuncProto *getFunction() const { return function; };
 		const vector <Expression *>& getParam() const { return paramList; };
 	};
-	class IfStmt : public Statement {
+	class IfStmt : public Statement { //分支语句
 	private:
 		Expression * condition;
 		BlockStmt *taken, *untaken;
@@ -281,7 +281,7 @@ namespace sgs {
 		BlockStmt *getUntaken() const { return untaken; }
 		Expression* getCond() const { return condition; }
 	};
-	class WhileStmt : public Statement {
+	class WhileStmt : public Statement { //循环语句
 	private:
 		Expression * condition;
 		BlockStmt *body;
@@ -291,20 +291,20 @@ namespace sgs {
 		BlockStmt *getBody() const { return body; }
 		Expression* getCondition() const { return condition; }
 	};
-	class ReturnStmt : public Statement {
+	class ReturnStmt : public Statement { //返回语句
 	public:
 		ReturnStmt(int line) : Statement(line, ST_RETURN) {}
 	};
-	class BreakStmt : public Statement {
+	class BreakStmt : public Statement { //跳出语句
 	public:
 		BreakStmt(int line) : Statement(line, ST_BREAK) {}
 	};
-	class RedoStmt : public Statement {
+	class RedoStmt : public Statement { //重做语句
 	public:
 		RedoStmt(int line) : Statement(line, ST_CONTINUE) {}
 	};
 
-	class FuncProto : public AST {
+	class FuncProto : public AST { //函数声明AST
 	private:
 		VarType * returnType;
 		string name;
@@ -319,7 +319,7 @@ namespace sgs {
 		string getName() const { return name; }
 		const vector <std::pair<VarType *, string>>& getParam() const { return paramList; };
 	};
-	class FuncDef : public AST {
+	class FuncDef : public AST { //函数定义AST
 	private:
 		FuncProto * proto;
 		BlockStmt* body;
@@ -371,20 +371,34 @@ namespace sgs {
 		unsigned int proc;
 		int func = -1;
 
+		//语法解析准备
 		void prepare();
+		//跳过当前行
 		void skipLine();
 
+		//检测proc越界
 		bool checkBoarder();
+		//读取库文件
 		void parseLib(string lib, int line);
+		//读取右值表达式
 		sgs::Expression *parseExp();
+		//读取左值表达式
 		sgs::Expression *parseVar();
+		//读取类声明
 		sgs::ClassDef *parseClassDec();
+		//读取类字面量
 		sgs::ClassLiteral *parseClassLiteral(int classid);
+		//读取函数声明
 		sgs::FuncProto *parseFuncDec();
+		//读取函数定义
 		sgs::FuncDef *parseFuncDef(int funcid);
+		//读取构造器定义
 		sgs::FuncDef *parseConstructorDef(int classid);
+		//读取函数实参
 		vector<sgs::Expression *>parseParam(int funcid);
+		//读取构造器实参
 		vector<sgs::Expression *>parseAttrib(int classid);
+		//读取语句块
 		sgs::BlockStmt *parseBlock(bool untaken = false);
 
 		string parseUser(string guide = "");

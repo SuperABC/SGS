@@ -14,13 +14,20 @@ new function input line return string.
 new function skip line.
 
 #file io
-new function open file with string path.
+new function open file with string path return integer.
+
 new class file with
 	string path,
 	integer fp,
 	integer index.
-
 new function file with string path.
 start file.
-	print str with path.
-end file
+	let its path be path.
+	let its fp be open file with path path.
+	let its index be 0.
+end file.
+
+new function read file with file content, integer length return string.
+start read file.
+	
+end read file.

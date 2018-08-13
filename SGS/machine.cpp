@@ -34,9 +34,9 @@ VarNode *sgs::createVar(VarType *type, string name) {
 		}
 		break;
 	case sgs::VT_ARRAY:
-		return new ArrayNode(((ArrayType *)type)->getEleType(), ((ArrayType *)type)->getLength(), "");
+		return new ArrayNode(((ArrayType *)type)->getEleType(), ((ArrayType *)type)->getLength(), name);
 	case sgs::VT_CLASS:
-		return new ClassNode(((ClassType *)type)->getEle(), ((ClassType *)type)->getName(), "");
+		return new ClassNode(((ClassType *)type)->getEle(), ((ClassType *)type)->getName(), name);
 	default:
 		break;
 	}
@@ -124,7 +124,7 @@ Machine *Machine::input(vector<AST *> s,
     stmts = s;
     classList = c;
     for (auto d : f) {
-        funcList.emplace_back(d, nullptr);
+        funcList.push_back(new FuncDef(d->line, d));
     }
     return this;
 }
@@ -255,9 +255,9 @@ void Machine::prototype(AST *s) {
 }
 void Machine::definition(AST *s) {
     FuncDef *def = (FuncDef *)s;
-    for (auto &dec : funcList) {
-        if (def->getProto()->getName() == dec.first->getName())
-            dec.second = def;
+    for (auto &f : funcList) {
+        if (def->getProto()->getName() == f->getProto()->getName())
+            f->setBody(def->getBody());
     }
 }
 
@@ -380,7 +380,7 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
         break;
     case sgs::VT_ARRAY:
         if (right->type->getVarType() == sgs::VT_ARRAY &&
-            ((ArrayType *)left->type)->getEleType() == ((ArrayType *)right->type)->getEleType())
+            sameType(((ArrayType *)left->type)->getEleType(), ((ArrayType *)right->type)->getEleType()))
             ((ArrayNode *)left)->content = ((ArrayNode *)right)->content;
         else error("", VE_TYPEMISMATCH);
         break;
@@ -401,6 +401,7 @@ VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
 		std::pair<sgs::FuncProto *, sgs::FuncDef *> func = c->latestConstructor();
 		if (func.first->getName() == proto->getName()) {
 			if (func.second) {
+				addSymbol(createVar(c, "result"));
 				for (unsigned int i = 0; i < paras.size(); i++) {
 					VarNode *para = createVar(
 						func.first->getParam()[i].first, func.first->getParam()[i].second);
@@ -411,22 +412,24 @@ VarNode *Machine::callFunc(FuncProto *proto, vector<Expression *> paras) {
 					exeBlock(func.second->getBody());
 				}
 				catch (ReturnNote) {}
-				return NULL;
+				VarNode *res = findSymbol("result");
+				removeLocal("result", false);
+				return res;
 			}
 		}
 	}
     for (const auto& func : funcList) {
-        if (name == func.first->getName()) {
-            if (func.second) {
-                addSymbol(new VarNode(func.first->getReturnType(), "result"));
+        if (name == func->getProto()->getName()) {
+            if (func->getBody()) {
+                addSymbol(createVar(func->getProto()->getReturnType(), "result"));
                 for (unsigned int i = 0; i < paras.size(); i++) {
                     VarNode *para = createVar(
-                        func.first->getParam()[i].first, func.first->getParam()[i].second);
+                        func->getProto()->getParam()[i].first, func->getProto()->getParam()[i].second);
                     assignValue(para, expValue(paras[i]));
                     addSymbol(para);
                 }
 				try {
-					exeBlock(func.second->getBody());
+					exeBlock(func->getBody());
 				}
 				catch (ReturnNote) {}
                 VarNode *res = findSymbol("result");
@@ -899,17 +902,31 @@ string Machine::getType(IdExp *id) {
 	}
 	return "";
 }
+bool Machine::sameType(VarType *t1, VarType *t2) {
+	if (t1->getVarType() != t2->getVarType())return false;
+	else if (t1->getVarType() == VT_BASIC && t2->getVarType() == VT_BASIC) {
+		if (((BasicType *)t1)->getBasicType() != ((BasicType *)t1)->getBasicType())return false;
+		else return true;
+	}
+	return true;
+}
 VarNode *Machine::arrayElement(Expression *e) {
     return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
         ((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
 }
 VarNode *Machine::classAttrib(Expression *e) {
-	if(findSymbol(((IdExp *)((AccessExp *)e)->getObject())->getName())->
-		type->getVarType() == VT_ARRAY)
-		return ((ArrayNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
-		((AccessExp *)e)->getMember());
-	else return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
-        ((AccessExp *)e)->getMember());
+	if (((AccessExp *)e)->getObject()) {
+		if (findSymbol(((IdExp *)((AccessExp *)e)->getObject())->getName())->
+			type->getVarType() == VT_ARRAY)
+			return ((ArrayNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+			((AccessExp *)e)->getMember());
+		else return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
+			((AccessExp *)e)->getMember());
+	}
+	else {
+		return ((ClassNode *)findSymbol("result"))->operator[](
+			((AccessExp *)e)->getMember());
+	}
 }
 
 int Machine::getInt(VarNode *val) {

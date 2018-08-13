@@ -62,11 +62,8 @@ void Syntax::parse() {
             if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_CLASS) {
                 proc++;
                 ClassDef *tmpClass = parseClassDec();
-				if (tmpClass) {
-					classList.push_back(static_cast<ClassType *>(tmpClass->getDecType()));
-					stmts.push_back(tmpClass);
-				}
-				else error("New class", SGS_SE_UNKNOWN, line);
+				classList.push_back(static_cast<ClassType *>(tmpClass->getDecType()));
+				stmts.push_back(tmpClass);
             }
 			else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_FUNCTION) {
                 proc++;
@@ -75,7 +72,6 @@ void Syntax::parse() {
 					funcList.push_back(tmpFunc);
 					stmts.push_back(tmpFunc);
 				}
-				//else error("New function", SGS_SE_UNKNOWN, line);
             }
 			else error("", SGS_SE_AFTERNEW, line);
             continue;
@@ -419,14 +415,12 @@ Expression *Syntax::parseExp() {
         else if (content[proc].type == SGS_TT_SYS && content[proc].id != SGS_ID_RESULT &&
             content[proc].id != SGS_ID_FALSE && content[proc].id != SGS_ID_TRUE &&
 			content[proc].id != SGS_ID_AND && content[proc].id != SGS_ID_OR &&
-			content[proc].id != SGS_ID_IS)break;
+			content[proc].id != SGS_ID_IS && content[proc].id != SGS_ID_ITS)break;
         else if (content[proc].type == SGS_TT_OP && (content[proc].id == SGS_OP_DOT ||
             content[proc].id == SGS_OP_LPARENTHESIS || content[proc].id == SGS_OP_RPARENTHESIS ||
 			content[proc].id == SGS_OP_LBRAKET || content[proc].id == SGS_OP_RBRAKET))break;
         else if (content[proc].type == SGS_TT_USER ||
             (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RESULT)) {
-            int pre = proc;
-
             int classIdx;
             int funcIdx;
 
@@ -540,6 +534,9 @@ Expression *Syntax::parseExp() {
             }
             proc++;
         } 
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ITS) {
+			value.push(parseVar());
+		}
 		else break;
     }
 
@@ -586,6 +583,10 @@ Expression *Syntax::parseVar() {
             (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RESULT)) {
             ret = new IdExp(line, parseUser());
         }
+		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ITS) {
+			proc++;
+			ret = new AccessExp(line, NULL, parseUser());
+		}
 		else if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_OF) {
             proc++;
             ret = new AccessExp(line, ret, parseUser());
@@ -728,236 +729,235 @@ ClassLiteral *Syntax::parseClassLiteral(int classid) {
 }
 FuncProto *Syntax::parseFuncDec() {
 	int line = content[proc].line;
-    string name = parseUser();
     vector<std::pair<VarType *, string>> params;
 
 	int classIdx;
-	for (auto &c : classList) {
-		if (c->getName() == name) {
-			if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WITH) {
-				proc++;
-				while (proc < content.size()) {
-					if (content[proc].type == SGS_TT_USER) {
-						if ((classIdx = findClass()) >= 0) {
-							if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
-								proc++;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.emplace_back(new ArrayType(classList[classIdx], length), parseUser());
-							}
-							else {
-								params.emplace_back(classList[classIdx], parseUser());
-							}
+	if ((classIdx = findClass()) != -1) {
+		if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WITH) {
+			proc++;
+			while (proc < content.size()) {
+				if (content[proc].type == SGS_TT_USER) {
+					if ((classIdx = findClass()) >= 0) {
+						if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
+							proc++;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.emplace_back(new ArrayType(classList[classIdx], length), parseUser());
 						}
-						else break;
-					}
-					else if (content[proc].type == SGS_TT_SYS) {
-						if (content[proc].id == SGS_ID_INTEGER) {
-							if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-								proc += 2;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_INT), length), parseUser()));
-							}
-							else {
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
-							}
+						else {
+							params.emplace_back(classList[classIdx], parseUser());
 						}
-						else if (content[proc].id == SGS_ID_FLOAT) {
-							if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-								proc += 2;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_FLOAT), length), parseUser()));
-							}
-							else {
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
-							}
-						}
-						else if (content[proc].id == SGS_ID_BOOL) {
-							if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-								proc += 2;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_BOOL), length), parseUser()));
-							}
-							else {
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
-							}
-						}
-						else if (content[proc].id == SGS_ID_CHAR) {
-							if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-								proc += 2;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_CHAR), length), parseUser()));
-							}
-							else {
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new BasicType(BT_CHAR), parseUser()));
-							}
-						}
-						else if (content[proc].id == SGS_ID_STRING) {
-							if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-								proc += 2;
-								int length = int(content[proc].ivalue);
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_STRING), length), parseUser()));
-							}
-							else {
-								proc++;
-								params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
-							}
-						}
-						else break;
-					}
-					else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
-						proc++;
-						continue;
 					}
 					else break;
 				}
+				else if (content[proc].type == SGS_TT_SYS) {
+					if (content[proc].id == SGS_ID_INTEGER) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_INT), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_FLOAT) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_FLOAT), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_BOOL) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_BOOL), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_CHAR) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_CHAR), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_CHAR), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_STRING) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_STRING), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
+						}
+					}
+					else break;
+				}
+				else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+					proc++;
+					continue;
+				}
+				else break;
 			}
-			c->decConstructor(new FuncProto(line, nullptr, name, params));
-			return NULL;
+		}
+		classList[classIdx]->decConstructor(new FuncProto(line, nullptr, classList[classIdx]->getName(), params));
+		return NULL;
+	}
+	else {
+		string name = parseUser();
+		if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WITH) {
+			proc++;
+			while (proc < content.size()) {
+				if (content[proc].type == SGS_TT_USER) {
+					if ((classIdx = findClass()) >= 0) {
+						if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
+							proc++;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.emplace_back(new ArrayType(classList[classIdx], length), parseUser());
+						}
+						else {
+							params.emplace_back(classList[classIdx], parseUser());
+						}
+					}
+					else break;
+				}
+				else if (content[proc].type == SGS_TT_SYS) {
+					if (content[proc].id == SGS_ID_INTEGER) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_INT), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_FLOAT) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_FLOAT), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_BOOL) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_BOOL), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_CHAR) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_CHAR), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_CHAR), parseUser()));
+						}
+					}
+					else if (content[proc].id == SGS_ID_STRING) {
+						if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
+							proc += 2;
+							int length = int(content[proc].ivalue);
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_STRING), length), parseUser()));
+						}
+						else {
+							proc++;
+							params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
+						}
+					}
+					else break;
+				}
+				else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+					proc++;
+					continue;
+				}
+				else break;
+			}
+		}
+		if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
+			proc++;
+			if (content[proc].type == SGS_TT_USER) {
+				if ((classIdx = findClass()) >= 0) {
+					return new FuncProto(line, classList[classIdx], name, params);
+				}
+				else {
+					error(parseUser().data(), SGS_SE_EXPTYPE, line);
+					return new FuncProto(line, nullptr, name, params);
+				}
+			}
+			else if (content[proc].type == SGS_TT_SYS) {
+				if (content[proc].id == SGS_ID_INTEGER) {
+					proc++;
+					return new FuncProto(line, new BasicType(BT_INT), name, params);
+				}
+				else if (content[proc].id == SGS_ID_FLOAT) {
+					proc++;
+					return new FuncProto(line, new BasicType(BT_FLOAT), name, params);
+				}
+				else if (content[proc].id == SGS_ID_BOOL) {
+					proc++;
+					return new FuncProto(line, new BasicType(BT_BOOL), name, params);
+				}
+				else if (content[proc].id == SGS_ID_CHAR) {
+					proc++;
+					return new FuncProto(line, new BasicType(BT_CHAR), name, params);
+				}
+				else if (content[proc].id == SGS_ID_STRING) {
+					proc++;
+					return new FuncProto(line, new BasicType(BT_STRING), name, params);
+				}
+				else {
+					error(strId[content[proc].id].data(), SGS_SE_EXPTYPE, line);
+					return new FuncProto(line, nullptr, name, params);
+				}
+			}
+			else {
+				error("", SGS_SE_EXPTYPE, line);
+				return new FuncProto(line, nullptr, name, params);
+			}
+		}
+		else {
+			return new FuncProto(line, nullptr, name, params);
 		}
 	}
-
-    if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_WITH) {
-        proc++;
-        while (proc < content.size()) {
-            if (content[proc].type == SGS_TT_USER) {
-                if ((classIdx = findClass()) >= 0) {
-					if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_ARRAY) {
-						proc++;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.emplace_back(new ArrayType(classList[classIdx], length), parseUser());
-					}
-					else {
-						params.emplace_back(classList[classIdx], parseUser());
-					}
-                } 
-				else break;
-            }
-			else if (content[proc].type == SGS_TT_SYS) {
-                if (content[proc].id == SGS_ID_INTEGER) {
-					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-						proc += 2;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_INT), length), parseUser()));
-					}
-					else {
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new BasicType(BT_INT), parseUser()));
-					}
-                } 
-				else if (content[proc].id == SGS_ID_FLOAT) {
-					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-						proc += 2;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_FLOAT), length), parseUser()));
-					}
-					else {
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new BasicType(BT_FLOAT), parseUser()));
-					}
-                } 
-				else if (content[proc].id == SGS_ID_BOOL) {
-					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-						proc += 2;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_BOOL), length), parseUser()));
-					}
-					else {
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new BasicType(BT_BOOL), parseUser()));
-					}
-                } 
-				else if (content[proc].id == SGS_ID_CHAR) {
-					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-						proc += 2;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_CHAR), length), parseUser()));
-					}
-					else {
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new BasicType(BT_CHAR), parseUser()));
-					}
-                } 
-				else if (content[proc].id == SGS_ID_STRING) {
-					if (content[proc + 1].type == SGS_TT_SYS && content[proc + 1].id == SGS_ID_ARRAY) {
-						proc += 2;
-						int length = int(content[proc].ivalue);
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new ArrayType(new BasicType(BT_STRING), length), parseUser()));
-					}
-					else {
-						proc++;
-						params.push_back(std::pair<VarType *, string>(new BasicType(BT_STRING), parseUser()));
-					}
-                } 
-				else break;
-            } 
-			else if (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
-				proc++;
-				continue;
-			}
-			else break;
-        }
-    }
-    if (content[proc].type == SGS_TT_SYS && content[proc].id == SGS_ID_RETURN) {
-        proc++;
-        if (content[proc].type == SGS_TT_USER) {
-            if ((classIdx = findClass()) >= 0) {
-                return new FuncProto(line, classList[classIdx], name, params);
-            } 
-			else {
-                error(parseUser().data(), SGS_SE_EXPTYPE, line);
-                return new FuncProto(line, nullptr, name, params);
-            }
-        } 
-		else if (content[proc].type == SGS_TT_SYS) {
-            if (content[proc].id == SGS_ID_INTEGER) {
-				proc++;
-                return new FuncProto(line, new BasicType(BT_INT), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_FLOAT) {
-				proc++;
-                return new FuncProto(line, new BasicType(BT_FLOAT), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_BOOL) {
-				proc++;
-                return new FuncProto(line, new BasicType(BT_BOOL), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_CHAR) {
-				proc++;
-                return new FuncProto(line, new BasicType(BT_CHAR), name, params);
-            } 
-			else if (content[proc].id == SGS_ID_STRING) {
-				proc++;
-                return new FuncProto(line, new BasicType(BT_STRING), name, params);
-            } 
-			else {
-                error(strId[content[proc].id].data(), SGS_SE_EXPTYPE, line);
-                return new FuncProto(line, nullptr, name, params);
-            }
-        } 
-		else {
-            error("", SGS_SE_EXPTYPE, line);
-            return new FuncProto(line, nullptr, name, params);
-        }
-    } 
-	else {
-        return new FuncProto(line, nullptr, name, params);
-    }
 }
 FuncDef *Syntax::parseFuncDef(int funcid) {
 	int line = content[proc].line;
@@ -1190,6 +1190,13 @@ BlockStmt *Syntax::parseBlock(bool untaken) {
 						}
 					}
                 }
+				else if (content[proc].id == SGS_ID_ITS) {
+					lefts.push_back(parseExp());
+					while (content[proc].type == SGS_TT_OP && content[proc].id == SGS_OP_COMMA) {
+						proc++;
+						lefts.push_back(parseExp());
+					}
+				}
 				else {
 					error(strId[content[proc].id].data(), SGS_SE_EXPTYPE, line);
 					skipLine();

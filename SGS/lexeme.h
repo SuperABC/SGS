@@ -151,7 +151,6 @@ namespace sgs {
 		SGS_LE_INCOMPLETE,
 		SGS_LE_EXPOP
 	};
-
 	class Lexeme {
 	private:
 		string content;
