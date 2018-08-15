@@ -369,36 +369,21 @@ namespace sgs {
 		vector<string> strId;
 
 		unsigned int proc;
-		int func = -1;
 
-		//语法解析准备
-		void prepare();
-		//跳过当前行
 		void skipLine();
-
-		//检测proc越界
 		bool checkBoarder();
-		//读取库文件
+		bool compareOp(int op1, int op2);
 		void parseLib(string lib, int line);
-		//读取右值表达式
+		sgs::VarType *parseType();
 		sgs::Expression *parseExp();
-		//读取左值表达式
 		sgs::Expression *parseVar();
-		//读取类声明
 		sgs::ClassDef *parseClassDec();
-		//读取类字面量
 		sgs::ClassLiteral *parseClassLiteral(int classid);
-		//读取函数声明
 		sgs::FuncProto *parseFuncDec();
-		//读取函数定义
 		sgs::FuncDef *parseFuncDef(int funcid);
-		//读取构造器定义
 		sgs::FuncDef *parseConstructorDef(int classid);
-		//读取函数实参
 		vector<sgs::Expression *>parseParam(int funcid);
-		//读取构造器实参
 		vector<sgs::Expression *>parseAttrib(int classid);
-		//读取语句块
 		sgs::BlockStmt *parseBlock(bool untaken = false);
 
 		string parseUser(string guide = "");
@@ -406,7 +391,7 @@ namespace sgs {
 		int findClass();
 		int findFunc();
 
-		static bool compare(int op1, int op2);
+		void error(const char *word, SYNTAXERROR type, int line);
 
 	public:
 		vector<sgs::AST *> stmts;
@@ -422,8 +407,7 @@ namespace sgs {
 
 		Syntax *input(vector<string> &ids, vector<TokenPrim> &src);
 		void parse();
-
-		void error(const char *word, SYNTAXERROR type, int line);
+		void generate(string file);
 	};
 }
 

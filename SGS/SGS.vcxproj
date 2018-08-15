@@ -136,12 +136,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="generator.cpp" />
     <ClCompile Include="lexeme.cpp" />
     <ClCompile Include="machine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="generator.h" />
     <ClInclude Include="lexeme.h" />
     <ClInclude Include="machine.h" />
     <ClInclude Include="message.h" />

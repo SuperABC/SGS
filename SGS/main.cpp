@@ -42,6 +42,7 @@ void compile(const string& filename) {
         }
     }
     if (success) {
+		s.generate("sgs.cpp");
         m.input(s.stmts, s.classList, s.funcList)->execute();
     }
 	for (auto msg : m.msgList) {

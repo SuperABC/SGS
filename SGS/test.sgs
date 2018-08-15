@@ -1,4 +1,1 @@
 use library io.
-
-let file f be file with "abc.txt".
-print str with f's path.

@@ -15,6 +15,27 @@ ClassNode::ClassNode(vector <std::pair<VarType *, string>> ele, string cn, strin
     }
 }
 
+VarNode *IntNode::attribute(string op) {
+	if (op == "type")return new StrNode("integer", "");
+	return NULL;
+}
+VarNode *FloatNode::attribute(string op) {
+	if (op == "type")return new StrNode("float", "");
+	return NULL;
+}
+VarNode *BoolNode::attribute(string op) {
+	if (op == "type")return new StrNode("bool", "");
+	return NULL;
+}
+VarNode *CharNode::attribute(string op) {
+	if (op == "type")return new StrNode("char", "");
+	return NULL;
+}
+VarNode *StrNode::attribute(string op) {
+	if (op == "type")return new StrNode("string", "");
+	return NULL;
+}
+
 VarNode *sgs::createVar(VarType *type, string name) {
 	switch (type->getVarType()) {
 	case sgs::VT_BASIC:
@@ -870,63 +891,73 @@ VarNode *Machine::binCalc(OPERATOR op, Expression *a, Expression *b) {
     }
     return nullptr;
 }
-string Machine::getType(IdExp *id) {
-	VarNode *ret;
-
-	ret = findSymbol(id->getName());
-	if (ret) {
-		switch (ret->type->getVarType()) {
-		case VT_BASIC:
-			switch (((BasicType *)ret->type)->getBasicType()) {
-			case BT_INT:
-				return "integer";
-			case BT_FLOAT:
-				return "float";
-			case BT_BOOL:
-				return "bool";
-			case BT_CHAR:
-				return "char";
-			case BT_STRING:
-				return "string";
-			}
-			break;
-		case VT_ARRAY:
-			return "array";
-		case VT_CLASS:
-			return ((ClassNode *)ret)->name;
-		}
-	}
-	else {
-		error(((IdExp *)id)->getName().data(), VE_NOID);
-		return nullptr;
-	}
-	return "";
-}
 bool Machine::sameType(VarType *t1, VarType *t2) {
 	if (t1->getVarType() != t2->getVarType())return false;
 	else if (t1->getVarType() == VT_BASIC && t2->getVarType() == VT_BASIC) {
 		if (((BasicType *)t1)->getBasicType() != ((BasicType *)t1)->getBasicType())return false;
 		else return true;
 	}
+	else if (t1->getVarType() == VT_ARRAY && t2->getVarType() == VT_ARRAY) {
+		return sameType((ArrayType *)t1, (ArrayType *)t2);
+	}
 	return true;
 }
 VarNode *Machine::arrayElement(Expression *e) {
-    return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
-        ((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
+	VarType *tmp;
+	switch ((tmp = findSymbol(((IdExp *)((VisitExp *)e)->getArray())->getName())->
+		type)->getVarType()) {
+	case VT_BASIC:
+		switch (((BasicType *)tmp)->getBasicType()) {
+		case BT_STRING:
+			return new CharNode(((StrNode *)expValue(((VisitExp *)e)->getArray()))->value[
+				((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value], "");
+		}
+	case VT_ARRAY:
+		return ((ArrayNode *)expValue(((VisitExp *)e)->getArray()))->content[
+			((IntNode *)expValue(((VisitExp *)e)->getIndex()))->value];
+	case VT_CLASS:
+		return ((ClassNode *)expValue(((VisitExp *)e)->getArray()))->operator[](
+			(((StrNode *)expValue(((VisitExp *)e)->getIndex())))->value);
+	}
+	return NULL;
 }
 VarNode *Machine::classAttrib(Expression *e) {
 	if (((AccessExp *)e)->getObject()) {
-		if (findSymbol(((IdExp *)((AccessExp *)e)->getObject())->getName())->
-			type->getVarType() == VT_ARRAY)
+		VarType *tmp;
+		switch ((tmp = findSymbol(((IdExp *)((AccessExp *)e)->getObject())->getName())->
+			type)->getVarType()) {
+		case VT_BASIC:
+			switch (((BasicType *)tmp)->getBasicType()) {
+			case BT_INT:
+				return ((IntNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+					((AccessExp *)e)->getMember());
+			case BT_FLOAT:
+				return ((FloatNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+					((AccessExp *)e)->getMember());
+			case BT_BOOL:
+				return ((BoolNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+					((AccessExp *)e)->getMember());
+			case BT_CHAR:
+				return ((CharNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+					((AccessExp *)e)->getMember());
+			case BT_STRING:
+				return ((StrNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
+					((AccessExp *)e)->getMember());
+			}
+		case VT_ARRAY:
 			return ((ArrayNode *)expValue(((AccessExp *)e)->getObject()))->attribute(
-			((AccessExp *)e)->getMember());
-		else return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
-			((AccessExp *)e)->getMember());
+				((AccessExp *)e)->getMember());
+		case VT_CLASS:
+			return ((ClassNode *)expValue(((AccessExp *)e)->getObject()))->operator[](
+				((AccessExp *)e)->getMember());
+		}
 	}
 	else {
 		return ((ClassNode *)findSymbol("result"))->operator[](
 			((AccessExp *)e)->getMember());
 	}
+
+	return NULL;
 }
 
 int Machine::getInt(VarNode *val) {

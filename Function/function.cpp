@@ -108,6 +108,14 @@ extern "C" {
 		fp = (int)fopen(((StrNode *)param[0])->value, "w+");
 		return new IntNode(fp, "");
 	}
+	__declspec(dllexport) VarNode *readFp(int n, VarNode *param[]) {
+		char *buf = new char[((IntNode *)param[1])->value];
+		fread(buf, 1, ((IntNode *)param[1])->value, (FILE *)((IntNode *)param[0])->value);
+		VarNode *ret = new StrNode(buf, "");
+
+		delete buf;
+		return ret;
+	}
 
 	//String
 	__declspec(dllexport) VarNode *convertToUpperCase(int n, VarNode *param[]) {

@@ -23,14 +23,7 @@ namespace sgs {
 			free(name);
 			delete type;
 		}
-	};
-	class CharNode : public VarNode {
-	public:
-		char value;
-
-		CharNode(char v, string n) : VarNode(new BasicType(BT_CHAR), n), value(v) {}
-		CharNode(string n) : VarNode(new BasicType(BT_CHAR), n), value(0) {}
-		virtual ~CharNode() = default;
+		virtual VarNode *attribute(string op) { return NULL; }
 	};
 	class IntNode : public VarNode {
 	public:
@@ -39,6 +32,8 @@ namespace sgs {
 		IntNode(int v, string n) : VarNode(new BasicType(BT_INT), n), value(v) {}
 		IntNode(string n) : VarNode(new BasicType(BT_INT), n), value(0) {}
 		virtual ~IntNode() = default;
+
+		virtual VarNode *attribute(string op);
 	};
 	class FloatNode : public VarNode {
 	public:
@@ -47,6 +42,8 @@ namespace sgs {
 		FloatNode(float v, string n) : VarNode(new BasicType(BT_FLOAT), n), value(v) {}
 		FloatNode(string n) : VarNode(new BasicType(BT_FLOAT), n), value(0.f) {}
 		virtual ~FloatNode() = default;
+
+		virtual VarNode *attribute(string op);
 	};
 	class BoolNode : public VarNode {
 	public:
@@ -55,6 +52,18 @@ namespace sgs {
 		BoolNode(bool v, string n) : VarNode(new BasicType(BT_BOOL), n), value(v) {}
 		BoolNode(string n) : VarNode(new BasicType(BT_BOOL), n), value(false) {}
 		virtual ~BoolNode() = default;
+
+		virtual VarNode *attribute(string op);
+	};
+	class CharNode : public VarNode {
+	public:
+		char value;
+
+		CharNode(char v, string n) : VarNode(new BasicType(BT_CHAR), n), value(v) {}
+		CharNode(string n) : VarNode(new BasicType(BT_CHAR), n), value(0) {}
+		virtual ~CharNode() = default;
+
+		virtual VarNode *attribute(string op);
 	};
 	class StrNode : public VarNode {
 	public:
@@ -67,7 +76,11 @@ namespace sgs {
 		StrNode(string n) : VarNode(new BasicType(BT_STRING), n) {
 			value = new char[1];
 		}
-		virtual ~StrNode() = default;
+		virtual ~StrNode() {
+			delete value;
+		}
+
+		virtual VarNode *attribute(string op);
 	};
 	class ArrayNode : public VarNode {
 	public:
@@ -91,7 +104,7 @@ namespace sgs {
 				((ArrayType *)array->type)->setLength(v->value);
 			}
 		};
-		VarNode *attribute(string op) {
+		virtual VarNode *attribute(string op) {
 			if (op == "length")return new ArrayLength(this, content.size(), "");
 			return NULL;
 		}
@@ -172,7 +185,6 @@ namespace sgs {
 		VarNode *getPointer(Expression *e);
 		VarNode *expValue(Expression *e);
 		VarNode *binCalc(OPERATOR op, Expression *a, Expression *b);
-		string getType(IdExp *id);
 		bool sameType(VarType *t1, VarType *t2);
 		VarNode *arrayElement(Expression *e);
 		VarNode *classAttrib(Expression *e);

@@ -15,6 +15,7 @@ new function skip line.
 
 #file io
 new function open file with string path return integer.
+new function read fp with integer fp, integer length return string.
 
 new class file with
 	string path,
@@ -29,5 +30,5 @@ end file.
 
 new function read file with file content, integer length return string.
 start read file.
-	
+	let result be read fp with content's fp, length.
 end read file.
