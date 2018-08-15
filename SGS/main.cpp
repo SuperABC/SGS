@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include "machine.h"
-#include "cppgen.h"
+#include "generator.h"
 
 #define FILE_SGS
 //#define INPUT_SGS
@@ -42,7 +42,7 @@ void compile(const string& filename) {
         }
     }
     if (success) {
-		s.generate("sgs.cpp");
+		generateCpp(s.stmts, s.classList, "sgs.cpp");
         m.input(s.stmts, s.classList, s.funcList)->execute();
     }
 	for (auto msg : m.msgList) {

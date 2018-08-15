@@ -365,7 +365,7 @@ void Syntax::parseLib(string lib, int line) {
 	for (auto m : s.msgList)msgList.push_back(m);
 }
 VarType *Syntax::parseType() {
-	VarType *element;
+	VarType *element = NULL;
 	if (content[proc].type == SGS_TT_USER) {
 		int classIdx;
 		if ((classIdx = findClass()) >= 0) {

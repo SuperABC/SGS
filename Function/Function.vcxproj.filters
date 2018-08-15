@@ -18,5 +18,13 @@
     <ClCompile Include="function.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\SGS\machine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\SGS\machine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

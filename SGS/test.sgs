@@ -1,1 +1,7 @@
 use library io.
+
+let integer rounds, sum be 10000, 0.
+loop when rounds > 0.
+	let sum, rounds be sum + rounds, rounds-1.
+end.
+print int with sum.

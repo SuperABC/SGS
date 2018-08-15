@@ -85,7 +85,7 @@ void Machine::initModule() {
     loadDlls();
 }
 void Machine::loadDlls() {
-    dllList.push_back(LoadLibrary("Function.dll"));
+    dllList.push_back(LoadLibrary(TEXT("Function.dll")));
 }
 void Machine::addSymbol(VarNode *var) {
     string name = var->name;
@@ -383,8 +383,8 @@ void Machine::assignValue(VarNode *left, VarNode *right) {
 				if (right->name[0] == 0)delete(right);
             }
 			else if (((BasicType *)right->type)->getBasicType() == BT_BOOL) {
-                if (((BoolNode *)right)->value)((StrNode *)left)->value = "true";
-                else ((StrNode *)left)->value = "false";
+                if (((BoolNode *)right)->value)((StrNode *)left)->value = (char *)"true";
+                else ((StrNode *)left)->value = (char *)"false";
 				if (right->name[0] == 0)delete(right);
             }
 			else if (((BasicType *)right->type)->getBasicType() == BT_STRING) {

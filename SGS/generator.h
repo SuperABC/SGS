@@ -17,31 +17,34 @@ public:
 		return os;
 	}
 };
-
 static int cppDepth = 0;
 
+void generateCpp(vector<sgs::AST *> stmts,
+	vector<sgs::ClassType *>classList, string file);
+
 string removeSpace(const string& input);
-void translateBasicType(sgs::VarType *stmtVar, std::ofstream &fout);
-sgs::VAR_TYPE translateArrayType(sgs::VarType *stmtVar, std::ofstream &fout);
-void opSwitchCase(sgs::OPERATOR OP, std::ofstream &fout);
-void translateOpExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateLiteralExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateIdExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateVisitExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateCallExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateAccessExp(sgs::Expression *stmtExp, std::ofstream &fout);
-void translateAssignStmt(sgs::Statement *stmtStmt, std::ofstream &fout);
-void translateCallStmt(sgs::Statement *stmtStmt, std::ofstream &fout);
-void translateBlockStmt(sgs::Statement *stmtStmt, std::ofstream &fout);
-void translateIfStmt(sgs::Statement *stmtStmt, std::ofstream &fout);
-void translateWhileStmt(sgs::Statement *stmtStmt, std::ofstream &fout);
-void translateVarType(sgs::AST *s, enum conditionUseVarType choice, std::ofstream &fout);
+
+void translateBasicType(sgs::VarType *s, std::ofstream &fout);
+void translateVarType(sgs::VarType *t, std::ofstream &fout);
+void translateOpExp(sgs::Expression *s, std::ofstream &fout);
+void translateLiteralExp(sgs::Expression *s, std::ofstream &fout);
+void translateIdExp(sgs::Expression *s, std::ofstream &fout);
+void translateCallExp(sgs::Expression *s, std::ofstream &fout);
+void translateVisitExp(sgs::Expression *s, std::ofstream &fout);
+void translateAccessExp(sgs::Expression *s, std::ofstream &fout);
 void translateExpType(sgs::AST *s, std::ofstream &fout);
-void translateStmtType(sgs::AST *s, std::ofstream &fout);
-void translateFuncDefType(sgs::AST *s, std::ofstream &fout);
-void translateFuncProtoType(sgs::AST *s, std::ofstream &fout);
-void translateAST(vector<sgs::AST *>stmts, std::ofstream &fout);
-void translateToCPP(vector<sgs::AST *> stmts, const std::string& filename);
+
+void translateAssignStmt(sgs::Statement *s, std::ofstream &fout);
+void translateCallStmt(sgs::Statement *s, std::ofstream &fout);
+void translateBlockStmt(sgs::Statement *s, std::ofstream &fout);
+void translateIfStmt(sgs::Statement *s, std::ofstream &fout);
+void translateWhileStmt(sgs::Statement *s, std::ofstream &fout);
+
+void translateVarDec(sgs::AST *s, std::ofstream &fout);
+void translateClassDec(sgs::AST *s, std::ofstream &fout);
+void translateFuncDec(sgs::AST *s, std::ofstream &fout);
+void translateFuncDef(sgs::AST *s, std::ofstream &fout);
+void translateStmtExe(sgs::AST *s, std::ofstream &fout);
 
 #endif
 
